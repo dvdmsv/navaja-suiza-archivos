@@ -1,0 +1,27 @@
+<div class="container">
+    <h2>Subir PDF</h2>
+    <div class="mb-3">
+        <input #fileInput class="form-control" type="file" id="formFile" (change)="onFileSelected($event)" accept=".pdf">
+    </div>
+
+    <div>
+        <button (click)="onUpload()" type="button" class="btn btn-primary">Subir</button>
+        <button (click)="onClear()" type="button" class="btn btn-danger">Limpiar</button>
+    </div>
+
+    <h2>Combinar PDFs</h2>
+    <ul class="list-group">
+        <div *ngFor="let file of uploadedFiles">
+            <li class="list-group-item">{{file.name}}</li>
+        </div>
+    </ul>
+
+    <button *ngIf="uploadedFiles.length>0" (click)="onMerge()" type="button" class="btn btn-secondary">Combinar PDFs</button>
+
+    <div *ngIf="mergeResult">
+        <button class="btn btn-secondary" (click)="onDownload()">Descargar archivo combinado</button>
+    </div>
+</div>
+
+
+

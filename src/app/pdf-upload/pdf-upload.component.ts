@@ -1,5 +1,5 @@
 import { NgFor, NgIf } from '@angular/common';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient, HttpClientModule, HttpEventType } from '@angular/common/http';
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import Swal from 'sweetalert2';
 
@@ -17,8 +17,8 @@ export class PdfUploadComponent {
   uploadedFiles: File[] = [];
   mergeResult: any = null;
   mergeResultURL: string | null = null;
-  #url = 'https://dvdmsv.pythonanywhere.com'
-  url = 'http://localhost:5000'
+  url = 'https://dvdmsv.pythonanywhere.com'
+  #url = 'http://localhost:5000'
 
   constructor(private http: HttpClient){}
 
@@ -33,15 +33,56 @@ export class PdfUploadComponent {
     if (this.selectedFile) {
       const formData = new FormData();
       formData.append('file', this.selectedFile);
-      
-      this.http.post(this.url + '/upload', formData)
-        .subscribe(response => {
-          console.log(response);
-          this.uploadedFiles.push(this.selectedFile!);
-          this.fileInput.nativeElement.value = '';
-        });
+  
+      // Mostrar el mensaje de "Subiendo archivo..." con la barra de progreso
+      const swalInstance = Swal.fire({
+        text: 'Subiendo archivo...',
+        showConfirmButton: false,
+        allowOutsideClick: false, // Evitar que el usuario cierre la alerta
+        willOpen: () => {
+          Swal.showLoading(); // Mostrar el indicador de carga
+        },
+        html: `<div style="width: 100%; height: 20px; background-color: #f3f3f3;">
+                 <div id="progress-bar" style="height: 100%; width: 0%; background-color: #4db8ff;"></div>
+               </div>`, // Barra de progreso
+      });
+  
+      // Realizar la solicitud HTTP
+      this.http.post(this.url + '/upload', formData, {
+        observe: 'events', // Observar todos los eventos de la solicitud
+        reportProgress: true, // Habilitar reporte de progreso
+      })
+      .subscribe({
+        next: (event: any) => {
+          // Si se trata de un evento de progreso de subida
+          if (event.type === HttpEventType.UploadProgress && event.total) {
+            const progress = Math.round((100 * event.loaded) / event.total);
+            
+            // Actualizamos la barra de progreso en la interfaz
+            const progressBar = document.getElementById('progress-bar')!;
+            progressBar.style.width = `${progress}%`;
+          }
+         
+        },
+        complete: () => {
+          Swal.close();
+           // Guardamos el archivo subido en la lista
+           this.uploadedFiles.push(this.selectedFile!);
+           this.fileInput.nativeElement.value = ''; // Limpiar input del archivo
+        },
+        error: (err) => {
+          // Si ocurre un error en la subida
+          console.error('Error en la subida del archivo:', err);
+          Swal.fire({
+            text: 'Hubo un error al intentar subir el archivo.',
+            icon: 'error'
+          });
+        }
+      });
     }
   }
+  
+  
 
   onMerge() {
     const fileNames = this.uploadedFiles.map(file => file.name);

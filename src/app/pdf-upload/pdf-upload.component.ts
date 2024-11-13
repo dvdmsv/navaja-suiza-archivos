@@ -109,7 +109,7 @@ export class PdfUploadComponent {
         this.uploadedFiles = [];
         this.mergeResult = null;
         this.mergeResultURL = null;
-        window.location.reload();
+        // window.location.reload();
       },
       error: err => console.error('Error al limpiar la carpeta de subidas:', err)
     });

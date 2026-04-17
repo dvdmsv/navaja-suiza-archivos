@@ -1,21 +1,24 @@
 services:
   backend:
     build:
-      context: .
-      dockerfile: Dockerfile.backend
+      context: ./backend
     volumes:
-      - uploads_data:/app/uploads
-    restart: unless-stopped
+      - ./backend/uploads:/app/uploads
+    environment:
+      - FLASK_ENV=production
+    networks:
+      - app-network
 
   frontend:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ./frontend
     ports:
       - "8080:80"
     depends_on:
       - backend
-    restart: unless-stopped
+    networks:
+      - app-network
 
-volumes:
-  uploads_data:
+networks:
+  app-network:
+    driver: bridge

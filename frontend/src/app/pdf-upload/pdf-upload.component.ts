@@ -1,22 +1,21 @@
-import { NgFor, NgIf, NgSwitch, NgSwitchCase } from '@angular/common'; // ¡CLAVE: NgSwitch and NgSwitchCase importados!
+import { NgFor, NgIf, NgSwitch, NgSwitchCase } from '@angular/common';
 import { HttpClient, HttpClientModule, HttpEventType } from '@angular/common/http';
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import Swal from 'sweetalert2';
+// IMPORTANTE: Asegúrate de tener estos imports para el Drag & Drop
 import { CdkDragDrop, moveItemInArray, DragDropModule } from '@angular/cdk/drag-drop';
 
-/**
- * Interfaz para almacenar el archivo y su estado de subida.
- */
 interface UploadItem {
   file: File;
   isUploaded: boolean;
   uploading: boolean;
+  serverFilename?: string; // El ID único del sistema (UUID)
 }
 
 @Component({
   selector: 'app-pdf-upload',
   standalone: true,
-  // ¡CLAVE: NgSwitch y NgSwitchCase añadidos a imports!
+  // IMPORTANTE: DragDropModule debe estar aquí
   imports: [NgFor, HttpClientModule, NgIf, DragDropModule, NgSwitch, NgSwitchCase], 
   templateUrl: './pdf-upload.component.html',
   styleUrl: './pdf-upload.component.css'
@@ -26,7 +25,8 @@ export class PdfUploadComponent {
   
   uploadedFiles: UploadItem[] = [];
   mergeResult: any = null;
-  url = 'http://192.168.1.177:5000'
+  // Asegúrate de que esta IP sea correcta y accesible
+  url = ''
 
   constructor(private http: HttpClient){}
 
@@ -39,7 +39,6 @@ export class PdfUploadComponent {
         uploading: false,
       }));
 
-      // Solo añadimos los archivos seleccionados si no están ya en la lista
       newFiles.forEach(newItem => {
         const isDuplicate = this.uploadedFiles.some(existingItem => 
           existingItem.file.name === newItem.file.name && existingItem.file.size === newItem.file.size
@@ -49,7 +48,6 @@ export class PdfUploadComponent {
         }
       });
       
-      // Limpiamos el input file
       if (this.fileInput && this.fileInput.nativeElement) {
         this.fileInput.nativeElement.value = '';
       }
@@ -57,10 +55,11 @@ export class PdfUploadComponent {
   }
 
   onUpload() {
+    // Obtenemos los pendientes EN EL ORDEN ACTUAL DE LA LISTA
     const pendingItems = this.uploadedFiles.filter(item => !item.isUploaded);
 
     if (pendingItems.length === 0) {
-      Swal.fire({ text: 'No hay archivos pendientes de subir.', icon: 'warning' });
+      Swal.fire({ text: 'No hay archivos pendientes.', icon: 'warning' });
       return;
     }
 
@@ -70,7 +69,7 @@ export class PdfUploadComponent {
       item.uploading = true;
     });
 
-    const swalInstance = Swal.fire({
+    Swal.fire({
       text: 'Subiendo archivos...',
       showConfirmButton: false,
       allowOutsideClick: false,
@@ -91,45 +90,76 @@ export class PdfUploadComponent {
           const progressBar = document.getElementById('progress-bar');
           if(progressBar) progressBar.style.width = `${progress}%`;
         }
-      },
-      complete: () => {
-        Swal.close();
-        pendingItems.forEach(item => {
-          item.isUploaded = true;
-          item.uploading = false;
-        });
+        else if (event.type === HttpEventType.Response) {
+            Swal.close();
+            const responseBody = event.body as any;
+            
+            // CORRECCIÓN CRÍTICA: Mapeo por ÍNDICE
+            // El servidor procesa los archivos en el orden que se enviaron.
+            // pendingItems[0] corresponde a responseBody.uploaded[0].
+            if (responseBody.uploaded && Array.isArray(responseBody.uploaded)) {
+                responseBody.uploaded.forEach((serverItem: any, index: number) => {
+                    if (index < pendingItems.length) {
+                        const localItem = pendingItems[index];
+                        
+                        // Actualizamos el estado y guardamos el UUID
+                        localItem.isUploaded = true;
+                        localItem.uploading = false;
+                        localItem.serverFilename = serverItem.system_name;
+                        
+                        console.log(`Asignado ID ${localItem.serverFilename} a ${localItem.file.name}`);
+                    }
+                });
+            }
 
-        Swal.fire({ text: 'Archivos subidos con éxito.', icon: 'success', timer: 1500 });
+            Swal.fire({ text: 'Subida completa.', icon: 'success', timer: 1500 });
+        }
       },
       error: (err) => {
-        console.error('Error en la subida:', err);
-        Swal.fire({ text: 'Error al subir los archivos.', icon: 'error' });
-        pendingItems.forEach(item => {
-          item.uploading = false;
-        });
+        console.error('Error subida:', err);
+        Swal.fire({ text: 'Error al subir.', icon: 'error' });
+        pendingItems.forEach(item => item.uploading = false);
       }
     });
   }
 
+  // Esta función es la que actualiza el array visualmente
   drop(event: CdkDragDrop<UploadItem[]>) {
+    // Mueve el elemento en el array 'uploadedFiles'
     moveItemInArray(this.uploadedFiles, event.previousIndex, event.currentIndex);
+    
+    // Depuración: Verifica en consola que el orden ha cambiado
+    console.log('Nuevo orden visual:', this.uploadedFiles.map(f => f.file.name));
   }
 
   onMerge() {
+    // Validamos que no haya pendientes
     const nonUploaded = this.uploadedFiles.some(item => !item.isUploaded);
     if (nonUploaded) {
-        Swal.fire({ text: 'Hay archivos pendientes de subir. Sube todos antes de combinar.', icon: 'warning' });
+        Swal.fire({ text: 'Sube todos los archivos antes de combinar.', icon: 'warning' });
         return;
     }
     
-    const fileNames = this.uploadedFiles.map(item => item.file.name);
-    this.http.post(this.url + '/merge', { files: fileNames }).subscribe({
+    // Extraemos los IDs (serverFilename) en el orden actual de la lista
+    const fileIds = this.uploadedFiles
+        .map(item => item.serverFilename)
+        .filter(id => !!id); // Filtramos nulos o undefined por seguridad
+
+    console.log('Enviando a combinar (IDs ordenados):', fileIds);
+
+    if (fileIds.length === 0) {
+        Swal.fire({ text: 'No hay IDs válidos para combinar. Recarga la página e intenta de nuevo.', icon: 'error' });
+        return;
+    }
+    
+    this.http.post(this.url + '/merge', { files: fileIds }).subscribe({
       next: (response: any) => {
         this.mergeResult = response.output;
+        Swal.fire({ icon: 'success', title: '¡PDF Combinado!', timer: 1500 });
       },
-      error: err => console.error('Error merge:', err),
-      complete: () => {
-        Swal.fire({ icon: 'success', timer: 1500 })
+      error: err => {
+        console.error('Error merge:', err);
+        Swal.fire({ text: 'Error al combinar en el servidor.', icon: 'error' });
       }
     });
   }
@@ -139,22 +169,17 @@ export class PdfUploadComponent {
       next: () => {
         this.uploadedFiles = [];
         this.mergeResult = null;
-        if (this.fileInput && this.fileInput.nativeElement) {
-            this.fileInput.nativeElement.value = '';
-        }
-      },
-      error: err => console.error('Error limpiar:', err)
+        if (this.fileInput) this.fileInput.nativeElement.value = '';
+      }
     });
   }
 
   onDownload() {
     if (this.mergeResult) {
-      const downloadUrl = this.url + `/download/${this.mergeResult}`;
-      window.open(downloadUrl, '_blank');
+      window.open(this.url + `/download/${this.mergeResult}`, '_blank');
     }
   }
 
-  // Mueve la lógica de conteo a una función simple y fácil de usar en el HTML
   get pendingCount(): number {
     return this.uploadedFiles.filter(item => !item.isUploaded).length;
   }

@@ -17,8 +17,7 @@ export class PdfUploadComponent {
   uploadedFiles: File[] = [];
   mergeResult: any = null;
   mergeResultURL: string | null = null;
-  url = 'https://dvdmsv.pythonanywhere.com'
-  #url = 'http://localhost:5000'
+  url = ''
 
   constructor(private http: HttpClient){}
 

@@ -1,0 +1,54 @@
+<input #entrada type="file" class="d-none" [accept]="accept" [multiple]="multiple"
+       (change)="alSeleccionar($event)">
+
+<div class="zona"
+     [class.zona--activa]="arrastrando"
+     [class.zona--inerte]="deshabilitado"
+     role="button"
+     tabindex="0"
+     (click)="abrirSelector()"
+     (keydown.enter)="abrirSelector()"
+     (keydown.space)="abrirSelector()"
+     (dragover)="alArrastrarEncima($event)"
+     (dragleave)="alSalirArrastre($event)"
+     (drop)="alSoltar($event)">
+  <i class="bi bi-cloud-arrow-up fs-2 text-primary"></i>
+  <p class="mb-0 mt-2">{{ ayuda }}</p>
+  <p class="small text-body-secondary mb-0" *ngIf="accept">Formatos admitidos: {{ accept }}</p>
+</div>
+
+<ul class="list-group mt-3" *ngIf="items.length > 0"
+    cdkDropList [cdkDropListDisabled]="!ordenable || deshabilitado"
+    (cdkDropListDropped)="reordenar($event)">
+  <li class="list-group-item d-flex align-items-center gap-2"
+      *ngFor="let item of items; let i = index"
+      cdkDrag [cdkDragDisabled]="!ordenable || deshabilitado">
+
+    <i class="bi bi-grip-vertical text-body-secondary asa" *ngIf="ordenable"
+       aria-hidden="true" cdkDragHandle></i>
+
+    <span class="text-truncate flex-grow-1" [title]="item.file.name">{{ item.file.name }}</span>
+    <span class="small text-body-secondary flex-shrink-0">{{ item.file.size | peso }}</span>
+
+    <span class="badge flex-shrink-0"
+          [class.text-bg-secondary]="item.estado === 'local'"
+          [class.text-bg-info]="item.estado === 'subiendo'"
+          [class.text-bg-success]="item.estado === 'subido'"
+          [class.text-bg-danger]="item.estado === 'error'">
+      <ng-container [ngSwitch]="item.estado">
+        <span *ngSwitchCase="'local'">Sin subir</span>
+        <span *ngSwitchCase="'subiendo'">Subiendo…</span>
+        <span *ngSwitchCase="'subido'">Listo</span>
+        <span *ngSwitchCase="'error'">Error</span>
+      </ng-container>
+    </span>
+
+    <button type="button" class="btn btn-sm btn-link text-body-secondary p-0 flex-shrink-0"
+            [disabled]="deshabilitado" (click)="quitar(i)"
+            [attr.aria-label]="'Quitar ' + item.file.name">
+      <i class="bi bi-x-lg"></i>
+    </button>
+
+    <div class="hueco" *cdkDragPlaceholder></div>
+  </li>
+</ul>

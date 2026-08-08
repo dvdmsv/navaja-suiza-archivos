@@ -1,0 +1,27 @@
+<app-tool-page slug="unir-pdf">
+
+  <app-file-queue
+    [items]="archivos"
+    accept=".pdf"
+    [ordenable]="true"
+    [deshabilitado]="ocupado"
+    ayuda="Arrastra tus PDF aquí o haz clic para elegirlos"
+    (agregados)="alAgregar($event)"
+    (itemsChange)="alCambiarLista()">
+  </app-file-queue>
+
+  <p class="text-body-secondary small mt-3 mb-0" *ngIf="archivos.length > 1">
+    <i class="bi bi-info-circle me-1"></i>
+    Arrastra los archivos para cambiar el orden en el que se unirán.
+  </p>
+
+  <app-tool-controls [pagina]="pagina" accion="Combinar PDF" icono="bi-file-earmark-plus">
+  </app-tool-controls>
+
+  <p class="text-body-secondary small mt-2 mb-0" *ngIf="archivos.length === 1">
+    Añade al menos un PDF más para poder combinarlos.
+  </p>
+
+  <app-result-list [archivos]="resultados" [resumen]="resumen"></app-result-list>
+
+</app-tool-page>

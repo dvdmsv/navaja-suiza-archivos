@@ -1,29 +1,31 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+
 import { AppComponent } from './app.component';
+import { HERRAMIENTAS } from './core/tools';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
+      providers: [provideRouter([])],
     }).compileComponents();
   });
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+  it('se crea', () => {
+    expect(TestBed.createComponent(AppComponent).componentInstance).toBeTruthy();
   });
 
-  it(`should have the 'merge-pdf' title`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('merge-pdf');
-  });
-
-  it('should render title', () => {
+  it('sólo lista en el menú las herramientas disponibles', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, merge-pdf');
+
+    const enlaces = fixture.nativeElement.querySelectorAll('#menuPrincipal .nav-link');
+    const esperadas = HERRAMIENTAS.filter(h => h.disponible);
+
+    expect(enlaces.length).toBe(esperadas.length);
+    esperadas.forEach((herramienta, i) => {
+      expect(enlaces[i].textContent).toContain(herramienta.nombre);
+    });
   });
 });

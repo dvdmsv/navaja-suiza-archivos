@@ -1,1 +1,34 @@
-<app-pdf-upload></app-pdf-upload>
+<nav class="navbar navbar-expand-md border-bottom bg-body sticky-top">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center gap-2 fw-semibold" routerLink="/">
+      <i class="bi bi-tools text-primary"></i>
+      <span>Caja de herramientas</span>
+    </a>
+
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
+            data-bs-target="#menuPrincipal" aria-controls="menuPrincipal"
+            aria-expanded="false" aria-label="Abrir el menú">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="menuPrincipal">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item" *ngFor="let herramienta of herramientas">
+          <a class="nav-link" [routerLink]="rutaDe(herramienta)" routerLinkActive="active">
+            <i class="bi {{ herramienta.icono }} me-1"></i>{{ herramienta.nombre }}
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<main class="container py-4 py-md-5">
+  <router-outlet></router-outlet>
+</main>
+
+<footer class="border-top py-3 mt-auto">
+  <div class="container text-center text-body-secondary small">
+    Tus archivos se borran automáticamente del servidor pasadas 2 horas. · {{ anio }}
+  </div>
+</footer>

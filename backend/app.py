@@ -1,103 +1,38 @@
-from flask import Flask, request, jsonify, send_from_directory
+"""Punto de entrada de la API. Gunicorn usa el objeto ``app`` de este módulo."""
+import logging
+
+from flask import Flask, jsonify
 from flask_cors import CORS
-import os
-import uuid
-import time
-from PyPDF2 import PdfMerger, PdfReader
 
-app = Flask(__name__)
-CORS(app)
+import config
+from api import files
+from api import tools
+from errors import register_error_handlers
+from storage import storage, start_cleanup_thread
 
-UPLOAD_FOLDER = 'uploads'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    if 'files' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
+def create_app() -> Flask:
+    app = Flask(__name__)
+    app.config['MAX_CONTENT_LENGTH'] = config.MAX_CONTENT_LENGTH
 
-    files = request.files.getlist('files')
-    if not files or all(f.filename == '' for f in files):
-        return jsonify({'error': 'No selected file'}), 400
-    
-    uploaded_data = []
-    
-    for file in files:
-        if file and file.filename.lower().endswith('.pdf'):
-            # 1. Generamos ID único para el sistema
-            system_filename = f"{uuid.uuid4().hex}.pdf"
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], system_filename)
-            
-            # 2. Guardamos con el nombre raro
-            file.save(file_path)
-            
-            # 3. Guardamos la relación para devolverla al frontend
-            uploaded_data.append({
-                'original_name': file.filename,  # Para que el frontend sepa cuál es cual
-                'system_name': system_filename   # El ID que usaremos para el merge
-            })
-    
-    if uploaded_data:
-        # Devolvemos la lista de mapeos
-        return jsonify({
-            'message': 'Subida correcta',
-            'uploaded': uploaded_data 
-        }), 200
-    else:
-        return jsonify({'error': 'No se pudieron procesar los archivos'}), 400
+    # En producción el frontend se sirve tras el mismo nginx, así que CORS sólo
+    # hace falta para el `ng serve` de desarrollo.
+    CORS(app, expose_headers=['Content-Disposition'])
 
-@app.route('/merge', methods=['POST'])
-def merge_pdfs():
-    # AHORA esperamos los nombres de sistema (UUIDs), no los originales
-    system_filenames = request.json.get('files', [])
-    
-    if not system_filenames:
-        return jsonify({'error': 'No hay archivos para combinar'}), 400
+    register_error_handlers(app)
+    app.register_blueprint(files.bp)
+    tools.register(app)
 
-    merger = PdfMerger()
-    open_files = []
+    @app.get('/api/health')
+    def health():
+        return jsonify({'status': 'ok'})
 
-    try:
-        for filename in system_filenames:
-            filepath = os.path.join(UPLOAD_FOLDER, filename)
-            if os.path.exists(filepath):
-                f = open(filepath, 'rb')
-                open_files.append(f)
-                merger.append(PdfReader(f))
-            else:
-                print(f"Archivo no encontrado en servidor: {filepath}")
+    start_cleanup_thread(storage, config.CLEANUP_INTERVAL_SECONDS, app.logger)
+    return app
 
-        output_filename = f"merged_{int(time.time())}_{uuid.uuid4().hex[:6]}.pdf"
-        output_path = os.path.join(UPLOAD_FOLDER, output_filename)
 
-        with open(output_path, 'wb') as f_out:
-            merger.write(f_out)
-        
-        return jsonify({'message': 'OK', 'output': output_filename}), 200
-
-    except Exception as e:
-        print(f"Error merge: {e}")
-        return jsonify({'error': str(e)}), 500
-    finally:
-        for f in open_files: f.close()
-        merger.close()
-
-# ... (El resto de endpoints clear_uploads, download y hola siguen igual)
-@app.route('/clear_uploads', methods=['POST'])
-def clear_uploads():
-    for f in os.listdir(UPLOAD_FOLDER):
-        try:
-            file_path = os.path.join(UPLOAD_FOLDER, f)
-            if os.path.isfile(file_path):
-                os.remove(file_path)
-        except: pass
-    return jsonify({'message': 'Limpiado'}), 200
-
-@app.route('/download/<filename>', methods=['GET'])
-def download_file(filename):
-    if '..' in filename or filename.startswith('/'): return jsonify({'error': 'Invalido'}), 400
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
+logging.basicConfig(level=logging.INFO)
+app = create_app()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

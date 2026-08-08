@@ -1,1 +1,43 @@
-/* You can add global styles to this file, and also import other style files */
+/* Estilos globales. Encima de Bootstrap, sólo lo justo para que la interfaz
+   respire y funcione en claro y oscuro. */
+
+:root {
+  --toolbox-ancho-contenido: 720px;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  /* El pie de página se queda abajo aunque la página tenga poco contenido. */
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  -webkit-font-smoothing: antialiased;
+}
+
+app-root {
+  display: contents;
+}
+
+main {
+  flex: 1 0 auto;
+}
+
+/* Ancho cómodo de lectura para el contenido de cada herramienta. */
+.contenido-estrecho {
+  max-width: var(--toolbox-ancho-contenido);
+  margin-inline: auto;
+}
+
+/* Respeta a quien haya pedido menos animación en su sistema. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

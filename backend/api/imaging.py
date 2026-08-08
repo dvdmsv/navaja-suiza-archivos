@@ -1,0 +1,84 @@
+"""Operaciones de imagen compartidas por las herramientas.
+
+Concentra las tres decisiones que se repiten al guardar: respetar la orientación
+de la cámara, adaptar el modo de color al formato de destino y elegir las
+opciones de guardado de cada formato.
+"""
+from PIL import Image, ImageOps
+
+from api.formatos import CON_CALIDAD, SIN_TRANSPARENCIA
+from errors import ApiError
+
+# Fondo para las imágenes con transparencia que van a un formato sin alfa.
+FONDO = (255, 255, 255)
+
+# Por debajo de esta calidad, en PNG compensa reducir la paleta de colores.
+UMBRAL_PALETA = 60
+
+
+def abrir(ruta: str, nombre: str) -> Image.Image:
+    """Abre una imagen aplicando la rotación que indique su EXIF."""
+    try:
+        imagen = Image.open(ruta)
+        imagen.load()
+        # Sin esto, las fotos de móvil salen giradas al recomprimirlas. Se hace
+        # sobre la misma imagen para no dejar abierto el archivo original y para
+        # conservar su `.format`, que indica en qué formato venía.
+        ImageOps.exif_transpose(imagen, in_place=True)
+    except Exception as err:
+        raise ApiError(f'No se ha podido leer "{nombre}": no parece una imagen válida.', 422) from err
+    return imagen
+
+
+def redimensionar(imagen: Image.Image, lado_maximo: int) -> Image.Image:
+    """Reduce la imagen para que su lado mayor no pase de `lado_maximo`."""
+    if lado_maximo > 0 and max(imagen.size) > lado_maximo:
+        imagen.thumbnail((lado_maximo, lado_maximo), Image.LANCZOS)
+    return imagen
+
+
+def guardar(imagen: Image.Image, destino: str, formato: str, calidad: int) -> None:
+    """Escribe la imagen en el formato pedido con opciones sensatas."""
+    preparada = _adaptar_modo(imagen, formato)
+    opciones: dict = {}
+
+    if formato in CON_CALIDAD:
+        opciones['quality'] = calidad
+        opciones['optimize'] = True
+        if formato == 'JPEG':
+            opciones['progressive'] = True
+        if formato == 'WEBP':
+            opciones.pop('optimize', None)
+            opciones['method'] = 4
+    elif formato == 'PNG':
+        opciones['optimize'] = True
+        opciones['compress_level'] = 9
+        if calidad < UMBRAL_PALETA and preparada.mode == 'RGB':
+            # Reducir la paleta baja mucho el peso sin tocar el formato.
+            colores = max(16, int(256 * calidad / UMBRAL_PALETA))
+            preparada = preparada.quantize(colors=colores, method=Image.MEDIANCUT)
+    elif formato == 'TIFF':
+        opciones['compression'] = 'tiff_deflate'
+
+    try:
+        preparada.save(destino, formato, **opciones)
+    except OSError as err:
+        raise ApiError(f'No se ha podido guardar la imagen: {err}', 422) from err
+
+
+def _adaptar_modo(imagen: Image.Image, formato: str) -> Image.Image:
+    """Ajusta el modo de color a lo que el formato de destino admite."""
+    tiene_alfa = imagen.mode in ('RGBA', 'LA', 'PA') or 'transparency' in imagen.info
+
+    if formato in SIN_TRANSPARENCIA:
+        if tiene_alfa:
+            # Sin esto, las zonas transparentes se volverían negras.
+            fondo = Image.new('RGB', imagen.size, FONDO)
+            conversion = imagen.convert('RGBA')
+            fondo.paste(conversion, mask=conversion.split()[-1])
+            return fondo
+        return imagen.convert('RGB') if imagen.mode != 'RGB' else imagen
+
+    if imagen.mode in ('P', 'CMYK', 'LA', 'PA'):
+        return imagen.convert('RGBA' if tiene_alfa else 'RGB')
+    return imagen

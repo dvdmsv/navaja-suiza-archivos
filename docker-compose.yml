@@ -13,7 +13,7 @@ services:
     build:
       context: ./frontend
     ports:
-      - "8080:80"
+      - "8082:80"
     depends_on:
       - backend
     networks:

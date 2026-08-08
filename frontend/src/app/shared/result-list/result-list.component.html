@@ -1,0 +1,36 @@
+<section class="card border-success mt-4" *ngIf="archivos.length > 0">
+  <div class="card-header bg-success-subtle border-success d-flex flex-wrap align-items-center gap-2">
+    <i class="bi bi-check-circle-fill text-success"></i>
+    <strong class="me-auto">
+      {{ archivos.length === 1 ? 'Tu archivo está listo' : 'Tus ' + archivos.length + ' archivos están listos' }}
+    </strong>
+
+    <span class="badge text-bg-success" *ngIf="ahorro as porcentaje">
+      {{ porcentaje }} % menos de peso
+    </span>
+  </div>
+
+  <p class="small text-body-secondary px-3 pt-3 mb-0" *ngIf="resumen">
+    De {{ resumen.antes | peso }} a {{ resumen.despues | peso }}.
+  </p>
+
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item d-flex align-items-center gap-2" *ngFor="let archivo of archivos">
+      <i class="bi bi-file-earmark-check text-success"></i>
+      <span class="text-truncate flex-grow-1" [title]="archivo.name">{{ archivo.name }}</span>
+      <span class="small text-body-secondary flex-shrink-0">{{ archivo.size | peso }}</span>
+      <button type="button" class="btn btn-sm btn-outline-success flex-shrink-0"
+              (click)="descargar(archivo)">
+        <i class="bi bi-download"></i><span class="visually-hidden">Descargar {{ archivo.name }}</span>
+      </button>
+    </li>
+  </ul>
+
+  <div class="card-body" *ngIf="archivos.length > 1">
+    <button type="button" class="btn btn-success" [disabled]="empaquetando" (click)="descargarTodo()">
+      <span class="spinner-border spinner-border-sm me-1" *ngIf="empaquetando" aria-hidden="true"></span>
+      <i class="bi bi-file-earmark-zip me-1" *ngIf="!empaquetando"></i>
+      Descargar todo en un ZIP
+    </button>
+  </div>
+</section>

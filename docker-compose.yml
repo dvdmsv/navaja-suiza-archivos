@@ -1,5 +1,6 @@
 services:
   backend:
+    restart: unless-stopped
     build:
       context: ./backend
     volumes:
@@ -10,6 +11,7 @@ services:
       - app-network
 
   frontend:
+    restart: unless-stopped
     build:
       context: ./frontend
     ports:

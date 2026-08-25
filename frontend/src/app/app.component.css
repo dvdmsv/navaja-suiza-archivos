@@ -2,6 +2,21 @@
   backdrop-filter: blur(6px);
 }
 
+/*
+ * Con siete herramientas el menú ya no cabe de una tirada en pantallas
+ * medianas. Cada nombre se mantiene entero (`nowrap`) y es la lista la que
+ * pasa a una segunda línea si hace falta: así no se parten las palabras ni
+ * aparece scroll horizontal.
+ */
+.nav-link {
+  white-space: nowrap;
+}
+
+.navbar-nav {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .nav-link.active {
   color: var(--bs-primary);
   font-weight: 500;
@@ -12,9 +27,9 @@
  *
  * La fila del grid pasa de 0fr a 1fr, que sí es animable, y así no hace falta
  * medir la altura del contenido como hacía Bootstrap. A partir de `md` manda
- * `.navbar-expand-md .navbar-collapse`, que lo muestra siempre.
+ * `.navbar-expand-lg .navbar-collapse`, que lo muestra siempre.
  */
-@media (max-width: 767.98px) {
+@media (max-width: 991.98px) {
   .menu-plegable {
     display: grid;
     grid-template-rows: 0fr;
@@ -33,10 +48,6 @@
   .menu-plegable > * {
     min-height: 0;
     overflow: hidden;
-    /* El `ms-auto` de la lista es inofensivo en el bloque de Bootstrap, pero
-       dentro de un grid empuja el menú a la derecha y lo deja del ancho de su
-       contenido. Apilado tiene que ocupar todo el ancho. */
-    margin-inline-start: 0;
   }
 }
 

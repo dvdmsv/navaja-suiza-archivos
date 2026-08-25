@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-md border-bottom bg-body sticky-top">
+<nav class="navbar navbar-expand-lg border-bottom bg-body sticky-top">
   <div class="container">
     <a class="navbar-brand d-flex align-items-center gap-2 fw-semibold" routerLink="/">
       <i class="bi bi-tools text-primary"></i>
@@ -12,7 +12,7 @@
     </button>
 
     <div class="navbar-collapse menu-plegable" id="menuPrincipal" [class.abierto]="menuAbierto">
-      <ul class="navbar-nav ms-auto">
+      <ul class="navbar-nav">
         <li class="nav-item" *ngFor="let herramienta of herramientas">
           <a class="nav-link" [routerLink]="rutaDe(herramienta)" routerLinkActive="active"
              (click)="menuAbierto = false">

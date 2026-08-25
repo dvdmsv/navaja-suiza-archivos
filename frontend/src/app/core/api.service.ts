@@ -71,10 +71,13 @@ export class ApiService {
       .pipe(map(respuesta => respuesta.files[0]));
   }
 
-  /** Formatos de imagen disponibles en esta instalación del servidor. */
-  formatosDeImagen(): Observable<FormatoImagen[]> {
+  /**
+   * Formatos disponibles en esta instalación del servidor. Cada herramienta
+   * ofrece los suyos: "pdf-a-imagen" no incluye PDF, por ejemplo.
+   */
+  formatosDeImagen(slug = 'convertir-imagen'): Observable<FormatoImagen[]> {
     return this.http
-      .get<{ formatos: FormatoImagen[] }>('/api/tools/convertir-imagen/formatos')
+      .get<{ formatos: FormatoImagen[] }>(`/api/tools/${slug}/formatos`)
       .pipe(map(respuesta => respuesta.formatos));
   }
 

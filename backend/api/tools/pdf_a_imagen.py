@@ -1,4 +1,4 @@
-"""Herramienta: convertir cada página de un PDF en una imagen JPG."""
+"""Herramienta: convertir cada página de un PDF en una imagen."""
 import io
 import os
 
@@ -6,28 +6,40 @@ import fitz  # PyMuPDF
 from PIL import Image
 from flask import Blueprint, jsonify
 
-from api import current_session, params
+from api import current_session, imaging, params
+from api.formatos import extension_de, salidas_de_imagen
 from errors import ApiError
 from storage import storage, nombre_seguro
 
-bp = Blueprint('pdf_a_jpg', __name__, url_prefix='/api/tools')
+bp = Blueprint('pdf_a_imagen', __name__, url_prefix='/api/tools')
 
 # Resoluciones ofrecidas, en puntos por pulgada.
 RESOLUCIONES = {'pantalla': 96, 'normal': 150, 'alta': 300}
 
-CALIDAD_JPG = 90
+CALIDAD_MINIMA, CALIDAD_MAXIMA, CALIDAD_POR_DEFECTO = 20, 100, 90
 
 # Un PDF largo a 300 ppp puede generar cientos de megas: mejor un límite claro
 # que un servidor sin memoria.
 MAXIMO_PAGINAS = 200
 
 
-@bp.post('/pdf-a-jpg')
-def pdf_a_jpg():
+@bp.get('/pdf-a-imagen/formatos')
+def formatos():
+    """Formatos de imagen que puede escribir esta instalación (PDF aparte)."""
+    return jsonify({'formatos': salidas_de_imagen()})
+
+
+@bp.post('/pdf-a-imagen')
+def pdf_a_imagen():
     session_id = current_session()
     datos = params.cuerpo()
     file_ids = params.ids(datos, minimo=1, mensaje='Selecciona un PDF.')
     ppp = RESOLUCIONES[params.opcion(datos, 'resolucion', RESOLUCIONES, 'normal')]
+
+    admitidos = {f['id'] for f in salidas_de_imagen()}
+    formato = params.opcion(datos, 'formato', admitidos, 'JPEG')
+    calidad = params.entero(datos, 'calidad', CALIDAD_POR_DEFECTO, CALIDAD_MINIMA, CALIDAD_MAXIMA)
+    extension = extension_de(formato)
 
     record = storage.record_of(session_id, file_ids[0])
     if record.ext != '.pdf':
@@ -53,21 +65,21 @@ def pdf_a_jpg():
         resultados = []
 
         for numero, pagina in enumerate(documento, start=1):
-            nombre = f'{base}-pagina-{numero:0{ancho}d}.jpg'
+            nombre = f'{base}-pagina-{numero:0{ancho}d}{extension}'
             destino, salida = storage.reserve_output(session_id, nombre)
-            _guardar_pagina(pagina, ppp, destino)
+            _guardar_pagina(pagina, ppp, destino, formato, calidad)
             resultados.append(storage.commit_output(session_id, salida).to_json())
 
     return jsonify({'files': resultados}), 201
 
 
-def _guardar_pagina(pagina, ppp: int, destino: str) -> None:
-    """Rasteriza una página y la escribe como JPG.
+def _guardar_pagina(pagina, ppp: int, destino: str, formato: str, calidad: int) -> None:
+    """Rasteriza una página y la escribe en el formato pedido.
 
-    El pixmap pasa por Pillow porque es quien permite controlar la calidad del
-    JPG; PyMuPDF sólo guardaría con sus valores por defecto.
+    El pixmap pasa por Pillow porque es quien conoce las opciones de guardado de
+    cada formato; PyMuPDF sólo sabría escribir unos pocos y con sus valores por
+    defecto.
     """
     pixmap = pagina.get_pixmap(dpi=ppp, alpha=False)
     with Image.open(io.BytesIO(pixmap.tobytes('ppm'))) as imagen:
-        imagen.convert('RGB').save(destino, 'JPEG', quality=CALIDAD_JPG, optimize=True,
-                                   progressive=True)
+        imaging.guardar(imagen, destino, formato, calidad)

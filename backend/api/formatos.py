@@ -36,6 +36,11 @@ def salidas_disponibles() -> list[dict]:
     ]
 
 
+def salidas_de_imagen() -> list[dict]:
+    """Como `salidas_disponibles`, pero sin PDF: para quien ya parte de un PDF."""
+    return [formato for formato in salidas_disponibles() if formato['id'] != 'PDF']
+
+
 def extension_de(formato: str) -> str:
     for pillow, ext, _ in _CANDIDATOS_SALIDA:
         if pillow == formato:

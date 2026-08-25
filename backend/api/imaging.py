@@ -39,7 +39,7 @@ def redimensionar(imagen: Image.Image, lado_maximo: int) -> Image.Image:
 
 def guardar(imagen: Image.Image, destino: str, formato: str, calidad: int) -> None:
     """Escribe la imagen en el formato pedido con opciones sensatas."""
-    preparada = _adaptar_modo(imagen, formato)
+    preparada = adaptar_modo(imagen, formato)
     opciones: dict = {}
 
     if formato in CON_CALIDAD:
@@ -66,8 +66,12 @@ def guardar(imagen: Image.Image, destino: str, formato: str, calidad: int) -> No
         raise ApiError(f'No se ha podido guardar la imagen: {err}', 422) from err
 
 
-def _adaptar_modo(imagen: Image.Image, formato: str) -> Image.Image:
-    """Ajusta el modo de color a lo que el formato de destino admite."""
+def adaptar_modo(imagen: Image.Image, formato: str) -> Image.Image:
+    """Ajusta el modo de color a lo que el formato de destino admite.
+
+    Con formato ``PDF`` devuelve siempre RGB sin transparencia, que es lo que
+    necesita quien componga páginas a mano.
+    """
     tiene_alfa = imagen.mode in ('RGBA', 'LA', 'PA') or 'transparency' in imagen.info
 
     if formato in SIN_TRANSPARENCIA:

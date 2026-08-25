@@ -1,0 +1,56 @@
+<app-tool-page slug="pdf-a-imagen">
+
+  <app-file-queue
+    [items]="archivos"
+    accept=".pdf"
+    [multiple]="false"
+    [deshabilitado]="ocupado"
+    ayuda="Arrastra tu PDF aquí o haz clic para elegirlo"
+    (agregados)="alAgregar($event)"
+    (itemsChange)="alCambiarLista()">
+  </app-file-queue>
+
+  <div class="mt-4">
+    <label class="form-label h6 mb-2">Formato de las imágenes</label>
+    <div class="d-flex flex-wrap gap-2">
+      <ng-container *ngFor="let opcion of formatos">
+        <input type="radio" class="btn-check" name="formato" [id]="'fmt-' + opcion.id"
+               [value]="opcion.id" [disabled]="ocupado"
+               [(ngModel)]="formato" (change)="alCambiarLista()">
+        <label class="btn btn-outline-primary" [for]="'fmt-' + opcion.id">{{ opcion.nombre }}</label>
+      </ng-container>
+    </div>
+    <p class="form-text" *ngIf="formatos.length === 0">Cargando formatos disponibles…</p>
+  </div>
+
+  <fieldset class="mt-4">
+    <legend class="h6">Resolución</legend>
+    <div class="row g-2">
+      <div class="col-12 col-sm-4" *ngFor="let opcion of resoluciones">
+        <input type="radio" class="btn-check" name="resolucion" [id]="'res-' + opcion.id"
+               [checked]="resolucion === opcion.id" [disabled]="ocupado"
+               (change)="elegirResolucion(opcion.id)">
+        <label class="btn btn-outline-primary w-100 text-start" [for]="'res-' + opcion.id">
+          <span class="d-block fw-semibold">{{ opcion.nombre }}</span>
+          <small class="text-body-secondary">{{ opcion.detalle }}</small>
+        </label>
+      </div>
+    </div>
+  </fieldset>
+
+  <div class="mt-4" *ngIf="admiteCalidad">
+    <label for="calidad" class="form-label h6 mb-1">
+      Calidad: <span class="fw-normal">{{ calidad }} %</span>
+    </label>
+    <input type="range" class="form-range" id="calidad" min="20" max="100" step="5"
+           [disabled]="ocupado" [(ngModel)]="calidad" (change)="alCambiarLista()">
+    <p class="form-text mt-0">Más calidad, más peso.</p>
+  </div>
+
+  <app-tool-controls [pagina]="pagina" [accion]="'Convertir a ' + etiquetaFormato"
+                     icono="bi-file-earmark-image">
+  </app-tool-controls>
+
+  <app-result-list [archivos]="resultados" [nombreZip]="nombreZip"></app-result-list>
+
+</app-tool-page>

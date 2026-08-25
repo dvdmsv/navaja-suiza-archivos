@@ -34,7 +34,7 @@ def convertir_imagen():
     for file_id in file_ids:
         record = storage.record_of(session_id, file_id)
         if record.ext == '.pdf':
-            raise ApiError(f'"{record.name}" es un PDF. Usa la herramienta de PDF a JPG.', 400)
+            raise ApiError(f'"{record.name}" es un PDF. Usa la herramienta de PDF a imagen.', 400)
         ruta = storage.path_of(session_id, file_id)
 
         base = os.path.splitext(nombre_seguro(record.name))[0]

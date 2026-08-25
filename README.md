@@ -13,19 +13,27 @@ El procesado ocurre en el servidor; el navegador sólo sube, ordena y descarga.
 | Herramienta | Qué hace | Opciones |
 |---|---|---|
 | Unir PDF | Combina varios PDF en uno | orden por arrastre |
-| PDF a JPG | Una imagen por página | 96, 150 o 300 ppp |
+| PDF a imagen | Una imagen por página | formato de salida, 96/150/300 ppp y calidad |
 | Comprimir PDF | Recomprime las imágenes del documento | suave, media, fuerte |
 | Comprimir imagen | Baja el peso de varias imágenes a la vez | calidad y tamaño máximo |
 | Convertir imagen | Cambia de formato | JPG, PNG, WebP, TIFF, BMP, PDF |
+| Imagen a PDF | Reúne varias imágenes en un PDF | tamaño de página, orientación, margen y calidad |
 
 Las herramientas de imagen aceptan varios archivos y ofrecen descargar todo en un
 ZIP. "Comprimir PDF" nunca devuelve un archivo más pesado que el original: si la
 compresión no mejora nada (porque el PDF ya venía optimizado), entrega el
 original.
 
-Los formatos de destino de "convertir imagen" no están escritos a mano: se le
-preguntan a Pillow en el arranque, así que la interfaz nunca ofrece uno que
-después falle al guardar.
+Los formatos de destino no están escritos a mano: se le preguntan a Pillow en el
+arranque, así que la interfaz nunca ofrece uno que después falle al guardar.
+"PDF a imagen" ofrece la misma lista sin PDF, y admite cualquier formato de
+salida disponible; "Imagen a PDF" acepta como entrada todo lo que Pillow sepa
+abrir en esta instalación.
+
+"Imagen a PDF" compone el documento con PyMuPDF: cada imagen entra en su página
+ya comprimida, centrada y sin deformar. Con el tamaño "como la imagen" la página
+mide lo que la imagen (según sus ppp, o 96 si no los declara) y se limita a unos
+70 cm de lado para que un JPG de muchos megapíxeles no acabe siendo un póster.
 
 ## Puesta en marcha
 
@@ -99,6 +107,7 @@ Las sesiones sin actividad se eliminan solas (2 horas por defecto,
 | `DELETE` | `/api/session` | borrar todos los archivos de la sesión |
 | `POST` | `/api/tools/<slug>` | ejecutar una herramienta |
 | `GET` | `/api/tools/convertir-imagen/formatos` | formatos de imagen disponibles |
+| `GET` | `/api/tools/pdf-a-imagen/formatos` | los mismos, sin PDF |
 | `GET` | `/api/health` | comprobación de estado |
 
 Todas las herramientas reciben `{"file_ids": [...]}` más sus propias opciones y

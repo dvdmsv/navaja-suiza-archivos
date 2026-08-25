@@ -18,10 +18,10 @@ export const routes: Routes = [
       import('./pages/tools/unir-pdf/unir-pdf.component').then(m => m.UnirPdfComponent),
   },
   {
-    path: 'herramientas/pdf-a-jpg',
-    title: 'PDF a JPG',
+    path: 'herramientas/pdf-a-imagen',
+    title: 'PDF a imagen',
     loadComponent: () =>
-      import('./pages/tools/pdf-a-jpg/pdf-a-jpg.component').then(m => m.PdfAJpgComponent),
+      import('./pages/tools/pdf-a-imagen/pdf-a-imagen.component').then(m => m.PdfAImagenComponent),
   },
   {
     path: 'herramientas/comprimir-pdf',
@@ -42,6 +42,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/tools/convertir-imagen/convertir-imagen.component')
         .then(m => m.ConvertirImagenComponent),
+  },
+  {
+    path: 'herramientas/imagen-a-pdf',
+    title: 'Imagen a PDF',
+    loadComponent: () =>
+      import('./pages/tools/imagen-a-pdf/imagen-a-pdf.component').then(m => m.ImagenAPdfComponent),
   },
   { path: '**', redirectTo: '' },
 ];

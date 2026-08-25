@@ -33,6 +33,10 @@
   .menu-plegable > * {
     min-height: 0;
     overflow: hidden;
+    /* El `ms-auto` de la lista es inofensivo en el bloque de Bootstrap, pero
+       dentro de un grid empuja el menú a la derecha y lo deja del ancho de su
+       contenido. Apilado tiene que ocupar todo el ancho. */
+    margin-inline-start: 0;
   }
 }
 

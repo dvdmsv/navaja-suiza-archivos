@@ -105,6 +105,14 @@ export class ApiService {
       .pipe(map(blob => guardarComo(blob, archivo.name)));
   }
 
+  /**
+   * Cambia el nombre con el que se descargará un archivo. La extensión la
+   * conserva el servidor, así que da igual si el nombre nuevo la lleva o no.
+   */
+  renombrar(id: string, nombre: string): Observable<ArchivoServidor> {
+    return this.http.patch<ArchivoServidor>(`/api/files/${id}`, { name: nombre });
+  }
+
   /** Elimina un archivo concreto del servidor. */
   eliminar(id: string): Observable<void> {
     return this.http.delete<void>(`/api/files/${id}`);

@@ -20,8 +20,13 @@ El procesado ocurre en el servidor; el navegador sólo sube, ordena y descarga.
 | Convertir imagen | Cambia de formato | JPG, PNG, WebP, TIFF, BMP, PDF |
 | Imagen a PDF | Reúne varias imágenes en un PDF | tamaño de página, orientación, margen y calidad |
 
+Cualquier resultado se puede renombrar antes de descargarlo, con el lápiz que
+hay junto a su nombre: como la lista de resultados es la misma para todas, la
+opción está en todas las herramientas. La extensión la conserva el servidor, así
+que un PDF sigue siendo un PDF por mucho que se le cambie el nombre.
+
 Las herramientas de imagen aceptan varios archivos y ofrecen descargar todo en un
-ZIP. "Comprimir PDF" nunca devuelve un archivo más pesado que el original: si la
+ZIP, cuyo nombre también se puede cambiar. "Comprimir PDF" nunca devuelve un archivo más pesado que el original: si la
 compresión no mejora nada (porque el PDF ya venía optimizado), entrega el
 original.
 
@@ -118,6 +123,7 @@ Las sesiones sin actividad se eliminan solas (2 horas por defecto,
 | `POST` | `/api/files` | subir archivos (`multipart/form-data`, campo `files`) |
 | `POST` | `/api/files/zip` | empaquetar varios resultados en un ZIP |
 | `GET` | `/api/files/<id>/download` | descargar un archivo |
+| `PATCH` | `/api/files/<id>` | cambiar el nombre de descarga (la extensión no se toca) |
 | `DELETE` | `/api/files/<id>` | borrar un archivo |
 | `DELETE` | `/api/session` | borrar todos los archivos de la sesión |
 | `POST` | `/api/tools/<slug>` | ejecutar una herramienta |

@@ -155,6 +155,18 @@ class Storage:
         record.size = os.path.getsize(path)
         return self._write_meta(session_id, record)
 
+    def rename(self, session_id: str, file_id: str, nombre: str) -> FileRecord:
+        """Cambia el nombre con el que se descargará un archivo.
+
+        El binario del disco no se toca —siempre se llama ``<id><ext>``—: sólo
+        cambia el metadato que se usa al descargar y al armar un ZIP. La
+        extensión se conserva, porque la decide la herramienta que generó el
+        archivo y cambiarla sólo serviría para engañar a quien lo abra.
+        """
+        record = self.record_of(session_id, file_id)
+        record.name = cambiar_extension(nombre, record.ext)
+        return self._write_meta(session_id, record)
+
     def _write_meta(self, session_id: str, record: FileRecord) -> FileRecord:
         meta_path = os.path.join(self.session_dir(session_id), f'{record.id}.json')
         with open(meta_path, 'w', encoding='utf-8') as fh:

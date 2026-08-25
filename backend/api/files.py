@@ -67,6 +67,16 @@ def download_file(file_id: str):
     return send_file(path, as_attachment=True, download_name=record.name)
 
 
+@bp.patch('/files/<file_id>')
+def rename_file(file_id: str):
+    """Cambia el nombre con el que se descargará un archivo ya generado."""
+    session_id = current_session()
+    nombre = params.cuerpo().get('name')
+    if not isinstance(nombre, str) or not nombre.strip():
+        raise ApiError('Escribe un nombre para el archivo.', 400)
+    return jsonify(storage.rename(session_id, file_id, nombre).to_json())
+
+
 @bp.delete('/files/<file_id>')
 def delete_file(file_id: str):
     session_id = current_session()

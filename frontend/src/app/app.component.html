@@ -5,16 +5,17 @@
       <span>Caja de herramientas</span>
     </a>
 
-    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
-            data-bs-target="#menuPrincipal" aria-controls="menuPrincipal"
-            aria-expanded="false" aria-label="Abrir el menú">
+    <button class="navbar-toggler border-0" type="button" (click)="menuAbierto = !menuAbierto"
+            aria-controls="menuPrincipal" [attr.aria-expanded]="menuAbierto"
+            aria-label="Abrir el menú">
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <div class="collapse navbar-collapse" id="menuPrincipal">
+    <div class="collapse navbar-collapse" id="menuPrincipal" [class.show]="menuAbierto">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item" *ngFor="let herramienta of herramientas">
-          <a class="nav-link" [routerLink]="rutaDe(herramienta)" routerLinkActive="active">
+          <a class="nav-link" [routerLink]="rutaDe(herramienta)" routerLinkActive="active"
+             (click)="menuAbierto = false">
             <i class="bi {{ herramienta.icono }} me-1"></i>{{ herramienta.nombre }}
           </a>
         </li>

@@ -13,6 +13,13 @@ import { HERRAMIENTAS, Herramienta, rutaDe } from './core/tools';
 })
 export class AppComponent {
   readonly anio = new Date().getFullYear();
+
+  /**
+   * Estado del menú en pantallas estrechas. Lo lleva Angular y no el JavaScript
+   * de Bootstrap, que no se carga: sólo se usaba para esto.
+   */
+  menuAbierto = false;
+
   /** Sólo las operativas aparecen en el menú; el resto vive en la portada. */
   readonly herramientas = HERRAMIENTAS.filter(h => h.disponible);
 

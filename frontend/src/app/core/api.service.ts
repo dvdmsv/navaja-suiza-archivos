@@ -82,6 +82,20 @@ export class ApiService {
   }
 
   /**
+   * Firma ya procesada (fondo recortado), como URL lista para un `<img>`.
+   *
+   * La prepara el servidor y no el navegador para que la vista previa enseñe
+   * exactamente los píxeles que se van a estampar en el documento.
+   */
+  prepararFirma(id: string, quitarFondo: boolean, umbral: number): Observable<string> {
+    return this.http
+      .post('/api/tools/firmar/preparar',
+            { firma_id: id, quitar_fondo: quitarFondo, umbral },
+            { responseType: 'blob' })
+      .pipe(map(blob => URL.createObjectURL(blob)));
+  }
+
+  /**
    * Descarga un archivo. Va por HttpClient (y no por `window.open`) porque la
    * petición necesita la cabecera de sesión, que una navegación no envía.
    */

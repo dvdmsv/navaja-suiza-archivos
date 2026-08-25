@@ -1,0 +1,23 @@
+<div class="lienzo" #lienzo (pointermove)="mover($event)" (pointerup)="soltar()"
+     (pointercancel)="soltar()">
+  <img class="pagina" [src]="fondo" alt="Página del documento">
+
+  <div class="marco" *ngIf="firma"
+       [class.marco--quieto]="deshabilitado"
+       [style.left.%]="colocacion.x * 100"
+       [style.top.%]="colocacion.y * 100"
+       [style.width.%]="colocacion.ancho * 100"
+       [style.transform]="transformacion"
+       (pointerdown)="empezar($event, 'mover')">
+
+    <img class="estampa" [src]="firma" alt="Firma">
+
+    <ng-container *ngIf="!deshabilitado">
+      <span class="tirador tirador--{{ esquina }}" *ngFor="let esquina of esquinas"
+            (pointerdown)="empezar($event, 'escalar')"></span>
+      <span class="tirador tirador--giro" (pointerdown)="empezar($event, 'rotar')">
+        <i class="bi bi-arrow-repeat"></i>
+      </span>
+    </ng-container>
+  </div>
+</div>

@@ -4,7 +4,7 @@ Concentra las tres decisiones que se repiten al guardar: respetar la orientació
 de la cámara, adaptar el modo de color al formato de destino y elegir las
 opciones de guardado de cada formato.
 """
-from PIL import Image, ImageOps
+from PIL import Image, ImageChops, ImageOps
 
 from api.formatos import CON_CALIDAD, SIN_TRANSPARENCIA
 from errors import ApiError
@@ -14,6 +14,10 @@ FONDO = (255, 255, 255)
 
 # Por debajo de esta calidad, en PNG compensa reducir la paleta de colores.
 UMBRAL_PALETA = 60
+
+# Ancho de la transición al recortar un fondo claro. Sin ella el borde del trazo
+# quedaría dentado, como recortado con tijeras.
+RAMPA_FONDO = 30
 
 
 def abrir(ruta: str, nombre: str) -> Image.Image:
@@ -35,6 +39,34 @@ def redimensionar(imagen: Image.Image, lado_maximo: int) -> Image.Image:
     if lado_maximo > 0 and max(imagen.size) > lado_maximo:
         imagen.thumbnail((lado_maximo, lado_maximo), Image.LANCZOS)
     return imagen
+
+
+def quitar_fondo_claro(imagen: Image.Image, umbral: int) -> Image.Image:
+    """Vuelve transparente lo que sea más claro que `umbral`.
+
+    Pensado para fotos de una firma sobre papel: el papel desaparece y queda el
+    trazo. La transición es suave para que el borde no salga dentado, y la
+    máscara se multiplica por el alfa que la imagen ya tuviera, así un PNG
+    recortado a mano no se estropea.
+    """
+    rgba = imagen.convert('RGBA')
+    claro = max(0, umbral - RAMPA_FONDO)
+    tabla = [255 if v <= claro else 0 if v >= umbral else round(255 * (umbral - v) / RAMPA_FONDO)
+             for v in range(256)]
+    mascara = rgba.convert('L').point(tabla)
+    rgba.putalpha(ImageChops.multiply(rgba.getchannel('A'), mascara))
+    return rgba
+
+
+def recortar_transparente(imagen: Image.Image) -> Image.Image:
+    """Quita el aire transparente de alrededor.
+
+    Hace que el recuadro que se arrastra por la pantalla sea la firma y no el
+    papel que la rodeaba.
+    """
+    rgba = imagen if imagen.mode == 'RGBA' else imagen.convert('RGBA')
+    caja = rgba.getchannel('A').getbbox()
+    return rgba.crop(caja) if caja else rgba
 
 
 def guardar(imagen: Image.Image, destino: str, formato: str, calidad: int) -> None:

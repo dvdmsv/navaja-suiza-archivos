@@ -24,6 +24,12 @@ export const routes: Routes = [
       import('./pages/tools/pdf-a-imagen/pdf-a-imagen.component').then(m => m.PdfAImagenComponent),
   },
   {
+    path: 'herramientas/firmar',
+    title: 'Firmar documento',
+    loadComponent: () =>
+      import('./pages/tools/firmar/firmar.component').then(m => m.FirmarComponent),
+  },
+  {
     path: 'herramientas/comprimir-pdf',
     title: 'Comprimir PDF',
     loadComponent: () =>

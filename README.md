@@ -14,6 +14,7 @@ El procesado ocurre en el servidor; el navegador sólo sube, ordena y descarga.
 |---|---|---|
 | Unir PDF | Combina varios PDF en uno | orden por arrastre |
 | PDF a imagen | Una imagen por página | formato de salida, 96/150/300 ppp y calidad |
+| Firmar documento | Coloca tu firma sobre un PDF o una imagen | posición libre, tamaño, giro, página |
 | Comprimir PDF | Recomprime las imágenes del documento | suave, media, fuerte |
 | Comprimir imagen | Baja el peso de varias imágenes a la vez | calidad y tamaño máximo |
 | Convertir imagen | Cambia de formato | JPG, PNG, WebP, TIFF, BMP, PDF |
@@ -29,6 +30,20 @@ arranque, así que la interfaz nunca ofrece uno que después falle al guardar.
 "PDF a imagen" ofrece la misma lista sin PDF, y admite cualquier formato de
 salida disponible; "Imagen a PDF" acepta como entrada todo lo que Pillow sepa
 abrir en esta instalación.
+
+"Firmar documento" es la única herramienta que trae dependencia propia:
+`pdfjs-dist`, para enseñar la página en el navegador mientras se coloca la
+firma. Son ~105 kB comprimidos que sólo descarga quien entra en ella, porque
+cada herramienta se carga por separado. A cambio, cambiar de página es
+instantáneo y la vista previa se ve nítida en pantallas de mucha densidad. La
+firma se puede subir como imagen o dibujar a mano; con un lápiz que informe de
+presión (un Apple Pencil, por ejemplo) el trazo engorda y adelgaza solo, y la
+mano apoyada no mancha.
+
+Quien coloca la firma ve exactamente lo que va a salir: el recorte del fondo lo
+hace el servidor y lo devuelve por `/api/tools/firmar/preparar`, en vez de
+imitarlo en el navegador. Sobre un PDF la firma se inserta como imagen encima de
+la página, así que el documento conserva su texto y sus fuentes: no se rasteriza.
 
 "Imagen a PDF" compone el documento con PyMuPDF: cada imagen entra en su página
 ya comprimida, centrada y sin deformar. Con el tamaño "como la imagen" la página
@@ -108,6 +123,7 @@ Las sesiones sin actividad se eliminan solas (2 horas por defecto,
 | `POST` | `/api/tools/<slug>` | ejecutar una herramienta |
 | `GET` | `/api/tools/convertir-imagen/formatos` | formatos de imagen disponibles |
 | `GET` | `/api/tools/pdf-a-imagen/formatos` | los mismos, sin PDF |
+| `POST` | `/api/tools/firmar/preparar` | la firma con el fondo ya recortado, en PNG |
 | `GET` | `/api/health` | comprobación de estado |
 
 Todas las herramientas reciben `{"file_ids": [...]}` más sus propias opciones y

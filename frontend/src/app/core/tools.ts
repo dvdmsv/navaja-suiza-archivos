@@ -42,6 +42,14 @@ export const HERRAMIENTAS: Herramienta[] = [
     disponible: true,
   },
   {
+    slug: 'firmar',
+    nombre: 'Firmar documento',
+    descripcion: 'Coloca tu firma donde quieras sobre un PDF o una imagen.',
+    icono: 'bi-vector-pen',
+    categoria: 'PDF',
+    disponible: true,
+  },
+  {
     slug: 'comprimir-pdf',
     nombre: 'Comprimir PDF',
     descripcion: 'Reduce el peso del documento conservando la calidad.',

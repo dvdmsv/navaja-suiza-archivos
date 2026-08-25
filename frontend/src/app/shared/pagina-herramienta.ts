@@ -111,7 +111,14 @@ export abstract class PaginaHerramienta {
     this.resumen = null;
   }
 
-  private subir(items: ArchivoEnCola[]): void {
+  /**
+   * Sube una tanda de archivos llevando su progreso y su estado.
+   *
+   * Es `protected` y admite un aviso final porque hay herramientas, como la de
+   * firmar, que manejan dos colas distintas y necesitan reaccionar en cuanto
+   * una de ellas termina.
+   */
+  protected subir(items: ArchivoEnCola[], alTerminar?: () => void): void {
     items.forEach(item => (item.estado = 'subiendo'));
     this.progreso = 0;
 
@@ -129,6 +136,7 @@ export abstract class PaginaHerramienta {
           }
         });
         this.progreso = -1;
+        alTerminar?.();
       },
       error: err => {
         items.forEach(item => (item.estado = 'error'));

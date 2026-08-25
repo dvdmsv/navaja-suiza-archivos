@@ -11,7 +11,7 @@
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <div class="collapse navbar-collapse" id="menuPrincipal" [class.show]="menuAbierto">
+    <div class="navbar-collapse menu-plegable" id="menuPrincipal" [class.abierto]="menuAbierto">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item" *ngFor="let herramienta of herramientas">
           <a class="nav-link" [routerLink]="rutaDe(herramienta)" routerLinkActive="active"

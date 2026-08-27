@@ -55,5 +55,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/tools/imagen-a-pdf/imagen-a-pdf.component').then(m => m.ImagenAPdfComponent),
   },
+  {
+    path: 'herramientas/a-markdown',
+    title: 'Documento a Markdown',
+    loadComponent: () =>
+      import('./pages/tools/a-markdown/a-markdown.component').then(m => m.AMarkdownComponent),
+  },
   { path: '**', redirectTo: '' },
 ];

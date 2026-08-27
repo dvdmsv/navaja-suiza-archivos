@@ -16,10 +16,18 @@ export interface ResumenTamano {
   despues: number;
 }
 
+/** Texto convertido que algunas herramientas devuelven para enseñarlo en pantalla. */
+export interface VistaPrevia {
+  texto: string;
+  caracteres: number;
+  palabras: number;
+}
+
 /** Respuesta de cualquier herramienta: siempre una lista de archivos. */
 export interface Resultado {
   files: ArchivoServidor[];
   resumen?: ResumenTamano;
+  vista_previa?: VistaPrevia;
 }
 
 /** Formato de imagen ofrecido por el servidor. */

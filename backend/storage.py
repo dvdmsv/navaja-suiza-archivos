@@ -112,13 +112,18 @@ class Storage:
 
     # --- escritura --------------------------------------------------------
 
-    def save_upload(self, session_id: str, file_storage, allowed_exts: set[str] | None = None) -> FileRecord:
-        """Guarda un archivo recibido en un formulario multipart."""
+    def save_upload(self, session_id: str, file_storage, allowed_exts: set[str] | None = None,
+                    descripcion: str | None = None) -> FileRecord:
+        """Guarda un archivo recibido en un formulario multipart.
+
+        `descripcion` es lo que se le enseña a quien sube algo que no se admite:
+        la lista cruda pasa de ochenta extensiones y no hay quien la lea.
+        """
         original = nombre_seguro(file_storage.filename or '')
         ext = os.path.splitext(original)[1].lower()
         if allowed_exts is not None and ext not in allowed_exts:
-            permitidas = ', '.join(sorted(allowed_exts))
-            raise ApiError(f'"{original}": formato no admitido. Se aceptan: {permitidas}.', 400)
+            permitidas = descripcion or ', '.join(sorted(allowed_exts))
+            raise ApiError(f'"{original}": formato no admitido. Se aceptan {permitidas}.', 400)
 
         file_id = new_id()
         stored_name = f'{file_id}{ext}'

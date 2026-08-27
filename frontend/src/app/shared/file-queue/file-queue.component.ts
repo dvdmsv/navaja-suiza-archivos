@@ -51,6 +51,14 @@ export class FileQueueComponent {
 
   arrastrando = false;
 
+  /**
+   * `accept` viene sin espacios (".pdf,.docx,…") y el navegador lo trata como
+   * una sola palabra: con muchos formatos se sale de la caja en el móvil.
+   */
+  get formatosLegibles(): string {
+    return this.accept.split(',').map(formato => formato.trim()).join(', ');
+  }
+
   abrirSelector(): void {
     if (!this.deshabilitado) {
       this.entrada.nativeElement.click();

@@ -14,7 +14,9 @@
      (drop)="alSoltar($event)">
   <i class="bi bi-cloud-arrow-up fs-2 text-primary"></i>
   <p class="mb-0 mt-2">{{ ayuda }}</p>
-  <p class="small text-body-secondary mb-0" *ngIf="accept">Formatos admitidos: {{ accept }}</p>
+  <p class="small text-body-secondary mb-0 formatos" *ngIf="accept">
+    Formatos admitidos: {{ formatosLegibles }}
+  </p>
 </div>
 
 <ul class="list-group mt-3" *ngIf="items.length > 0"

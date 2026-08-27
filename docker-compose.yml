@@ -7,6 +7,13 @@ services:
       - ./backend/uploads:/app/uploads
     environment:
       - FLASK_ENV=production
+      # La VM de despliegue tiene 1,4 GB para todas sus aplicaciones: aceptar
+      # subidas de 200 MB ahí no acabaría bien.
+      - MAX_CONTENT_LENGTH_MB=50
+    # Topes, no reservas: si una conversión se desmadra muere el contenedor y
+    # lo reinicia Docker, en vez de llevarse por delante al resto de la VM.
+    mem_limit: 512m
+    cpus: 2.0
     networks:
       - app-network
 
@@ -14,6 +21,7 @@ services:
     restart: unless-stopped
     build:
       context: ./frontend
+    mem_limit: 96m
     ports:
       - "8081:80"
     depends_on:

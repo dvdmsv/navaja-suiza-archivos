@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 
-import { ApiService, ArchivoServidor, ResumenTamano } from '../core/api.service';
+import { ApiService, ArchivoServidor, ResumenTamano, VistaPrevia } from '../core/api.service';
 import { ArchivoEnCola } from './file-queue/file-queue.component';
 import { avisoError, avisoExito, mensajeDeError } from './notify';
 
@@ -17,6 +17,8 @@ export abstract class PaginaHerramienta {
   archivos: ArchivoEnCola[] = [];
   resultados: ArchivoServidor[] = [];
   resumen: ResumenTamano | null = null;
+  /** Sólo la rellenan las herramientas que devuelven texto, como "a Markdown". */
+  vistaPrevia: VistaPrevia | null = null;
 
   /** -1 cuando no hay ninguna subida en marcha. */
   progreso = -1;
@@ -86,6 +88,7 @@ export abstract class PaginaHerramienta {
         this.procesando = false;
         this.resultados = resultado.files;
         this.resumen = resultado.resumen ?? null;
+        this.vistaPrevia = resultado.vista_previa ?? null;
         avisoExito(this.mensajeExito);
       },
       error: err => {
@@ -109,6 +112,7 @@ export abstract class PaginaHerramienta {
   private olvidarResultado(): void {
     this.resultados = [];
     this.resumen = null;
+    this.vistaPrevia = null;
   }
 
   /**

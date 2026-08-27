@@ -9,15 +9,20 @@ import zipfile
 from flask import Blueprint, jsonify, request, send_file
 
 from api import current_session, params
-from api.formatos import extensiones_de_entrada
+from api.formatos import EXTENSIONES_DOCUMENTO, extensiones_de_entrada
 from errors import ApiError
 from storage import storage
 
 bp = Blueprint('files', __name__, url_prefix='/api')
 
-# Lo que admite la plataforma: PDF más lo que Pillow sepa abrir en esta
-# instalación. Cada herramienta valida además lo suyo.
-ALLOWED_EXTS = {'.pdf'} | extensiones_de_entrada()
+# Lo que admite la plataforma: PDF, lo que Pillow sepa abrir en esta instalación
+# y los documentos que se pueden pasar a Markdown. Cada herramienta valida
+# además lo suyo.
+ALLOWED_EXTS = {'.pdf'} | extensiones_de_entrada() | EXTENSIONES_DOCUMENTO
+
+# Enumerar las ochenta y pico extensiones no le dice nada a nadie.
+DESCRIPCION_ADMITIDOS = ('PDF, imágenes (JPG, PNG, WebP, TIFF…) y documentos '
+                         '(Word, Excel, PowerPoint, CSV, HTML, EPub)')
 
 NOMBRE_ZIP_POR_DEFECTO = 'archivos.zip'
 
@@ -31,7 +36,8 @@ def upload_files():
     if not files:
         raise ApiError('No se ha recibido ningún archivo.', 400)
 
-    registros = [storage.save_upload(session_id, f, ALLOWED_EXTS) for f in files]
+    registros = [storage.save_upload(session_id, f, ALLOWED_EXTS, DESCRIPCION_ADMITIDOS)
+                 for f in files]
     return jsonify({'files': [r.to_json() for r in registros]}), 201
 
 

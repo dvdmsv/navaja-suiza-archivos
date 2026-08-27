@@ -4,7 +4,8 @@ Aplicación web con varias utilidades para trabajar con documentos e imágenes.
 El procesado ocurre en el servidor; el navegador sólo sube, ordena y descarga.
 
 - **Frontend**: Angular 17 (standalone components) + Bootstrap 5.
-- **Backend**: Flask con un blueprint por herramienta.
+- **Backend**: Flask con un blueprint por herramienta (PyMuPDF, Pillow, pypdf y
+  markitdown hacen el trabajo).
 - **Despliegue**: Docker Compose, con nginx sirviendo el frontend y haciendo de
   pasarela hacia el backend.
 
@@ -19,6 +20,7 @@ El procesado ocurre en el servidor; el navegador sólo sube, ordena y descarga.
 | Comprimir imagen | Baja el peso de varias imágenes a la vez | calidad y tamaño máximo |
 | Convertir imagen | Cambia de formato | JPG, PNG, WebP, TIFF, BMP, PDF |
 | Imagen a PDF | Reúne varias imágenes en un PDF | tamaño de página, orientación, margen y calidad |
+| Documento a Markdown | Extrae el contenido para dárselo a un LLM | unir todo en un archivo |
 
 Cualquier resultado se puede renombrar antes de descargarlo, con el lápiz que
 hay junto a su nombre: como la lista de resultados es la misma para todas, la
@@ -36,7 +38,21 @@ arranque, así que la interfaz nunca ofrece uno que después falle al guardar.
 salida disponible; "Imagen a PDF" acepta como entrada todo lo que Pillow sepa
 abrir en esta instalación.
 
-"Firmar documento" es la única herramienta que trae dependencia propia:
+"Documento a Markdown" usa [markitdown](https://github.com/microsoft/markitdown)
+de Microsoft y acepta PDF, Word, Excel, PowerPoint, HTML, CSV y EPub. Conserva
+la estructura —títulos, listas y tablas— en vez de escupir texto plano, enseña
+el resultado en pantalla con el recuento de palabras y una estimación de tokens,
+y lo copia al portapapeles de un clic. Un PDF escaneado no da texto y la
+herramienta lo dice claramente: no hace OCR.
+
+Esa dependencia es la que más pesa del backend: markitdown arrastra `magika`
+(detección de tipos), que a su vez trae `onnxruntime` y `numpy`, y los extras de
+Office traen `pandas`. Son unos 350 MB más de imagen y un `docker compose build`
+notablemente más lento. `.zip` se queda fuera de los formatos admitidos a
+propósito, aunque markitdown lo soporte: descomprimir en el servidor lo que suba
+cualquiera invita a una zip bomb.
+
+"Firmar documento" es la única herramienta del frontend con dependencia propia:
 `pdfjs-dist`, para enseñar la página en el navegador mientras se coloca la
 firma. Son ~105 kB comprimidos que sólo descarga quien entra en ella, porque
 cada herramienta se carga por separado. A cambio, cambiar de página es
@@ -61,7 +77,7 @@ mide lo que la imagen (según sus ppp, o 96 si no los declara) y se limita a uno
 
 ```bash
 docker compose up --build
-# http://localhost:8082
+# http://localhost:8081
 ```
 
 ### En desarrollo
@@ -107,6 +123,28 @@ frontend/src/app/
 
 Gracias a esas piezas compartidas, cada herramienta ocupa entre 1 y 4 kB: sólo
 declara su `slug`, sus opciones y su plantilla.
+
+### Capacidad del backend
+
+Esto se despliega en una VM modesta —1,4 GB de RAM compartidos con otras tres
+aplicaciones—, así que la configuración va medida a eso:
+
+- **Un proceso con cuatro hilos**. Atiende varias conversiones a la vez en lugar
+  de encolarlas, sin pagar un segundo proceso: cada worker cuesta unos 190 MB
+  cuando markitdown está cargado.
+- **Plazo de 300 s**, el mismo que espera nginx. Con los valores por defecto de
+  gunicorn (un proceso y 30 s) moría cualquier trabajo largo: 200 páginas a
+  300 ppp en PNG tardan unos 43 s en un equipo de sobremesa, y bastante más en
+  la VM.
+- **markitdown se carga la primera vez que se usa**, no al arrancar. El backend
+  se queda en unos 75 MB y sólo sube a ~200 MB si alguien convierte a Markdown;
+  como los workers se reciclan cada 200 peticiones, esa memoria se devuelve
+  sola.
+- **Topes de 512 MB y 2 CPU** en `docker-compose.yml`, para que una conversión
+  desbocada mate su contenedor en vez de la VM entera, y subidas limitadas a
+  50 MB en producción (`MAX_CONTENT_LENGTH_MB`).
+
+El porqué de cada opción está comentado en `backend/Dockerfile`.
 
 ### Sesiones y archivos temporales
 

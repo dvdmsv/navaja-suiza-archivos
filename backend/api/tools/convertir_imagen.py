@@ -4,7 +4,7 @@ import os
 from flask import Blueprint, jsonify
 
 from api import current_session, imaging, params
-from api.formatos import extension_de, salidas_disponibles
+from api.formatos import extension_de, extensiones_de_entrada, salidas_disponibles
 from errors import ApiError
 from storage import storage, nombre_seguro
 
@@ -33,8 +33,9 @@ def convertir_imagen():
     resultados = []
     for file_id in file_ids:
         record = storage.record_of(session_id, file_id)
-        if record.ext == '.pdf':
-            raise ApiError(f'"{record.name}" es un PDF. Usa la herramienta de PDF a imagen.', 400)
+        if record.ext not in extensiones_de_entrada():
+            pista = ' Usa la herramienta de PDF a imagen.' if record.ext == '.pdf' else ''
+            raise ApiError(f'"{record.name}" no es una imagen.{pista}', 400)
         ruta = storage.path_of(session_id, file_id)
 
         base = os.path.splitext(nombre_seguro(record.name))[0]

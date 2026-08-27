@@ -8,7 +8,7 @@
  *   3. crear el blueprint equivalente en `backend/api/tools/`.
  */
 
-export type Categoria = 'PDF' | 'Imágenes';
+export type Categoria = 'PDF' | 'Imágenes' | 'Documentos';
 
 export interface Herramienta {
   /** Último tramo de la ruta y, por convención, el slug del endpoint del backend. */
@@ -22,7 +22,7 @@ export interface Herramienta {
   disponible: boolean;
 }
 
-export const CATEGORIAS: Categoria[] = ['PDF', 'Imágenes'];
+export const CATEGORIAS: Categoria[] = ['PDF', 'Imágenes', 'Documentos'];
 
 export const HERRAMIENTAS: Herramienta[] = [
   {
@@ -71,6 +71,14 @@ export const HERRAMIENTAS: Herramienta[] = [
     descripcion: 'Reúne tus imágenes en un único PDF, en el orden que elijas.',
     icono: 'bi-file-earmark-pdf',
     categoria: 'Imágenes',
+    disponible: true,
+  },
+  {
+    slug: 'a-markdown',
+    nombre: 'Documento a Markdown',
+    descripcion: 'Pasa un PDF, Word, Excel o PowerPoint a Markdown para dárselo a una IA.',
+    icono: 'bi-markdown',
+    categoria: 'Documentos',
     disponible: true,
   },
   {

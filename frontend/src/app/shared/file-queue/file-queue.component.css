@@ -53,3 +53,8 @@
 .cdk-drag-animating {
   transition: transform 300ms cubic-bezier(0, 0, 0.2, 1);
 }
+
+.formatos {
+  /* Con muchos formatos, que parta por donde haga falta antes que desbordar. */
+  overflow-wrap: anywhere;
+}

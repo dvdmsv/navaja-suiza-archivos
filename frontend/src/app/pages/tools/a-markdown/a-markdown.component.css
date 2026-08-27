@@ -1,0 +1,11 @@
+.markdown {
+  max-height: 24rem;
+  overflow: auto;
+  margin: 0;
+  padding: 1rem;
+  background-color: var(--bs-tertiary-bg);
+  font-size: 0.85rem;
+  /* El Markdown trae líneas largas: mejor que las parta a que haya scroll lateral. */
+  white-space: pre-wrap;
+  word-break: break-word;
+}

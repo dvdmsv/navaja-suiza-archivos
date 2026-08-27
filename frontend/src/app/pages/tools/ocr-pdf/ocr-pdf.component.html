@@ -1,0 +1,47 @@
+<app-tool-page slug="ocr-pdf">
+
+  <app-file-queue
+    [items]="archivos"
+    accept=".pdf"
+    [multiple]="false"
+    [deshabilitado]="ocupado"
+    ayuda="Arrastra aquí el PDF escaneado"
+    (agregados)="alAgregar($event)"
+    (itemsChange)="alCambiarLista()">
+  </app-file-queue>
+
+  <div class="row g-3 mt-1">
+    <div class="col-12 col-md-6">
+      <label for="idioma" class="form-label">Idioma del documento</label>
+      <select class="form-select" id="idioma" [disabled]="ocupado"
+              [(ngModel)]="idioma" (change)="alCambiarLista()">
+        <option *ngFor="let opcion of idiomas" [value]="opcion.id">{{ opcion.nombre }}</option>
+      </select>
+      <p class="form-text mt-0">Acertar con el idioma mejora mucho el resultado.</p>
+    </div>
+
+    <div class="col-12 col-md-6">
+      <div class="form-check mt-md-4">
+        <input class="form-check-input" type="checkbox" id="rehacer" [disabled]="ocupado"
+               [(ngModel)]="rehacer" (change)="alCambiarLista()">
+        <label class="form-check-label" for="rehacer">Rehacer el reconocimiento</label>
+      </div>
+      <p class="form-text mt-0">
+        Márcalo si el PDF ya trae texto y quieres sustituirlo. Sin marcar, las páginas que ya
+        tienen texto se dejan como están.
+      </p>
+    </div>
+  </div>
+
+  <p class="small text-body-secondary mt-3 mb-0">
+    <i class="bi bi-hourglass-split me-1"></i>
+    Es la operación más lenta de la caja: cuenta con un buen rato en documentos de varias páginas.
+    Después, el documento se podrá buscar, copiar y pasar por "Documento a Markdown".
+  </p>
+
+  <app-tool-controls [pagina]="pagina" accion="Reconocer el texto" icono="bi-body-text">
+  </app-tool-controls>
+
+  <app-result-list [archivos]="resultados"></app-result-list>
+
+</app-tool-page>

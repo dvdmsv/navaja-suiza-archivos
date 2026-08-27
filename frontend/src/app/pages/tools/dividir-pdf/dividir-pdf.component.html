@@ -1,0 +1,74 @@
+<app-tool-page slug="dividir-pdf">
+
+  <app-file-queue
+    [items]="archivos"
+    accept=".pdf"
+    [multiple]="false"
+    [deshabilitado]="ocupado"
+    ayuda="Arrastra aquí el PDF del que quieres sacar páginas"
+    (agregados)="alAgregarDocumento($event)"
+    (itemsChange)="alQuitarDocumento()">
+  </app-file-queue>
+
+  <ng-container *ngIf="paginas > 0">
+    <div class="row g-3 align-items-end mt-1">
+      <div class="col-12 col-md">
+        <label for="rangos" class="form-label">Páginas</label>
+        <input type="text" class="form-control" id="rangos" placeholder="1-3, 7, 10-"
+               [disabled]="ocupado" [(ngModel)]="rangos" (ngModelChange)="alEscribirRangos()">
+        <p class="form-text mt-0">
+          El documento tiene {{ paginas }} páginas. Escribe números sueltos y rangos.
+        </p>
+      </div>
+
+      <div class="col-12 col-md-auto">
+        <div class="btn-group" role="group">
+          <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="ocupado"
+                  (click)="marcarTodas()">Todas</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="ocupado"
+                  (click)="marcarNinguna()">Ninguna</button>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-auto">
+        <label for="modo" class="form-label">Resultado</label>
+        <select class="form-select" id="modo" [disabled]="ocupado"
+                [(ngModel)]="modo" (change)="alCambiarLista()">
+          <option value="unico">Un solo PDF</option>
+          <option value="por-pagina">Un PDF por página</option>
+        </select>
+      </div>
+    </div>
+
+    <p class="text-body-secondary mt-3 mb-0" *ngIf="cargando">
+      <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+      Preparando las páginas…
+    </p>
+
+    <p class="text-body-secondary small mt-3 mb-0" *ngIf="demasiadasParaVerlas">
+      <i class="bi bi-info-circle me-1"></i>
+      Son {{ paginas }} páginas: no se muestran las miniaturas para no atascar el navegador.
+      Indica las que quieras en el campo de arriba.
+    </p>
+
+    <div class="paginas mt-3" *ngIf="!demasiadasParaVerlas">
+      <button type="button" class="pagina" *ngFor="let miniatura of miniaturas; let i = index"
+              [class.pagina--elegida]="seleccion.has(i + 1)"
+              [attr.aria-pressed]="seleccion.has(i + 1)"
+              [disabled]="ocupado" (click)="alternar(i + 1)">
+        <img [src]="miniatura" [alt]="'Página ' + (i + 1)" *ngIf="miniatura">
+        <span class="pagina__numero">{{ i + 1 }}</span>
+      </button>
+    </div>
+
+    <p class="small text-body-secondary mt-2 mb-0">
+      {{ seleccion.size }} de {{ paginas }} páginas seleccionadas.
+    </p>
+  </ng-container>
+
+  <app-tool-controls [pagina]="pagina" accion="Extraer las páginas" icono="bi-scissors">
+  </app-tool-controls>
+
+  <app-result-list [archivos]="resultados" nombreZip="paginas.zip"></app-result-list>
+
+</app-tool-page>

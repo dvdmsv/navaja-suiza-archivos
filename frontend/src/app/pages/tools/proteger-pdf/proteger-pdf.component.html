@@ -1,0 +1,67 @@
+<app-tool-page slug="proteger-pdf">
+
+  <ul class="nav nav-pills gap-2 mb-3">
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="accion === 'proteger'"
+              (click)="cambiarAccion('proteger')">
+        <i class="bi bi-lock me-1"></i>Poner contraseña
+      </button>
+    </li>
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="accion === 'quitar'"
+              (click)="cambiarAccion('quitar')">
+        <i class="bi bi-unlock me-1"></i>Quitarla
+      </button>
+    </li>
+  </ul>
+
+  <app-file-queue
+    [items]="archivos"
+    accept=".pdf"
+    [multiple]="false"
+    [deshabilitado]="ocupado"
+    ayuda="Arrastra aquí tu PDF"
+    (agregados)="alAgregar($event)"
+    (itemsChange)="alCambiarLista()">
+  </app-file-queue>
+
+  <div class="row g-3 mt-1">
+    <div class="col-12 col-md-6" *ngIf="accion === 'proteger'">
+      <label for="password" class="form-label">Contraseña nueva</label>
+      <input type="password" class="form-control" id="password" autocomplete="new-password"
+             [disabled]="ocupado" [(ngModel)]="password" (input)="alCambiarLista()">
+      <p class="form-text mt-0" [class.text-danger]="password && !suficienteLarga">
+        Al menos {{ 4 }} caracteres. Sin ella no se podrá abrir el documento, y no hay forma de recuperarla.
+      </p>
+    </div>
+
+    <div class="col-12 col-md-6" *ngIf="accion === 'proteger'">
+      <label for="repetida" class="form-label">Repítela</label>
+      <input type="password" class="form-control" id="repetida" autocomplete="new-password"
+             [disabled]="ocupado" [(ngModel)]="repetida" (input)="alCambiarLista()">
+      <p class="form-text mt-0 text-danger" *ngIf="repetida && !coinciden">No coinciden.</p>
+    </div>
+
+    <div class="col-12 col-md-6">
+      <label for="actual" class="form-label">
+        {{ accion === 'quitar' ? 'Contraseña actual' : 'Contraseña actual (si ya la tiene)' }}
+      </label>
+      <input type="password" class="form-control" id="actual" autocomplete="current-password"
+             [disabled]="ocupado" [(ngModel)]="passwordActual" (input)="alCambiarLista()">
+    </div>
+  </div>
+
+  <p class="small text-body-secondary mt-3 mb-0">
+    <i class="bi bi-info-circle me-1"></i>
+    La contraseña viaja al servidor para cifrar el documento y no se guarda en ningún sitio. Ten en
+    cuenta que esta aplicación se sirve por HTTP dentro de tu red, sin cifrar.
+  </p>
+
+  <app-tool-controls [pagina]="pagina"
+                     [accion]="accion === 'proteger' ? 'Proteger el PDF' : 'Quitar la contraseña'"
+                     [icono]="accion === 'proteger' ? 'bi-lock' : 'bi-unlock'">
+  </app-tool-controls>
+
+  <app-result-list [archivos]="resultados"></app-result-list>
+
+</app-tool-page>

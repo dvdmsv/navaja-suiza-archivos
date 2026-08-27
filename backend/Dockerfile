@@ -1,14 +1,25 @@
-# Usa una imagen base de Python
-FROM python:3.10-slim
+# Python 3.12 porque ocrmypdf exige 3.11 o superior.
+FROM python:3.12-slim
 
 # Establece el directorio de trabajo
 WORKDIR /app
 
+# Lo único que esta aplicación necesita de fuera de Python, y lo necesita sólo
+# el reconocimiento de texto: Tesseract hace el OCR y Ghostscript el trabajo con
+# el PDF. `tesseract-ocr-spa` añade el español; el inglés viene con el paquete
+# base.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ghostscript tesseract-ocr tesseract-ocr-spa \
+    && rm -rf /var/lib/apt/lists/*
+
+# Las dependencias van antes que el código a propósito: así un cambio de código
+# no obliga a reinstalar los ~300 MB de paquetes, que en la VM de despliegue es
+# la diferencia entre un build de minutos y uno de bastante más.
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
+
 # Copia los archivos de la aplicación
 COPY . /app
-
-# Instala las dependencias (ahora incluye gunicorn)
-RUN pip install --no-cache-dir -r requirements.txt
 
 # Exponer el puerto
 EXPOSE 5000

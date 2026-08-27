@@ -1,7 +1,8 @@
 import { NgFor, NgIf } from '@angular/common';
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
+import { DocumentoPdf, PdfService } from '../../../core/pdf.service';
 import { ArchivoEnCola, FileQueueComponent, aCola } from '../../../shared/file-queue/file-queue.component';
 import { PaginaHerramienta } from '../../../shared/pagina-herramienta';
 import { ResultListComponent } from '../../../shared/result-list/result-list.component';
@@ -11,9 +12,6 @@ import { avisoError, mensajeDeError } from '../../../shared/notify';
 import { COLOCACION_INICIAL, Colocacion } from './colocacion';
 import { LienzoFirmaComponent } from './lienzo-firma.component';
 import { PizarraComponent } from './pizarra.component';
-
-/** Ancho al que se rasteriza la página para verla, en píxeles de imagen. */
-const ANCHO_VISTA = 1100;
 
 /** Espera antes de repreparar la firma mientras se mueve el umbral. */
 const ESPERA_UMBRAL = 350;
@@ -52,10 +50,9 @@ export class FirmarComponent extends PaginaHerramienta implements OnDestroy {
   firmaPreparada = '';
   preparando = false;
 
-  private pdf: { numPages: number; getPage(n: number): Promise<any> } | null = null;
-  /** Quien libera el documento es la tarea de carga: el proxy no tiene `destroy`. */
-  private tarea: { promise: Promise<any>; destroy(): Promise<void> } | null = null;
+  private documento: DocumentoPdf | null = null;
   private temporizador?: ReturnType<typeof setTimeout>;
+  private readonly pdf = inject(PdfService);
 
   ngOnDestroy(): void {
     this.olvidarFondo();
@@ -96,13 +93,9 @@ export class FirmarComponent extends PaginaHerramienta implements OnDestroy {
     }
 
     try {
-      // pdf.js se carga aquí y no arriba para que sólo lo descargue quien firma.
-      const pdfjs = await import('pdfjs-dist');
-      pdfjs.GlobalWorkerOptions.workerSrc = '/assets/pdf.worker.min.mjs';
-      this.tarea = pdfjs.getDocument({ data: await archivo.arrayBuffer() }) as any;
-      this.pdf = await this.tarea!.promise;
+      this.documento = await this.pdf.abrir(archivo);
       // Se empieza por la última página, que es donde se firma casi siempre.
-      this.contarPaginas(this.pdf!.numPages);
+      this.contarPaginas(this.documento.paginas);
       await this.renderizar();
     } catch (err) {
       // El motivo real es valiosísimo para diagnosticar (un worker que no
@@ -137,24 +130,8 @@ export class FirmarComponent extends PaginaHerramienta implements OnDestroy {
   }
 
   private async renderizar(): Promise<void> {
-    if (!this.pdf) {
-      return;
-    }
-    const pagina = await this.pdf.getPage(this.paginaActual);
-    const natural = pagina.getViewport({ scale: 1 });
-    // Se rasteriza por encima del tamaño en pantalla para que se vea nítido
-    // también en pantallas de mucha densidad, como las de un iPad.
-    const viewport = pagina.getViewport({ scale: ANCHO_VISTA / natural.width });
-
-    const lienzo = document.createElement('canvas');
-    lienzo.width = Math.round(viewport.width);
-    lienzo.height = Math.round(viewport.height);
-    await pagina.render({ canvas: lienzo, canvasContext: lienzo.getContext('2d')!, viewport }).promise;
-
-    const anterior = this.fondo;
-    this.fondo = lienzo.toDataURL('image/png');
-    if (anterior.startsWith('blob:')) {
-      URL.revokeObjectURL(anterior);
+    if (this.documento) {
+      this.fondo = await this.documento.imagen(this.paginaActual);
     }
   }
 
@@ -246,9 +223,8 @@ export class FirmarComponent extends PaginaHerramienta implements OnDestroy {
   }
 
   private cerrarPdf(): void {
-    this.tarea?.destroy();
-    this.tarea = null;
-    this.pdf = null;
+    this.documento?.cerrar();
+    this.documento = null;
   }
 
   private olvidarFondo(): void {

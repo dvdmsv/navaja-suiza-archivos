@@ -30,6 +30,30 @@ export const routes: Routes = [
       import('./pages/tools/firmar/firmar.component').then(m => m.FirmarComponent),
   },
   {
+    path: 'herramientas/dividir-pdf',
+    title: 'Dividir PDF',
+    loadComponent: () =>
+      import('./pages/tools/dividir-pdf/dividir-pdf.component').then(m => m.DividirPdfComponent),
+  },
+  {
+    path: 'herramientas/organizar-pdf',
+    title: 'Organizar PDF',
+    loadComponent: () =>
+      import('./pages/tools/organizar-pdf/organizar-pdf.component').then(m => m.OrganizarPdfComponent),
+  },
+  {
+    path: 'herramientas/proteger-pdf',
+    title: 'Proteger PDF',
+    loadComponent: () =>
+      import('./pages/tools/proteger-pdf/proteger-pdf.component').then(m => m.ProtegerPdfComponent),
+  },
+  {
+    path: 'herramientas/ocr-pdf',
+    title: 'PDF con OCR',
+    loadComponent: () =>
+      import('./pages/tools/ocr-pdf/ocr-pdf.component').then(m => m.OcrPdfComponent),
+  },
+  {
     path: 'herramientas/comprimir-pdf',
     title: 'Comprimir PDF',
     loadComponent: () =>

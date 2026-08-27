@@ -15,6 +15,10 @@ El procesado ocurre en el servidor; el navegador sólo sube, ordena y descarga.
 |---|---|---|
 | Unir PDF | Combina varios PDF en uno | orden por arrastre |
 | PDF a imagen | Una imagen por página | formato de salida, 96/150/300 ppp y calidad |
+| Dividir PDF | Saca páginas sueltas o rangos | `1-3, 7, 10-`, un archivo o uno por página |
+| Organizar PDF | Reordena, gira y elimina páginas | arrastre, giro de 90° y borrado |
+| Proteger PDF | Pone o quita la contraseña de apertura | cifrado AES-256 |
+| PDF con OCR | Reconoce el texto de un escaneado | español, inglés o ambos |
 | Firmar documento | Coloca tu firma sobre un PDF o una imagen | posición libre, tamaño, giro, página |
 | Comprimir PDF | Recomprime las imágenes del documento | suave, media, fuerte |
 | Comprimir imagen | Baja el peso de varias imágenes a la vez | calidad y tamaño máximo |
@@ -38,6 +42,20 @@ arranque, así que la interfaz nunca ofrece uno que después falle al guardar.
 salida disponible; "Imagen a PDF" acepta como entrada todo lo que Pillow sepa
 abrir en esta instalación.
 
+"PDF con OCR" cierra el círculo de "Documento a Markdown": un escaneado no
+tiene texto que extraer, así que primero se le pasa el reconocimiento y después
+ya se puede convertir, buscar y copiar. Lo hace
+[ocrmypdf](https://github.com/ocrmypdf/OCRmyPDF), que necesita **Tesseract y
+Ghostscript instalados en la imagen** —de ahí el `apt-get` del Dockerfile— y es,
+con diferencia, la operación más lenta y más golosa de memoria de la
+aplicación: de ahí el límite de páginas y que se ejecute como proceso aparte,
+con su propio tiempo máximo.
+
+Es también la razón de que la imagen use **Python 3.12** (ocrmypdf exige 3.11 o
+superior) y de que Pillow suba a la rama 12: las versiones nuevas de
+`pdfminer.six` que arrastra ocrmypdf traen consigo un `pdfplumber` que ya no
+admite Pillow 10.
+
 "Documento a Markdown" usa [markitdown](https://github.com/microsoft/markitdown)
 de Microsoft y acepta PDF, Word, Excel, PowerPoint, HTML, CSV y EPub. Conserva
 la estructura —títulos, listas y tablas— en vez de escupir texto plano, enseña
@@ -51,6 +69,13 @@ Office traen `pandas`. Son unos 350 MB más de imagen y un `docker compose build
 notablemente más lento. `.zip` se queda fuera de los formatos admitidos a
 propósito, aunque markitdown lo soporte: descomprimir en el servidor lo que suba
 cualquiera invita a una zip bomb.
+
+Las tres herramientas que enseñan páginas —firmar, dividir y organizar— rasterizan
+el PDF en el navegador con `core/pdf.service.ts`. Ese servicio arranca poniendo
+un `Promise.try` que falta: pdf.js lo usa al decodificar imágenes y zone.js, que
+carga Angular, sustituye el `Promise` nativo por uno propio que no lo trae. Sin
+ese remiendo, abrir un PDF con imágenes deja una promesa que nunca resuelve y la
+página se queda "preparando" para siempre.
 
 "Firmar documento" es la única herramienta del frontend con dependencia propia:
 `pdfjs-dist`, para enseñar la página en el navegador mientras se coloca la

@@ -1,0 +1,149 @@
+:host {
+  display: block;
+}
+
+.menu {
+  gap: 0.25rem;
+}
+
+.seccion__boton {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  background: none;
+  color: var(--bs-nav-link-color, inherit);
+  font: inherit;
+  border-radius: var(--bs-border-radius);
+}
+
+.seccion__boton:hover,
+.seccion__boton[aria-expanded='true'] {
+  color: var(--bs-primary);
+  background-color: var(--bs-tertiary-bg);
+}
+
+.seccion__boton--activa {
+  color: var(--bs-primary);
+  font-weight: 500;
+}
+
+.seccion__flecha {
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+}
+
+.seccion__boton[aria-expanded='true'] .seccion__flecha {
+  transform: rotate(180deg);
+}
+
+/* Cada herramienta del panel: icono a un lado, nombre y descripción al otro. */
+.herramienta {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--bs-border-radius);
+}
+
+.herramienta:hover,
+.herramienta--activa {
+  background-color: var(--bs-tertiary-bg);
+}
+
+.herramienta__icono {
+  color: var(--bs-primary);
+  font-size: 1.1rem;
+  line-height: 1.4;
+}
+
+.herramienta__nombre {
+  display: block;
+  font-weight: 500;
+}
+
+.herramienta__descripcion {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--bs-secondary-color);
+  /* Sin esto, una descripción larga estira el panel a lo ancho de la pantalla. */
+  overflow-wrap: anywhere;
+}
+
+/* --- barra horizontal: el panel flota bajo su sección --------------------- */
+@media (min-width: 992px) {
+  :host {
+    display: flex;
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  .seccion {
+    position: relative;
+  }
+
+  .seccion__boton {
+    width: auto;
+    white-space: nowrap;
+  }
+
+  .panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 21rem;
+    padding: 0.5rem;
+    background-color: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius-lg);
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
+    /* Oculto también para el teclado mientras está plegado. */
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-0.25rem);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+    z-index: 1030;
+  }
+
+  .panel--abierto {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+  }
+
+  /* La última sección abre hacia dentro para no salirse de la ventana. */
+  .seccion:last-child .panel {
+    left: auto;
+    right: 0;
+  }
+}
+
+/* --- apilado: el panel es un acordeón, con la misma animación que el menú -- */
+@media (max-width: 991.98px) {
+  .panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    visibility: hidden;
+    transition: grid-template-rows 0.25s ease, visibility 0.25s;
+  }
+
+  .panel--abierto {
+    grid-template-rows: 1fr;
+    visibility: visible;
+  }
+
+  .panel__interior {
+    min-height: 0;
+    overflow: hidden;
+    padding-left: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .seccion__flecha {
+    transition: none;
+  }
+}

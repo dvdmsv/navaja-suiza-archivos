@@ -12,14 +12,7 @@
     </button>
 
     <div class="navbar-collapse menu-plegable" id="menuPrincipal" [class.abierto]="menuAbierto">
-      <ul class="navbar-nav">
-        <li class="nav-item" *ngFor="let herramienta of herramientas">
-          <a class="nav-link" [routerLink]="rutaDe(herramienta)" routerLinkActive="active"
-             (click)="menuAbierto = false">
-            <i class="bi {{ herramienta.icono }} me-1"></i>{{ herramienta.nombre }}
-          </a>
-        </li>
-      </ul>
+      <app-menu-principal (navegado)="menuAbierto = false"></app-menu-principal>
     </div>
   </div>
 </nav>

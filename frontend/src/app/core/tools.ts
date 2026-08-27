@@ -91,6 +91,29 @@ export const HERRAMIENTAS: Herramienta[] = [
   },
 ];
 
+/** Una categoría con sus herramientas, tal y como la pintan portada y menú. */
+export interface Grupo {
+  categoria: Categoria;
+  herramientas: Herramienta[];
+}
+
+/**
+ * Agrupa el catálogo por categorías, en el orden de `CATEGORIAS` y sin las
+ * categorías que se quedarían vacías.
+ *
+ * El menú sólo enseña lo que ya funciona; la portada también anuncia lo que
+ * está por venir, de ahí el parámetro.
+ */
+export function agruparPorCategoria(incluirPendientes = false): Grupo[] {
+  return CATEGORIAS
+    .map(categoria => ({
+      categoria,
+      herramientas: HERRAMIENTAS.filter(
+        h => h.categoria === categoria && (incluirPendientes || h.disponible)),
+    }))
+    .filter(grupo => grupo.herramientas.length > 0);
+}
+
 export function rutaDe(herramienta: Herramienta): string {
   return `/herramientas/${herramienta.slug}`;
 }

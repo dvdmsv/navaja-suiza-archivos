@@ -1,13 +1,12 @@
-import { NgFor } from '@angular/common';
 import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { RouterLink, RouterOutlet } from '@angular/router';
 
-import { HERRAMIENTAS, Herramienta, rutaDe } from './core/tools';
+import { MenuPrincipalComponent } from './shared/menu-principal/menu-principal.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [NgFor, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, MenuPrincipalComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
@@ -19,11 +18,4 @@ export class AppComponent {
    * de Bootstrap, que no se carga: sólo se usaba para esto.
    */
   menuAbierto = false;
-
-  /** Sólo las operativas aparecen en el menú; el resto vive en la portada. */
-  readonly herramientas = HERRAMIENTAS.filter(h => h.disponible);
-
-  rutaDe(herramienta: Herramienta): string {
-    return rutaDe(herramienta);
-  }
 }

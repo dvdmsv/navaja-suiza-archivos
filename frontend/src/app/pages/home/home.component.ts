@@ -2,12 +2,7 @@ import { NgFor, NgIf } from '@angular/common';
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { CATEGORIAS, Categoria, HERRAMIENTAS, Herramienta, rutaDe } from '../../core/tools';
-
-interface Grupo {
-  categoria: Categoria;
-  herramientas: Herramienta[];
-}
+import { Grupo, Herramienta, agruparPorCategoria, rutaDe } from '../../core/tools';
 
 @Component({
   selector: 'app-home',
@@ -17,10 +12,8 @@ interface Grupo {
   styleUrl: './home.component.css',
 })
 export class HomeComponent {
-  readonly grupos: Grupo[] = CATEGORIAS.map(categoria => ({
-    categoria,
-    herramientas: HERRAMIENTAS.filter(h => h.categoria === categoria),
-  })).filter(grupo => grupo.herramientas.length > 0);
+  /** La portada sí anuncia las herramientas que aún no están listas. */
+  readonly grupos: Grupo[] = agruparPorCategoria(true);
 
   rutaDe(herramienta: Herramienta): string {
     return rutaDe(herramienta);

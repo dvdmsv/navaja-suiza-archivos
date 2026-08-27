@@ -249,3 +249,14 @@ opciones, o `pages/tools/unir-pdf/` si no las tiene.
 ```bash
 cd frontend && npm test     # tests del frontend (necesita Chrome)
 ```
+
+Si la máquina no tiene Chrome instalado, sirve el que descarga Puppeteer:
+
+```bash
+npx puppeteer browsers install chrome
+CHROME_BIN=$(node -e "console.log(require('puppeteer').executablePath())") \
+  npx ng test --watch=false --browsers=ChromeHeadless
+```
+
+En un contenedor o en WSL puede hacer falta arrancarlo con `--no-sandbox`,
+apuntando `CHROME_BIN` a un pequeño script que añada esa opción.

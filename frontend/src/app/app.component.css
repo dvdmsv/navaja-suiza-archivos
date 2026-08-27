@@ -3,26 +3,6 @@
 }
 
 /*
- * Con siete herramientas el menú ya no cabe de una tirada en pantallas
- * medianas. Cada nombre se mantiene entero (`nowrap`) y es la lista la que
- * pasa a una segunda línea si hace falta: así no se parten las palabras ni
- * aparece scroll horizontal.
- */
-.nav-link {
-  white-space: nowrap;
-}
-
-.navbar-nav {
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.nav-link.active {
-  color: var(--bs-primary);
-  font-weight: 500;
-}
-
-/*
  * Despliegue del menú en pantallas estrechas, sin el JavaScript de Bootstrap.
  *
  * La fila del grid pasa de 0fr a 1fr, que sí es animable, y así no hace falta

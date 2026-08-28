@@ -6,7 +6,7 @@ de abajo. No hay que tocar nada más ni en el arranque ni en nginx.
 """
 from api.tools import (a_markdown, comprimir_imagen, comprimir_pdf, convertir_imagen, dividir_pdf,
                        firmar, imagen_a_pdf, ocr_pdf, organizar_pdf, pdf_a_imagen, proteger_pdf,
-                       unir_pdf)
+                       unir_pdf, visor)
 
 BLUEPRINTS = [
     unir_pdf.bp,
@@ -21,6 +21,7 @@ BLUEPRINTS = [
     organizar_pdf.bp,
     proteger_pdf.bp,
     ocr_pdf.bp,
+    visor.bp,
 ]
 
 

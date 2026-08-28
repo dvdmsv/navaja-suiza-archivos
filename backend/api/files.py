@@ -96,6 +96,13 @@ def delete_file(file_id: str):
     return '', 204
 
 
+@bp.post('/session/keepalive')
+def keepalive():
+    """Evita que la sesión caduque mientras el visor sigue abierto."""
+    storage.touch_session(current_session())
+    return '', 204
+
+
 @bp.delete('/session')
 def clear_session():
     """Borra todos los archivos de la sesión actual, y sólo de esa."""

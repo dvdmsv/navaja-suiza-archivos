@@ -126,6 +126,16 @@ export class ApiService {
     return this.http.delete<void>(`/api/files/${id}`);
   }
 
+  /**
+   * Avisa al servidor de que la sesión sigue viva.
+   *
+   * El visor trabaja en el navegador: sin esto, una lectura larga acabaría con
+   * los archivos borrados por inactividad justo cuando se va a guardar.
+   */
+  mantenerSesion(): Observable<void> {
+    return this.http.post<void>('/api/session/keepalive', {});
+  }
+
   /** Borra todos los archivos de esta sesión. */
   limpiarSesion(): Observable<void> {
     return this.http.delete<void>('/api/session');

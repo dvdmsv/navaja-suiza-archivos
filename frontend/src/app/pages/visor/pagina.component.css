@@ -1,0 +1,176 @@
+.caja {
+  position: relative;
+  background-color: #fff;
+  box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.25);
+}
+
+.lienzo {
+  display: block;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.lienzo--lista {
+  opacity: 1;
+}
+
+.numero {
+  position: absolute;
+  bottom: -1.35rem;
+  left: 50%;
+  translate: -50% 0;
+  font-size: 0.7rem;
+  color: var(--bs-secondary-color);
+}
+
+/* --- marcas del usuario y coincidencias de la búsqueda ------------------- */
+.marcas {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/*
+ * Las marcas no capturan el ratón, y es deliberado: si lo hicieran, no se podría
+ * seleccionar el texto que hay debajo y sería imposible volver a subrayarlo en
+ * otro color. El clic sobre una marca lo resuelve el componente comparando el
+ * punto con sus rectángulos.
+ */
+.marca {
+  position: absolute;
+  pointer-events: none;
+}
+
+.marca--subrayado {
+  mix-blend-mode: multiply;
+  opacity: 0.45;
+}
+
+.marca--amarillo { background-color: #ffde4a; }
+.marca--verde    { background-color: #8ce38c; }
+.marca--azul     { background-color: #87c4fa; }
+.marca--rosa     { background-color: #fba6cc; }
+
+.marca--tachado.marca--negro  { background-color: #000; }
+.marca--tachado.marca--blanco { background-color: #fff; outline: 1px dashed #adb5bd; }
+
+.resaltado {
+  position: absolute;
+  background-color: rgba(255, 145, 0, 0.45);
+  border-radius: 2px;
+}
+
+/*
+ * Capa de texto invisible sobre la página: es lo que permite seleccionar,
+ * copiar y subrayar. Los estilos son los que pdf.js necesita para colocar cada
+ * fragmento donde le corresponde; están copiados de su hoja oficial, reducidos
+ * a lo que usa este visor.
+ */
+.capa-texto {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  opacity: 1;
+  line-height: 1;
+  letter-spacing: normal;
+  word-spacing: normal;
+  text-align: initial;
+  text-size-adjust: none;
+  forced-color-adjust: none;
+  transform-origin: 0 0;
+  caret-color: CanvasText;
+  z-index: 2;
+  --min-font-size: 1;
+  --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+  --min-font-size-inv: calc(1 / var(--min-font-size));
+}
+
+/*
+ * Los fragmentos los crea pdf.js con `createElement`, así que no llevan el
+ * atributo con el que Angular acota los estilos del componente y las reglas
+ * normales no los alcanzan: sin `::ng-deep` el texto sale negro encima de la
+ * página y sin escalar. De ahí también el `:host`, para no soltar estas reglas
+ * sobre toda la aplicación.
+ */
+:host ::ng-deep .capa-texto span,
+:host ::ng-deep .capa-texto br {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+  user-select: text;
+}
+
+:host ::ng-deep .capa-texto > :not(.markedContent),
+:host ::ng-deep .capa-texto .markedContent span:not(.markedContent) {
+  z-index: 1;
+  --font-height: 0;
+  font-size: calc(var(--text-scale-factor) * var(--font-height));
+  --scale-x: 1;
+  --rotate: 0deg;
+  transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
+}
+
+:host ::ng-deep .capa-texto .markedContent {
+  display: contents;
+}
+
+:host ::ng-deep .capa-texto ::selection {
+  background-color: rgba(0, 110, 255, 0.28);
+}
+
+/* --- menú flotante (marca o selección) --------------------------------------------------- */
+.menu-flotante {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.4rem;
+  translate: -50% 0;
+  background-color: var(--bs-body-bg);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 2rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.25);
+  /* Lo único de esta capa que sí atiende al ratón, y sólo mientras está abierto. */
+  pointer-events: auto;
+}
+
+.menu-flotante__color {
+  width: 1.05rem;
+  height: 1.05rem;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+}
+
+.menu-flotante__color--puesto {
+  border-color: var(--bs-body-color);
+}
+
+.menu-flotante__color--amarillo { background-color: #ffde4a; }
+.menu-flotante__color--verde    { background-color: #8ce38c; }
+.menu-flotante__color--azul     { background-color: #87c4fa; }
+.menu-flotante__color--rosa     { background-color: #fba6cc; }
+.menu-flotante__color--negro    { background-color: #000; }
+.menu-flotante__color--blanco   { background-color: #fff; border-color: var(--bs-border-color); }
+
+.menu-flotante__raya {
+  width: 1px;
+  height: 1rem;
+  background-color: var(--bs-border-color);
+}
+
+.menu-flotante__accion {
+  border: 0;
+  background: none;
+  color: var(--bs-secondary-color);
+  padding: 0 0.15rem;
+  font-size: 0.8rem;
+}
+
+.menu-flotante__accion:hover {
+  color: var(--bs-danger);
+}

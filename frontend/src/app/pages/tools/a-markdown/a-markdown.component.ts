@@ -8,6 +8,7 @@ import { ResultListComponent } from '../../../shared/result-list/result-list.com
 import { ToolControlsComponent } from '../../../shared/tool-controls/tool-controls.component';
 import { ToolPageComponent } from '../../../shared/tool-page/tool-page.component';
 import { avisoError, avisoExito } from '../../../shared/notify';
+import { copiarAlPortapapeles } from '../../../shared/portapapeles';
 
 /** Regla de andar por casa para estimar tokens a partir de caracteres. */
 const CARACTERES_POR_TOKEN = 4;
@@ -42,38 +43,10 @@ export class AMarkdownComponent extends PaginaHerramienta {
       return;
     }
     try {
-      await escribirEnElPortapapeles(texto);
+      await copiarAlPortapapeles(texto);
       avisoExito('Markdown copiado');
     } catch {
       avisoError('El navegador no ha dejado copiar. Descarga el archivo o selecciona el texto a mano.');
     }
-  }
-}
-
-/**
- * Copia texto al portapapeles.
- *
- * `navigator.clipboard` sólo existe en contexto seguro, así que entrando por la
- * IP de la red local —desde el móvil o la tableta— no está disponible y hay que
- * caer en el truco clásico del `<textarea>` oculto.
- */
-async function escribirEnElPortapapeles(texto: string): Promise<void> {
-  if (navigator.clipboard?.writeText) {
-    return navigator.clipboard.writeText(texto);
-  }
-
-  const area = document.createElement('textarea');
-  area.value = texto;
-  area.setAttribute('readonly', '');
-  area.style.position = 'fixed';
-  area.style.opacity = '0';
-  document.body.appendChild(area);
-  area.select();
-  try {
-    if (!document.execCommand('copy')) {
-      throw new Error('copia rechazada');
-    }
-  } finally {
-    document.body.removeChild(area);
   }
 }

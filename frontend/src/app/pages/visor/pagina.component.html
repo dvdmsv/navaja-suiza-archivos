@@ -1,0 +1,42 @@
+<div class="caja" #caja
+     [style.width.px]="colocada.ancho" [style.height.px]="colocada.alto"
+     (pointerdown)="alPulsar($event)"
+     (pointerup)="alSoltar($event)">
+
+  <canvas #lienzo class="lienzo" [class.lienzo--lista]="dibujada"
+          [style.width.px]="colocada.ancho" [style.height.px]="colocada.alto"></canvas>
+
+  <div class="capa-texto" #capaTexto></div>
+
+  <div class="marcas">
+    <span class="resaltado" *ngFor="let estilo of resaltados" [style]="estilo"></span>
+
+    <span class="marca marca--{{ pintada.tipo }} marca--{{ pintada.color }}"
+          *ngFor="let pintada of pintadas; trackBy: porClave" [style]="pintada.estilo"></span>
+
+    <!-- Menú flotante: el de una marca ya puesta o el de lo recién seleccionado -->
+    <div class="menu-flotante" *ngIf="menu as abierto" [style]="abierto.estilo">
+      <button type="button" class="menu-flotante__color menu-flotante__color--{{ color }}"
+              *ngFor="let color of coloresDelMenu"
+              [class.menu-flotante__color--puesto]="esElColorPuesto(color)"
+              [title]="(abierto.menu === 'marca' ? 'Cambiar a ' : 'Subrayar en ') + color"
+              (click)="elegirColor(color)"></button>
+
+      <span class="menu-flotante__raya"></span>
+
+      <button type="button" class="menu-flotante__accion" *ngIf="abierto.menu === 'marca'"
+              title="Quitar la marca" (click)="quitarDelMenu()"><i class="bi bi-trash"></i></button>
+
+      <ng-container *ngIf="abierto.menu === 'seleccion'">
+        <button type="button" class="menu-flotante__accion" title="Eliminar este texto del PDF"
+                (click)="accionar('tachar')"><i class="bi bi-eraser"></i></button>
+        <button type="button" class="menu-flotante__accion" title="Copiar"
+                (click)="accionar('copiar')"><i class="bi bi-clipboard"></i></button>
+        <button type="button" class="menu-flotante__accion" title="Buscar en el documento"
+                (click)="accionar('buscar')"><i class="bi bi-search"></i></button>
+      </ng-container>
+    </div>
+  </div>
+
+  <span class="numero">{{ colocada.numero }}</span>
+</div>

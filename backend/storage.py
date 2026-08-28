@@ -180,6 +180,16 @@ class Storage:
 
     # --- borrado ----------------------------------------------------------
 
+    def touch_session(self, session_id: str) -> None:
+        """Marca la sesión como activa.
+
+        La limpieza mira la fecha de la carpeta, y el visor trabaja en el
+        navegador: se puede pasar horas leyendo sin una sola llamada a la API.
+        Sin esto, al ir a guardar los archivos ya no estarían.
+        """
+        path = self.session_dir(session_id, create=True)
+        os.utime(path, None)
+
     def clear_session(self, session_id: str) -> None:
         path = self.session_dir(session_id, create=False)
         shutil.rmtree(path, ignore_errors=True)

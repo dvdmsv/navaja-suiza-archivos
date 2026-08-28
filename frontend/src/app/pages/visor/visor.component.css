@@ -1,0 +1,219 @@
+.visor {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  background-color: var(--bs-secondary-bg);
+}
+
+/* --- barra de herramientas ---------------------------------------------- */
+.barra {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.35rem 0.6rem;
+  background-color: var(--bs-body-bg);
+  border-bottom: 1px solid var(--bs-border-color);
+  flex-shrink: 0;
+  /* Con muchas herramientas y poca pantalla, antes barra desplazable que
+     botones apretujados o partidos en dos líneas. */
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.barra__marca {
+  display: flex;
+  align-items: center;
+  padding: 0.35rem 0.5rem;
+  color: var(--bs-secondary-color);
+}
+
+.barra__hueco {
+  flex: 1;
+  min-width: 0.5rem;
+}
+
+.boton {
+  border: 0;
+  background: none;
+  color: var(--bs-body-color);
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--bs-border-radius);
+  flex-shrink: 0;
+}
+
+.boton:hover:not(:disabled) {
+  background-color: var(--bs-tertiary-bg);
+}
+
+.boton:disabled {
+  opacity: 0.35;
+}
+
+.boton--activo {
+  color: var(--bs-primary);
+  background-color: var(--bs-primary-bg-subtle);
+}
+
+.separador {
+  width: 1px;
+  height: 1.4rem;
+  background-color: var(--bs-border-color);
+  margin: 0 0.35rem;
+  flex-shrink: 0;
+}
+
+.contador {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.contador__campo {
+  width: 3.2rem;
+  padding: 0.15rem 0.3rem;
+  text-align: right;
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius);
+  background-color: var(--bs-body-bg);
+  color: inherit;
+}
+
+.zoom {
+  font-size: 0.8rem;
+  color: var(--bs-secondary-color);
+  min-width: 3rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.colores {
+  display: flex;
+  gap: 0.2rem;
+  padding: 0 0.25rem;
+  flex-shrink: 0;
+}
+
+.color {
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  padding: 0;
+}
+
+.color--elegido {
+  border-color: var(--bs-body-color);
+}
+
+.color--amarillo { background-color: #ffde4a; }
+.color--verde    { background-color: #8ce38c; }
+.color--azul     { background-color: #87c4fa; }
+.color--rosa     { background-color: #fba6cc; }
+.color--negro    { background-color: #000; }
+.color--blanco   { background-color: #fff; border-color: var(--bs-border-color); }
+
+/* --- cuerpo y lectura ---------------------------------------------------- */
+.cuerpo {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.lectura {
+  position: relative;
+  flex: 1;
+  overflow: auto;
+  /* Que el desplazamiento no arrastre la página de detrás en táctil. */
+  overscroll-behavior: contain;
+}
+
+.lectura--marcando {
+  cursor: crosshair;
+}
+
+.lienzo {
+  position: relative;
+  width: 100%;
+}
+
+.pagina-suelta {
+  position: absolute;
+  display: block;
+}
+
+/*
+ * Modo oscuro: se invierte lo dibujado y se rota el tono, que es lo que
+ * mantiene las fotografías reconocibles en vez de dejarlas en negativo puro.
+ * No toca el archivo, sólo cómo se ve.
+ */
+.visor--oscuro {
+  background-color: #1b1b1f;
+}
+
+/* El lienzo lo pinta el componente de página: sin `::ng-deep`, la regla se
+   queda fuera y el modo oscuro no oscurece nada. */
+.visor--oscuro ::ng-deep .lienzo canvas {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* --- pantalla de bienvenida ---------------------------------------------- */
+.bienvenida {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 2rem;
+  text-align: center;
+}
+
+.bienvenida i {
+  font-size: 3rem;
+  color: var(--bs-primary);
+}
+
+.bienvenida--soltando {
+  outline: 3px dashed var(--bs-primary);
+  outline-offset: -1rem;
+  background-color: var(--bs-primary-bg-subtle);
+}
+
+.pista {
+  margin-top: 1.5rem;
+  font-size: 0.8rem;
+  color: var(--bs-secondary-color);
+  max-width: 26rem;
+}
+
+.cargando {
+  padding: 2rem;
+  text-align: center;
+  color: var(--bs-secondary-color);
+}
+
+@media (max-width: 767.98px) {
+  .zoom,
+  .contador span {
+    display: none;
+  }
+
+  /*
+   * En una pantalla estrecha el panel no puede robarle 15rem al documento: se
+   * pone encima, y al elegir algo se cierra solo.
+   */
+  .cuerpo app-visor-panel {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 20;
+    box-shadow: 0 0 2rem rgba(0, 0, 0, 0.3);
+  }
+
+  .cuerpo {
+    position: relative;
+  }
+}

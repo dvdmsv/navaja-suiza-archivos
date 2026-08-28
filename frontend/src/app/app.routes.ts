@@ -85,5 +85,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/tools/a-markdown/a-markdown.component').then(m => m.AMarkdownComponent),
   },
+  {
+    // El visor manda en toda la pantalla: sin barra de navegación ni pie.
+    path: 'visor',
+    title: 'Visor de PDF',
+    data: { pantallaCompleta: true },
+    loadComponent: () => import('./pages/visor/visor.component').then(m => m.VisorComponent),
+  },
   { path: '**', redirectTo: '' },
 ];

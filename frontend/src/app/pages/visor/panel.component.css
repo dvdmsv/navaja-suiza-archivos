@@ -1,0 +1,221 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  width: 15rem;
+  flex-shrink: 0;
+  border-right: 1px solid var(--bs-border-color);
+  background-color: var(--bs-body-bg);
+  overflow: hidden;
+}
+
+.pestanas {
+  display: flex;
+  border-bottom: 1px solid var(--bs-border-color);
+  flex-shrink: 0;
+}
+
+.pestanas button {
+  position: relative;
+  flex: 1;
+  padding: 0.5rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--bs-secondary-color);
+}
+
+.pestanas button:disabled {
+  opacity: 0.35;
+}
+
+.pestanas button.activa {
+  color: var(--bs-primary);
+  border-bottom-color: var(--bs-primary);
+}
+
+.cuenta {
+  position: absolute;
+  top: 0.15rem;
+  right: 0.6rem;
+  font-size: 0.6rem;
+  background-color: var(--bs-primary);
+  color: #fff;
+  border-radius: 1rem;
+  padding: 0 0.3rem;
+}
+
+.contenido {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.contenido--buscar {
+  padding: 0;
+}
+
+/* --- miniaturas --------------------------------------------------------- */
+.miniatura {
+  margin-bottom: 0.75rem;
+}
+
+.miniatura__imagen {
+  display: block;
+  width: 100%;
+  padding: 0.25rem;
+  border: 2px solid transparent;
+  border-radius: var(--bs-border-radius);
+  background: none;
+}
+
+.miniatura--actual .miniatura__imagen {
+  border-color: var(--bs-primary);
+}
+
+.miniatura--fuera {
+  opacity: 0.35;
+}
+
+.miniatura--fuera .miniatura__imagen {
+  border-color: var(--bs-danger);
+}
+
+.miniatura img {
+  display: block;
+  width: 100%;
+  height: auto;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+/* Reserva el hueco antes de que llegue la imagen: sin esto la lista da saltos. */
+.miniatura__hueco {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1.414;
+  background-color: var(--bs-tertiary-bg);
+}
+
+.miniatura__pie {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+  color: var(--bs-secondary-color);
+}
+
+.miniatura__pie span {
+  flex: 1;
+  text-align: center;
+}
+
+.miniatura__pie button {
+  border: 0;
+  background: none;
+  color: var(--bs-secondary-color);
+  padding: 0 0.15rem;
+}
+
+.miniatura__pie button:hover {
+  color: var(--bs-primary);
+}
+
+/* --- índice, resultados y marcas ---------------------------------------- */
+.entrada,
+.resultado,
+.marca-lista__ir {
+  display: flex;
+  width: 100%;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border: 0;
+  background: none;
+  text-align: left;
+  font-size: 0.85rem;
+  border-radius: var(--bs-border-radius);
+}
+
+.entrada:hover,
+.resultado:hover,
+.marca-lista__ir:hover {
+  background-color: var(--bs-tertiary-bg);
+}
+
+.entrada__titulo {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entrada__pagina,
+.resultado__pagina,
+.marca-lista__pagina {
+  color: var(--bs-secondary-color);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.resultado {
+  flex-direction: column;
+  gap: 0.15rem;
+  border-bottom: 1px solid var(--bs-border-color);
+  border-radius: 0;
+}
+
+.resultado--actual {
+  background-color: var(--bs-primary-bg-subtle);
+}
+
+.resultado__texto {
+  color: var(--bs-secondary-color);
+  font-size: 0.78rem;
+}
+
+.aviso {
+  font-size: 0.78rem;
+  color: var(--bs-secondary-color);
+  margin: 0.5rem 0 0;
+}
+
+.marca-lista {
+  display: flex;
+  align-items: flex-start;
+}
+
+.marca-lista__texto {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.marca-lista__quitar {
+  border: 0;
+  background: none;
+  color: var(--bs-secondary-color);
+  padding: 0.4rem;
+  font-size: 0.7rem;
+}
+
+.marca-lista__quitar:hover {
+  color: var(--bs-danger);
+}
+
+.punto {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+}
+
+.punto--amarillo { background-color: #ffde4a; }
+.punto--verde    { background-color: #8ce38c; }
+.punto--azul     { background-color: #87c4fa; }
+.punto--rosa     { background-color: #fba6cc; }
+.punto--negro    { background-color: #000; }
+.punto--blanco   { background-color: #fff; border: 1px solid var(--bs-border-color); }
+
+.punto--tachado {
+  border-radius: 0.15rem;
+}

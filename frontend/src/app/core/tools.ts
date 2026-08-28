@@ -50,6 +50,14 @@ export const HERRAMIENTAS: Herramienta[] = [
     disponible: true,
   },
   {
+    slug: 'visor',
+    nombre: 'Visor de PDF',
+    descripcion: 'Lee, busca, subraya y edita tus PDF sin salir del navegador.',
+    icono: 'bi-book',
+    categoria: 'PDF',
+    disponible: true,
+  },
+  {
     slug: 'dividir-pdf',
     nombre: 'Dividir PDF',
     descripcion: 'Saca las páginas que necesites a un documento nuevo.',
@@ -147,7 +155,8 @@ export function agruparPorCategoria(incluirPendientes = false): Grupo[] {
 }
 
 export function rutaDe(herramienta: Herramienta): string {
-  return `/herramientas/${herramienta.slug}`;
+  // El visor no es una herramienta de un disparo: vive en su propia pantalla.
+  return herramienta.slug === 'visor' ? '/visor' : `/herramientas/${herramienta.slug}`;
 }
 
 export function buscarPorSlug(slug: string): Herramienta | undefined {

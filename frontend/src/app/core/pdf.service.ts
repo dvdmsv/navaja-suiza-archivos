@@ -37,10 +37,103 @@ const LIMITE_POR_PAGINA = 20000;
 export class DocumentoPdf {
   private readonly cache = new Map<string, string>();
 
-  constructor(private readonly tarea: any, private readonly documento: any) {}
+  constructor(private readonly tarea: any, private readonly documento: any,
+              private readonly pdfjs: any) {}
 
   get paginas(): number {
     return this.documento.numPages;
+  }
+
+  /** La página de pdf.js, para quien necesite dibujarla o leer su texto. */
+  pagina(numero: number): Promise<any> {
+    return this.documento.getPage(numero);
+  }
+
+  /**
+   * Medidas de todas las páginas a escala 1, que es lo que necesita el visor
+   * para colocarlas sin haberlas dibujado.
+   *
+   * Casi todos los documentos tienen todas las páginas iguales, así que primero
+   * se comprueban unas cuantas: si coinciden, se da por hecho el resto y abrir
+   * un documento de trescientas páginas cuesta lo mismo que uno de tres. Sólo
+   * si hay mezcla se recorren todas.
+   */
+  async medidas(): Promise<{ numero: number; ancho: number; alto: number }[]> {
+    const total = this.paginas;
+    const medir = async (numero: number) => {
+      const { width, height } = (await this.pagina(numero)).getViewport({ scale: 1 });
+      return { numero, ancho: width, alto: height };
+    };
+
+    const muestras = [...new Set([1, Math.ceil(total / 2), total])];
+    const medidas = await Promise.all(muestras.map(medir));
+    const primera = medidas[0];
+    const uniforme = medidas.every(m => m.ancho === primera.ancho && m.alto === primera.alto);
+
+    if (uniforme) {
+      return Array.from({ length: total }, (_, i) => ({ ...primera, numero: i + 1 }));
+    }
+    const todas = [];
+    for (let numero = 1; numero <= total; numero++) {
+      todas.push(await medir(numero));
+    }
+    return todas;
+  }
+
+  /**
+   * Monta la capa de texto invisible sobre la página.
+   *
+   * Es lo que permite seleccionar, copiar y subrayar: sin ella, la página no
+   * pasa de ser una imagen. Devuelve los elementos de cada fragmento, que es lo
+   * que hace falta para localizar sobre el papel lo que encuentra el buscador.
+   */
+  async capaTexto(numero: number, viewport: any, contenedor: HTMLElement): Promise<HTMLElement[]> {
+    const pagina = await this.pagina(numero);
+    contenedor.replaceChildren();
+    const capa = new this.pdfjs.TextLayer({
+      textContentSource: pagina.streamTextContent(),
+      container: contenedor,
+      viewport,
+    });
+    await capa.render();
+    return capa.textDivs;
+  }
+
+  /** Marcadores del documento, si los trae, ya aplanados para el panel. */
+  async indice(): Promise<{ titulo: string; pagina: number; nivel: number }[]> {
+    const marcadores = await this.documento.getOutline();
+    if (!marcadores?.length) {
+      return [];
+    }
+
+    const plano: { titulo: string; pagina: number; nivel: number }[] = [];
+    const recorrer = async (nodos: any[], nivel: number) => {
+      for (const nodo of nodos) {
+        const pagina = await this.paginaDeDestino(nodo.dest);
+        if (pagina) {
+          plano.push({ titulo: nodo.title?.trim() || 'Sin título', pagina, nivel });
+        }
+        if (nodo.items?.length) {
+          await recorrer(nodo.items, nivel + 1);
+        }
+      }
+    };
+    await recorrer(marcadores, 0);
+    return plano;
+  }
+
+  private async paginaDeDestino(destino: any): Promise<number | null> {
+    try {
+      const resuelto = typeof destino === 'string'
+        ? await this.documento.getDestination(destino)
+        : destino;
+      if (!resuelto?.[0]) {
+        return null;
+      }
+      return (await this.documento.getPageIndex(resuelto[0])) + 1;
+    } catch {
+      return null; // un marcador roto no debe impedir enseñar los demás
+    }
   }
 
   async imagen(numero: number, ancho = ANCHO_VISTA): Promise<string> {
@@ -86,7 +179,7 @@ export class PdfService {
   async abrir(archivo: File): Promise<DocumentoPdf> {
     const pdfjs = await this.libreria();
     const tarea = pdfjs.getDocument({ data: await archivo.arrayBuffer() });
-    return new DocumentoPdf(tarea, await tarea.promise);
+    return new DocumentoPdf(tarea, await tarea.promise, pdfjs);
   }
 
   private async libreria(): Promise<any> {

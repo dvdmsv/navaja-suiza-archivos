@@ -1,17 +1,39 @@
-import { Component } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { AsyncPipe, NgIf } from '@angular/common';
+import { Component, inject } from '@angular/core';
+import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { filter, map, startWith } from 'rxjs';
 
 import { MenuPrincipalComponent } from './shared/menu-principal/menu-principal.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, MenuPrincipalComponent],
+  imports: [AsyncPipe, NgIf, RouterOutlet, RouterLink, MenuPrincipalComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
 export class AppComponent {
   readonly anio = new Date().getFullYear();
+
+  private readonly router = inject(Router);
+
+  /**
+   * Hay pantallas, como el visor, que necesitan todo el alto: ahí no se pintan
+   * ni la barra de navegación ni el pie.
+   */
+  readonly pantallaCompleta = this.router.events.pipe(
+    filter(evento => evento instanceof NavigationEnd),
+    startWith(null),
+    map(() => this.rutaActual()?.snapshot.data?.['pantallaCompleta'] === true),
+  );
+
+  private rutaActual() {
+    let ruta = this.router.routerState.root;
+    while (ruta.firstChild) {
+      ruta = ruta.firstChild;
+    }
+    return ruta;
+  }
 
   /**
    * Estado del menú en pantallas estrechas. Lo lleva Angular y no el JavaScript

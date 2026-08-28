@@ -13,6 +13,7 @@ El procesado ocurre en el servidor; el navegador sólo sube, ordena y descarga.
 
 | Herramienta | Qué hace | Opciones |
 |---|---|---|
+| Visor de PDF | Lee, busca, subraya y edita sin salir del navegador | pantalla completa, en `/visor` |
 | Unir PDF | Combina varios PDF en uno | orden por arrastre |
 | PDF a imagen | Una imagen por página | formato de salida, 96/150/300 ppp y calidad |
 | Dividir PDF | Saca páginas sueltas o rangos | `1-3, 7, 10-`, un archivo o uno por página |
@@ -42,6 +43,51 @@ arranque, así que la interfaz nunca ofrece uno que después falle al guardar.
 salida disponible; "Imagen a PDF" acepta como entrada todo lo que Pillow sepa
 abrir en esta instalación.
 
+### El visor
+
+El visor (`/visor`) no es una herramienta de un disparo: está pensado para
+trabajar con un documento durante horas. Lee, busca con o sin tildes, navega por
+el índice del PDF, subraya en cuatro colores, elimina palabras del archivo, gira
+y quita páginas, todo con **un solo guardado al final**.
+
+Al abrir un documento se enseña la página entera; en pantallas estrechas se
+ajusta al ancho, que es lo legible ahí. Si se cambia el ajuste, se recuerda para
+los documentos siguientes.
+
+Leyendo, al terminar de seleccionar un texto aparece un menú con qué hacer con
+él —subrayar en cualquiera de los cuatro colores, eliminarlo del PDF, copiarlo o
+buscarlo en el documento—, sin tener que cambiar antes de herramienta. Se apaga
+desde la barra si estorba, y esa preferencia se recuerda.
+
+Lo que lo hace ir fino con documentos densos, medido sobre un PDF de 200 páginas
+con imágenes:
+
+- **Virtualización propia** (`pages/visor/disposicion.ts`): se calculan las
+  posiciones de todas las páginas sin dibujarlas y sólo se monta lo que se ve.
+  De 200 páginas hay 2 en el DOM.
+- **Nada se cachea como imagen**: lo dibujado vive en el lienzo que está en
+  pantalla y muere con él. Recorrer el documento entero mueve la memoria de
+  9,5 a 13 MB, y los nodos del DOM se quedan donde estaban. Es la diferencia
+  entre aguantar tres horas o no.
+- **Una página cada vez y por prioridad**, cancelando lo que sale de pantalla
+  (`core/visor-render.service.ts`): el worker de pdf.js es de un solo hilo.
+- Primera página a la vista en **0,4 s**; buscar en las 200 páginas, 0,2 s.
+
+Dos cosas que este uso destapó y que están resueltas:
+
+- **La sesión del servidor caduca a las 2 horas** y el visor no lo toca mientras
+  se lee. Hay un `keepalive` cada 15 minutos con la pestaña visible y, si aun
+  así el archivo ya no está al guardar, **se resube solo y reintenta**.
+- **Posición, zoom y marcas sin guardar se recuerdan** entre visitas, guardados
+  en el navegador contra una huella del archivo. Un refresco accidental ya no
+  cuesta una hora de trabajo. La huella no usa `crypto.subtle`: no existe fuera
+  de contexto seguro, y esto se sirve por HTTP en la red local.
+
+Al eliminar palabras se usa `apply_redactions` de PyMuPDF, que **borra el texto
+del archivo**: no queda debajo del rectángulo, no se puede copiar ni buscar. Los
+subrayados, en cambio, son anotaciones estándar: se ven en Acrobat, se pueden
+quitar una a una y el texto de debajo sigue intacto.
+
 "PDF con OCR" cierra el círculo de "Documento a Markdown": un escaneado no
 tiene texto que extraer, así que primero se le pasa el reconocimiento y después
 ya se puede convertir, buscar y copiar. Lo hace
@@ -70,17 +116,17 @@ notablemente más lento. `.zip` se queda fuera de los formatos admitidos a
 propósito, aunque markitdown lo soporte: descomprimir en el servidor lo que suba
 cualquiera invita a una zip bomb.
 
-Las tres herramientas que enseñan páginas —firmar, dividir y organizar— rasterizan
-el PDF en el navegador con `core/pdf.service.ts`. Ese servicio arranca poniendo
+Las herramientas que enseñan páginas —el visor, firmar, dividir y organizar—
+rasterizan el PDF en el navegador con `core/pdf.service.ts`. Ese servicio arranca poniendo
 un `Promise.try` que falta: pdf.js lo usa al decodificar imágenes y zone.js, que
 carga Angular, sustituye el `Promise` nativo por uno propio que no lo trae. Sin
 ese remiendo, abrir un PDF con imágenes deja una promesa que nunca resuelve y la
 página se queda "preparando" para siempre.
 
-"Firmar documento" es la única herramienta del frontend con dependencia propia:
-`pdfjs-dist`, para enseñar la página en el navegador mientras se coloca la
-firma. Son ~105 kB comprimidos que sólo descarga quien entra en ella, porque
-cada herramienta se carga por separado. A cambio, cambiar de página es
+`pdfjs-dist` es la única dependencia propia del frontend, y la comparten el
+visor y las herramientas que enseñan páginas. Son ~105 kB comprimidos que sólo
+descarga quien entra en una de ellas, porque cada pantalla se carga por
+separado. A cambio, cambiar de página es
 instantáneo y la vista previa se ve nítida en pantallas de mucha densidad. La
 firma se puede subir como imagen o dibujar a mano; con un lápiz que informe de
 presión (un Apple Pencil, por ejemplo) el trazo engorda y adelgaza solo, y la
@@ -193,6 +239,8 @@ Las sesiones sin actividad se eliminan solas (2 horas por defecto,
 | `GET` | `/api/tools/convertir-imagen/formatos` | formatos de imagen disponibles |
 | `GET` | `/api/tools/pdf-a-imagen/formatos` | los mismos, sin PDF |
 | `POST` | `/api/tools/firmar/preparar` | la firma con el fondo ya recortado, en PNG |
+| `POST` | `/api/tools/visor/guardar` | aplica de una vez todo lo hecho en el visor |
+| `POST` | `/api/session/keepalive` | marca la sesión como activa (la usa el visor) |
 | `GET` | `/api/health` | comprobación de estado |
 
 Todas las herramientas reciben `{"file_ids": [...]}` más sus propias opciones y

@@ -147,7 +147,7 @@ export class VisorRenderService {
    * memoria de cada lienzo sin que se aprecie la diferencia.
    */
   private densidad(): number {
-    return Math.min(window.devicePixelRatio || 1, 2);
+    return densidadDePantalla();
   }
 }
 
@@ -165,6 +165,17 @@ export function esCancelacion(err: unknown): boolean {
 }
 
 /** Tope de tamaño para no pedirle al navegador un lienzo que no puede crear. */
+/**
+ * Cuántos píxeles de verdad tiene cada píxel de CSS, con tope.
+ *
+ * Lo que se dibuje a menos que esto lo amplía el navegador y se ve borroso. Se
+ * limita a 2 porque de ahí para arriba ya no se aprecia y sí se nota en lo que
+ * cuesta dibujar.
+ */
+export function densidadDePantalla(): number {
+  return Math.min(window.devicePixelRatio || 1, 2);
+}
+
 export function escalaSegura(ancho: number, alto: number, escala: number): number {
   const mayor = Math.max(ancho, alto) * escala;
   return mayor > MAXIMO_PIXELES ? (MAXIMO_PIXELES / Math.max(ancho, alto)) : escala;

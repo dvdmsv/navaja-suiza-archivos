@@ -26,6 +26,18 @@ export function aviso(texto: string): void {
   Swal.fire({ icon: 'info', text: texto, confirmButtonText: 'Vale' });
 }
 
+/** Pregunta antes de algo que no se puede deshacer del todo. */
+export function confirmar(titulo: string, texto: string, aceptar: string): Promise<boolean> {
+  return Swal.fire({
+    icon: 'question',
+    title: titulo,
+    text: texto,
+    showCancelButton: true,
+    confirmButtonText: aceptar,
+    cancelButtonText: 'Cancelar',
+  }).then(respuesta => respuesta.isConfirmed);
+}
+
 /** Extrae el mensaje útil de un error HTTP, con un texto de respaldo. */
 export function mensajeDeError(err: unknown, respaldo: string): string {
   const detalle = (err as { error?: { error?: string } })?.error?.error;

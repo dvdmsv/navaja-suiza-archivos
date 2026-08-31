@@ -89,6 +89,20 @@
   flex-shrink: 0;
 }
 
+/* Abrir otro documento: el botón y, desplegada, la pregunta. */
+.abrir-otro,
+.abrir-otro__donde {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.abrir-otro__pregunta {
+  font-size: 0.8rem;
+  color: var(--bs-secondary-color);
+}
+
 .escritura {
   display: flex;
   align-items: center;

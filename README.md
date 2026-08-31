@@ -51,6 +51,11 @@ el índice del PDF, subraya en cuatro colores, elimina palabras del archivo,
 escribe encima para rellenar huecos, gira y quita páginas, todo con **un solo
 guardado al final**.
 
+Desde la barra se abre otro PDF sin salir del visor, y pregunta dónde: aquí
+mismo o en otra pestaña. Si aquí hay cambios sin guardar, avisa antes de
+cambiar de documento —lo que llevas apuntado se queda en el navegador y vuelve
+al reabrir ese archivo, pero todavía no está dentro del PDF—.
+
 Al abrir un documento se enseña la página entera; en pantallas estrechas se
 ajusta al ancho, que es lo legible ahí. Si se cambia el ajuste, se recuerda para
 los documentos siguientes.

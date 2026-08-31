@@ -117,6 +117,28 @@
         <i class="bi bi-menu-button-wide"></i>
       </button>
 
+      <span class="separador"></span>
+
+      <!--
+        Abrir otro documento. La ventana nueva es un enlace de verdad y no un
+        `window.open`: abierta desde código después de una pregunta, el
+        navegador la tomaría por emergente y la bloquearía.
+      -->
+      <span class="abrir-otro">
+        <button type="button" class="boton" [class.boton--activo]="preguntandoDonde"
+                (click)="alternarDondeAbrir()" title="Abrir otro PDF">
+          <i class="bi bi-folder2-open"></i>
+        </button>
+        <span class="abrir-otro__donde" *ngIf="preguntandoDonde">
+          <span class="abrir-otro__pregunta">¿Dónde?</span>
+          <button type="button" class="btn btn-sm btn-outline-primary"
+                  (click)="abrirEnEstaVentana(selector)">Aquí</button>
+          <a class="btn btn-sm btn-outline-secondary" href="/visor" target="_blank"
+             rel="noopener" (click)="cerrarPreguntaDespues()">En otra ventana</a>
+        </span>
+        <input type="file" accept=".pdf" hidden #selector (change)="alElegirArchivo($event)">
+      </span>
+
       <button type="button" class="boton" [disabled]="!cambios.sePuedeDeshacer"
               (click)="deshacer()" title="Deshacer (Ctrl+Z)">
         <i class="bi bi-arrow-counterclockwise"></i>

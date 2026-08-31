@@ -10,7 +10,7 @@ import { ApiService, ArchivoServidor } from '../../core/api.service';
 import { MemoriaDocumentoService } from '../../core/memoria-documento.service';
 import { DocumentoPdf, PdfService } from '../../core/pdf.service';
 import { VisorRenderService } from '../../core/visor-render.service';
-import { avisoError, avisoExito, mensajeDeError } from '../../shared/notify';
+import { avisoError, avisoExito, confirmar, mensajeDeError } from '../../shared/notify';
 import { copiarAlPortapapeles } from '../../shared/portapapeles';
 import { Coincidencia, IndiceTexto } from './buscador';
 import { Cambios, ColorSubrayado, ColorTachado, Marca, Texto } from './cambios';
@@ -64,6 +64,8 @@ export class VisorComponent implements AfterViewInit, OnDestroy {
   // --- documento --------------------------------------------------------
   archivo: File | null = null;
   documento: DocumentoPdf | null = null;
+  /** Si está desplegada la pregunta de dónde abrir el siguiente documento. */
+  preguntandoDonde = false;
   medidas: Medida[] = [];
   indice: EntradaIndice[] = [];
   cargando = false;
@@ -212,10 +214,71 @@ export class VisorComponent implements AfterViewInit, OnDestroy {
   }
 
   alElegirArchivo(evento: Event): void {
-    const archivo = (evento.target as HTMLInputElement).files?.[0];
+    const selector = evento.target as HTMLInputElement;
+    const archivo = selector.files?.[0];
+    // Se vacía para que volver a elegir el mismo archivo cuente como un cambio:
+    // si no, el navegador no avisa y parecería que el botón no hace nada.
+    selector.value = '';
     if (archivo) {
+      this.preguntandoDonde = false;
       this.abrir(archivo);
     }
+  }
+
+  // --- abrir otro documento ---------------------------------------------
+
+  alternarDondeAbrir(): void {
+    this.preguntandoDonde = !this.preguntandoDonde;
+  }
+
+  /**
+   * Recoge la pregunta, pero no ahora mismo.
+   *
+   * El enlace de la ventana nueva se quita del DOM al recogerla, y quitarlo
+   * dentro de su propio clic cancela la navegación: la pestaña no se abría.
+   * Se deja para el ciclo siguiente, cuando el navegador ya la ha lanzado.
+   */
+  cerrarPreguntaDespues(): void {
+    setTimeout(() => {
+      this.preguntandoDonde = false;
+      this.cd.markForCheck();
+    });
+  }
+
+  /**
+   * Cierra la pregunta al pulsar en cualquier otro sitio.
+   *
+   * Va por `click` y no por `pointerdown`: con `pointerdown` se cerraría antes
+   * de que llegara el clic al propio botón de la pregunta.
+   */
+  @HostListener('document:click', ['$event'])
+  alPulsarFueraDeLaPregunta(evento: Event): void {
+    if (this.preguntandoDonde
+        && !(evento.target as HTMLElement)?.closest?.('.abrir-otro')) {
+      this.preguntandoDonde = false;
+      this.cd.markForCheck();
+    }
+  }
+
+  /**
+   * Abre otro documento aquí mismo.
+   *
+   * Lo que estuviera a medias no se pierde —al cerrar se guarda en el
+   * navegador y vuelve al abrir otra vez ese archivo—, pero conviene decirlo:
+   * lo que no hay es un PDF con los cambios dentro hasta que se guarda.
+   */
+  async abrirEnEstaVentana(selector: HTMLInputElement): Promise<void> {
+    if (this.hayCambios) {
+      const seguir = await confirmar(
+        'Tienes cambios sin guardar',
+        'Se quedan apuntados en este navegador y vuelven al abrir de nuevo este archivo, '
+        + 'pero todavía no están dentro del PDF. ¿Abres otro documento?',
+        'Abrir otro');
+      if (!seguir) {
+        return;
+      }
+    }
+    selector.click();
   }
 
   async abrir(archivo: File): Promise<void> {

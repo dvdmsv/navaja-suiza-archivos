@@ -6,6 +6,7 @@ import {
 import { FormsModule } from '@angular/forms';
 
 import { DocumentoPdf } from '../../core/pdf.service';
+import { densidadDePantalla } from '../../core/visor-render.service';
 import { Coincidencia } from './buscador';
 import { Marca, Texto } from './cambios';
 
@@ -17,7 +18,7 @@ export interface EntradaIndice {
   nivel: number;
 }
 
-/** Ancho de las miniaturas, en píxeles de imagen. */
+/** Ancho de reserva mientras no se puede medir el sitio que ocupan. */
 const ANCHO_MINIATURA = 140;
 
 @Component({
@@ -108,13 +109,28 @@ export class VisorPanelComponent implements AfterViewInit, OnChanges, OnDestroy 
     return this.marcas.length + this.textos.length;
   }
 
+  /**
+   * A cuántos píxeles hay que dibujar una miniatura.
+   *
+   * A los que va a ocupar de verdad, contando la densidad de la pantalla. Con
+   * un ancho fijo el navegador las amplía y se ven borrosas: en el panel se
+   * enseñan a unos 210 px, así que dibujarlas a 140 ya las ampliaba una vez y
+   * media, y el triple en una pantalla densa.
+   */
+  private anchoDeMiniatura(): number {
+    const hueco = this.elemento.nativeElement
+      .querySelector('.miniatura__hueco, .miniatura img') as HTMLElement | null;
+    const ancho = hueco?.getBoundingClientRect().width ?? 0;
+    return Math.round(Math.max(ancho, ANCHO_MINIATURA) * densidadDePantalla());
+  }
+
   private async dibujarMiniatura(numero: number): Promise<void> {
     if (!numero || this.pedidas.has(numero) || !this.documento) {
       return;
     }
     this.pedidas.add(numero);
     try {
-      this.miniaturas.set(numero, await this.documento.imagen(numero, ANCHO_MINIATURA));
+      this.miniaturas.set(numero, await this.documento.imagen(numero, this.anchoDeMiniatura()));
       this.cd.markForCheck();
     } catch {
       this.pedidas.delete(numero); // que se pueda reintentar al volver a asomar

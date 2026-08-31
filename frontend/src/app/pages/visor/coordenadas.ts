@@ -106,6 +106,18 @@ export function puntoAProporciones(x: number, y: number, caja: DOMRect,
 }
 
 /**
+ * Y la vuelta de `puntoAProporciones`: dónde cae un punto sobre lo que se ve.
+ *
+ * Lo usan los textos escritos encima, que se sitúan por un punto —el inicio de
+ * su línea base— y no por un rectángulo.
+ */
+export function puntoAPorcentajes(x: number, y: number,
+                                  rotacion = 0): { left: string; top: string } {
+  const [gx, gy] = girar([x, y, x, y], rotacion);
+  return { left: porcentaje(gx), top: porcentaje(gy) };
+}
+
+/**
  * Junta los rectángulos que se pisan, dejando uno por trozo de línea.
  *
  * Hace falta porque `getClientRects()` devuelve, para una selección que abarca

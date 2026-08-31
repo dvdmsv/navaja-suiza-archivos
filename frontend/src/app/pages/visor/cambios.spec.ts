@@ -1,4 +1,4 @@
-import { Cambios, Marca } from './cambios';
+import { Cambios, Marca, Texto } from './cambios';
 
 const marca = (pagina: number, tipo: Marca['tipo'] = 'subrayado') => ({
   tipo,
@@ -6,6 +6,19 @@ const marca = (pagina: number, tipo: Marca['tipo'] = 'subrayado') => ({
   color: tipo === 'subrayado' ? ('amarillo' as const) : ('negro' as const),
   rects: [[0.1, 0.2, 0.5, 0.25]] as Marca['rects'],
   texto: 'lo que sea',
+});
+
+const texto = (pagina = 1, contenido = 'Juan Pérez'): Omit<Texto, 'id'> => ({
+  pagina,
+  x: 0.2,
+  y: 0.3,
+  rotacion: 0,
+  texto: contenido,
+  fuente: 'sans',
+  tamano: 12,
+  color: 'negro',
+  negrita: false,
+  cursiva: false,
 });
 
 describe('cambios del visor', () => {
@@ -155,5 +168,164 @@ describe('cambios del visor', () => {
     expect(vuelto.eliminadas.has(4)).toBe(true);
     // Y los identificadores siguen sin repetirse.
     expect(vuelto.marcar(marca(9)).id).not.toBe(cambios.marcas[0].id);
+  });
+
+  describe('textos escritos encima', () => {
+    it('cuentan como algo que guardar', () => {
+      const cambios = new Cambios();
+      cambios.escribir(texto());
+      expect(cambios.hayAlgo).toBe(true);
+    });
+
+    it('no comparten identificador con las marcas', () => {
+      const cambios = new Cambios();
+      const marcado = cambios.marcar(marca(1));
+      const escrito = cambios.escribir(texto());
+      expect(escrito.id).not.toBe(marcado.id);
+    });
+
+    it('editar el contenido y el estilo se deshace de una vez', () => {
+      const cambios = new Cambios();
+      const { id } = cambios.escribir(texto());
+
+      expect(cambios.editarTexto(id, { texto: 'Ana', tamano: 20, negrita: true })).toBe(true);
+      expect(cambios.textos[0]).toEqual(jasmine.objectContaining({ texto: 'Ana', tamano: 20, negrita: true }));
+
+      cambios.deshacer();
+      expect(cambios.textos[0]).toEqual(jasmine.objectContaining({ texto: 'Juan Pérez', tamano: 12, negrita: false }));
+    });
+
+    it('editar sin cambiar nada no gasta un paso de deshacer', () => {
+      const cambios = new Cambios();
+      const { id } = cambios.escribir(texto());
+      cambios.deshacer();  // se vacía la pila
+      expect(cambios.editarTexto(id, { tamano: 12 })).toBe(false);
+      expect(cambios.sePuedeDeshacer).toBe(false);
+    });
+
+    it('mover y volver a su sitio', () => {
+      const cambios = new Cambios();
+      const { id } = cambios.escribir(texto());
+      expect(cambios.moverTexto(id, 0.6, 0.7)).toBe(true);
+      expect([cambios.textos[0].x, cambios.textos[0].y]).toEqual([0.6, 0.7]);
+      cambios.deshacer();
+      expect([cambios.textos[0].x, cambios.textos[0].y]).toEqual([0.2, 0.3]);
+    });
+
+    it('quitar y recuperar en su posición de la lista', () => {
+      const cambios = new Cambios();
+      const primero = cambios.escribir(texto(1, 'uno'));
+      cambios.escribir(texto(1, 'dos'));
+      cambios.quitarTexto(primero.id);
+      expect(cambios.textos.map(t => t.texto)).toEqual(['dos']);
+      cambios.deshacer();
+      expect(cambios.textos.map(t => t.texto)).toEqual(['uno', 'dos']);
+    });
+  });
+
+  describe('lo que se le manda al servidor', () => {
+    it('lleva los textos sin su identificador, que es cosa del navegador', () => {
+      const cambios = new Cambios();
+      cambios.escribir(texto());
+      const peticion = cambios.aPeticion(3) as { textos: Record<string, unknown>[] };
+      expect(peticion.textos.length).toBe(1);
+      expect(peticion.textos[0]['id']).toBeUndefined();
+      expect(peticion.textos[0]['texto']).toBe('Juan Pérez');
+    });
+
+    it('descarta los vacíos y los de páginas eliminadas', () => {
+      const cambios = new Cambios();
+      cambios.escribir(texto(1, '   '));
+      cambios.escribir(texto(2, 'se va con la página'));
+      cambios.escribir(texto(3, 'este sí'));
+      cambios.eliminar(2);
+
+      const peticion = cambios.aPeticion(3) as { textos: { texto: string }[] };
+      expect(peticion.textos.map(t => t.texto)).toEqual(['este sí']);
+    });
+  });
+
+  describe('borrador', () => {
+    it('conserva los textos entre visitas', () => {
+      const cambios = new Cambios();
+      cambios.escribir(texto());
+      const vuelto = Cambios.desdeBorrador(JSON.parse(JSON.stringify(cambios.aBorrador())));
+      expect(vuelto.textos.length).toBe(1);
+      expect(vuelto.textos[0].texto).toBe('Juan Pérez');
+    });
+
+    it('abre un borrador de antes de que existieran los textos', () => {
+      const viejo = { marcas: [], rotaciones: [], eliminadas: [] };
+      const vuelto = Cambios.desdeBorrador(viejo);
+      expect(vuelto.textos).toEqual([]);
+      expect(vuelto.hayAlgo).toBe(false);
+    });
+
+    it('los identificadores nuevos no pisan a los recuperados', () => {
+      const cambios = new Cambios();
+      cambios.marcar(marca(1));
+      const escrito = cambios.escribir(texto());
+
+      const vuelto = Cambios.desdeBorrador(JSON.parse(JSON.stringify(cambios.aBorrador())));
+      const nuevo = vuelto.escribir(texto());
+      expect(nuevo.id).not.toBe(escrito.id);
+      expect(vuelto.textos.map(t => t.id)).toEqual([escrito.id, nuevo.id]);
+    });
+  });
+
+  describe('campos que ya trae el formulario', () => {
+    it('escribir en uno cuenta como cambio', () => {
+      const cambios = new Cambios();
+      expect(cambios.rellenar('nombre', 'Ana', '')).toBe(true);
+      expect(cambios.hayAlgo).toBe(true);
+      expect(cambios.valorDeCampo('nombre', '')).toBe('Ana');
+    });
+
+    it('devolverlo a lo que traía el archivo deja de ser un cambio', () => {
+      const cambios = new Cambios();
+      cambios.rellenar('nombre', 'Ana', 'Original');
+      expect(cambios.rellenar('nombre', 'Original', 'Original')).toBe(true);
+      expect(cambios.hayAlgo).toBe(false);
+      expect(cambios.valorDeCampo('nombre', 'Original')).toBe('Original');
+    });
+
+    it('escribir lo mismo dos veces no gasta un paso de deshacer', () => {
+      const cambios = new Cambios();
+      cambios.rellenar('nombre', 'Ana', '');
+      cambios.deshacer();
+      expect(cambios.rellenar('nombre', '', '')).toBe(false);
+      expect(cambios.sePuedeDeshacer).toBe(false);
+    });
+
+    it('se deshace hasta el valor anterior, no hasta vacío', () => {
+      const cambios = new Cambios();
+      cambios.rellenar('nombre', 'Ana', '');
+      cambios.rellenar('nombre', 'Ana María', '');
+      cambios.deshacer();
+      expect(cambios.valorDeCampo('nombre', '')).toBe('Ana');
+      cambios.deshacer();
+      expect(cambios.valorDeCampo('nombre', '')).toBe('');
+    });
+
+    it('viajan al servidor con su nombre', () => {
+      const cambios = new Cambios();
+      cambios.rellenar('nombre', 'Ana', '');
+      cambios.rellenar('acepto', 'Yes', 'Off');
+      const peticion = cambios.aPeticion(1) as { campos: { nombre: string; valor: string }[] };
+      expect(peticion.campos).toEqual([
+        { nombre: 'nombre', valor: 'Ana' },
+        { nombre: 'acepto', valor: 'Yes' },
+      ]);
+    });
+
+    it('el borrador los conserva, y aguanta uno de antes de que existieran', () => {
+      const cambios = new Cambios();
+      cambios.rellenar('nombre', 'Ana', '');
+      const vuelto = Cambios.desdeBorrador(JSON.parse(JSON.stringify(cambios.aBorrador())));
+      expect(vuelto.valorDeCampo('nombre', '')).toBe('Ana');
+
+      const viejo = Cambios.desdeBorrador({ marcas: [], rotaciones: [], eliminadas: [] });
+      expect(viejo.campos.size).toBe(0);
+    });
   });
 });

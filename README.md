@@ -13,7 +13,7 @@ El procesado ocurre en el servidor; el navegador sólo sube, ordena y descarga.
 
 | Herramienta | Qué hace | Opciones |
 |---|---|---|
-| Visor de PDF | Lee, busca, subraya y edita sin salir del navegador | pantalla completa, en `/visor` |
+| Visor de PDF | Lee, busca, subraya, rellena formularios y edita sin salir del navegador | pantalla completa, en `/visor` |
 | Unir PDF | Combina varios PDF en uno | orden por arrastre |
 | PDF a imagen | Una imagen por página | formato de salida, 96/150/300 ppp y calidad |
 | Dividir PDF | Saca páginas sueltas o rangos | `1-3, 7, 10-`, un archivo o uno por página |
@@ -47,8 +47,9 @@ abrir en esta instalación.
 
 El visor (`/visor`) no es una herramienta de un disparo: está pensado para
 trabajar con un documento durante horas. Lee, busca con o sin tildes, navega por
-el índice del PDF, subraya en cuatro colores, elimina palabras del archivo, gira
-y quita páginas, todo con **un solo guardado al final**.
+el índice del PDF, subraya en cuatro colores, elimina palabras del archivo,
+escribe encima para rellenar huecos, gira y quita páginas, todo con **un solo
+guardado al final**.
 
 Al abrir un documento se enseña la página entera; en pantallas estrechas se
 ajusta al ancho, que es lo legible ahí. Si se cambia el ajuste, se recuerda para
@@ -58,6 +59,41 @@ Leyendo, al terminar de seleccionar un texto aparece un menú con qué hacer con
 él —subrayar en cualquiera de los cuatro colores, eliminarlo del PDF, copiarlo o
 buscarlo en el documento—, sin tener que cambiar antes de herramienta. Se apaga
 desde la barra si estorba, y esa preferencia se recuerda.
+
+Cuando el PDF es un **formulario de verdad** —de esos con campos rellenables
+dentro del archivo—, el visor los detecta y los enseña como lo que son: se
+escribe en ellos, se marcan las casillas y se eligen las opciones, y al guardar
+los valores quedan **dentro de sus campos**, así que el archivo sigue siendo un
+formulario y quien lo reciba puede corregir algo si hace falta. Los campos se
+rellenan leyendo; con una herramienta de marcado activa se apartan para no
+tragarse el arrastre, y un interruptor de la barra los apaga del todo.
+
+Y sabe **escribir sobre el documento**, que es lo que hace falta ante un impreso
+con huecos: se pulsa donde está la raya y se escribe, eligiendo tipo de letra,
+cuerpo, negrita, cursiva y tinta. Las cajas se arrastran para colocarlas, se
+vuelven a pulsar para corregirlas y `Supr` las quita; una que se quede vacía no
+deja rastro.
+
+Esas opciones están en la barra y, además, en un **menú flotante junto a la
+propia caja**, para no tener que subir a la barra en cada campo. Son botones y no
+desplegables a propósito: un desplegable se lleva el foco y daría por cerrada la
+caja a media palabra, mientras que un botón puede cancelar el cambio de foco y
+dejar el cursor donde estaba.
+
+El texto se escribe en el contenido de la página, no como anotación: se ve igual
+en cualquier lector, se imprime siempre y nadie lo puede mover después. Se usan
+las tres familias clásicas del PDF —Helvetica, Times y Courier, con sus negritas
+y cursivas—, que PyMuPDF lleva dentro y de las que el navegador tiene
+equivalentes con **las mismas métricas** (Arial, Times New Roman, Courier New):
+por eso lo que se ve escrito en pantalla mide y cae exactamente donde acaba en
+el archivo, sin instalar ni servir un solo tipo de letra.
+
+Lo que se guarda de cada texto es el **inicio de su línea base**, no la esquina
+de su caja: es la única referencia que el navegador y PyMuPDF sitúan igual, ya
+que el alto de una caja de texto depende de métricas que no coinciden entre
+Arial y Helvetica. Medido sobre el archivo guardado, lo escrito cae a menos de
+0,3 pt de donde se pulsó, y sigue siendo así con la página girada en el visor o
+con un PDF que ya venga con `/Rotate`.
 
 Lo que lo hace ir fino con documentos densos, medido sobre un PDF de 200 páginas
 con imágenes:

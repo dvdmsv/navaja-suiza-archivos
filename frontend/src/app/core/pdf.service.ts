@@ -16,6 +16,28 @@ function asegurarPromiseTry(): void {
   }
 }
 
+/**
+ * Un campo rellenable de los que trae el propio PDF.
+ *
+ * Es lo que da `getAnnotations` de pdf.js, traducido a lo que necesita el visor
+ * y con el rectángulo ya en su convención: proporciones de 0 a 1 con el origen
+ * arriba a la izquierda, sobre la página tal y como está en el archivo.
+ */
+export interface CampoPdf {
+  nombre: string;
+  tipo: 'texto' | 'casilla' | 'opcion' | 'lista';
+  rect: [number, number, number, number];
+  /** El valor que trae el archivo. */
+  valor: string;
+  multilinea: boolean;
+  /** Tope de caracteres, si el campo lo declara. */
+  maximo: number;
+  /** Las alternativas de un desplegable o una lista. */
+  opciones: { valor: string; texto: string }[];
+  /** Lo que vale una casilla o una opción cuando está marcada. */
+  marcado: string;
+}
+
 /** Ancho al que se rasteriza una página para verla a tamaño completo. */
 export const ANCHO_VISTA = 1100;
 
@@ -97,6 +119,72 @@ export class DocumentoPdf {
     });
     await capa.render();
     return capa.textDivs;
+  }
+
+  /**
+   * Cómo hay que dibujar las anotaciones.
+   *
+   * `ENABLE_FORMS` deja **el contenido** de los campos fuera del lienzo, que es
+   * lo que hace falta: con el modo normal, un campo que ya viniera relleno se
+   * pintaría en la imagen y se vería otra vez dentro del control, con el texto
+   * doblado. Comprobado contando píxeles con los tres modos.
+   *
+   * El marco del recuadro sí lo sigue pintando, y está bien: es parte del
+   * dibujo del impreso.
+   */
+  get modoConFormularios(): number {
+    return this.pdfjs.AnnotationMode.ENABLE_FORMS;
+  }
+
+  /**
+   * Los campos rellenables de una página, si el PDF es un formulario.
+   *
+   * Los rectángulos llegan en espacio PDF —origen abajo a la izquierda— y los
+   * pasa al del visor el propio pdf.js, esquina a esquina, sobre el viewport a
+   * escala 1, que ya lleva aplicado el giro del archivo. Se convierten las dos
+   * esquinas y no el rectángulo entero porque pdf.js 6 ya no trae
+   * `convertToViewportRectangle`; `convertToViewportPoint` es la misma que usa
+   * "Firmar documento".
+   */
+  async campos(numero: number): Promise<CampoPdf[]> {
+    const pagina = await this.pagina(numero);
+    const anotaciones = await pagina.getAnnotations({ intent: 'display' });
+    const viewport = pagina.getViewport({ scale: 1 });
+
+    return anotaciones
+      // Los de sólo lectura se quedan fuera: no hay nada que rellenar en ellos, y
+      // pdf.js ya los dibuja en la imagen tal y como los tenga el documento. Si
+      // además se les pusiera un control encima, su texto se vería dos veces.
+      .filter((a: any) => a.subtype === 'Widget' && a.fieldName && !a.hidden
+        && !a.pushButton && !a.readOnly)
+      .map((a: any) => {
+        const [ax0, ay0, ax1, ay1] = a.rect;
+        const [x0, y0] = viewport.convertToViewportPoint(ax0, ay0);
+        const [x1, y1] = viewport.convertToViewportPoint(ax1, ay1);
+        const entre = (v: number) => Math.max(0, Math.min(1, v));
+        return {
+          nombre: String(a.fieldName),
+          tipo: tipoDeCampo(a),
+          rect: [
+            entre(Math.min(x0, x1) / viewport.width),
+            entre(Math.min(y0, y1) / viewport.height),
+            entre(Math.max(x0, x1) / viewport.width),
+            entre(Math.max(y0, y1) / viewport.height),
+          ] as [number, number, number, number],
+          valor: valorDeCampo(a),
+          multilinea: !!a.multiLine,
+          maximo: Number(a.maxLen) || 0,
+          opciones: (a.options ?? []).map((o: any) => ({
+            valor: String(o.exportValue ?? o.displayValue ?? ''),
+            texto: String(o.displayValue ?? o.exportValue ?? ''),
+          })),
+          // Las casillas lo llaman `exportValue` y las opciones `buttonValue`:
+          // sin lo segundo, las opciones de un grupo valdrían todas lo mismo y
+          // no se podría distinguir cuál se ha marcado.
+          marcado: String(a.buttonValue ?? a.exportValue ?? 'Yes'),
+        };
+      })
+      .filter((campo: CampoPdf) => campo.tipo !== 'texto' || !campo.opciones.length);
   }
 
   /** Marcadores del documento, si los trae, ya aplanados para el panel. */
@@ -192,6 +280,27 @@ export class PdfService {
     }
     return this.pdfjs;
   }
+}
+
+function tipoDeCampo(anotacion: any): CampoPdf['tipo'] {
+  if (anotacion.checkBox) {
+    return 'casilla';
+  }
+  if (anotacion.radioButton) {
+    return 'opcion';
+  }
+  // Los desplegables y las listas son lo mismo para el PDF; cambia si se
+  // despliegan o se ven abiertos, y aquí se resuelven igual.
+  return anotacion.fieldType === 'Ch' ? 'lista' : 'texto';
+}
+
+/** El valor puede venir suelto o en lista, según el tipo de campo. */
+function valorDeCampo(anotacion: any): string {
+  const valor = anotacion.fieldValue;
+  if (Array.isArray(valor)) {
+    return valor.length ? String(valor[0]) : '';
+  }
+  return valor === null || valor === undefined ? '' : String(valor);
 }
 
 /** Falla en vez de esperar indefinidamente si una página no termina de pintarse. */

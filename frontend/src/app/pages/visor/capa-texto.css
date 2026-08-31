@@ -1,0 +1,66 @@
+/*
+ * Los estilos que pdf.js necesita para su capa de texto.
+ *
+ * Están copiados de su hoja oficial y reducidos a lo que usa este visor, así
+ * que viven aparte de los estilos propios del componente: no son cosa nuestra y
+ * hay que revisarlos al subir de versión de pdf.js.
+ */
+/*
+ * Capa de texto invisible sobre la página: es lo que permite seleccionar,
+ * copiar y subrayar. Los estilos son los que pdf.js necesita para colocar cada
+ * fragmento donde le corresponde; están copiados de su hoja oficial, reducidos
+ * a lo que usa este visor.
+ */
+.capa-texto {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  opacity: 1;
+  line-height: 1;
+  letter-spacing: normal;
+  word-spacing: normal;
+  text-align: initial;
+  text-size-adjust: none;
+  forced-color-adjust: none;
+  transform-origin: 0 0;
+  caret-color: CanvasText;
+  z-index: 2;
+  --min-font-size: 1;
+  --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+  --min-font-size-inv: calc(1 / var(--min-font-size));
+}
+
+/*
+ * Los fragmentos los crea pdf.js con `createElement`, así que no llevan el
+ * atributo con el que Angular acota los estilos del componente y las reglas
+ * normales no los alcanzan: sin `::ng-deep` el texto sale negro encima de la
+ * página y sin escalar. De ahí también el `:host`, para no soltar estas reglas
+ * sobre toda la aplicación.
+ */
+:host ::ng-deep .capa-texto span,
+:host ::ng-deep .capa-texto br {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+  user-select: text;
+}
+
+:host ::ng-deep .capa-texto > :not(.markedContent),
+:host ::ng-deep .capa-texto .markedContent span:not(.markedContent) {
+  z-index: 1;
+  --font-height: 0;
+  font-size: calc(var(--text-scale-factor) * var(--font-height));
+  --scale-x: 1;
+  --rotate: 0deg;
+  transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
+}
+
+:host ::ng-deep .capa-texto .markedContent {
+  display: contents;
+}
+
+:host ::ng-deep .capa-texto ::selection {
+  background-color: rgba(0, 110, 255, 0.28);
+}

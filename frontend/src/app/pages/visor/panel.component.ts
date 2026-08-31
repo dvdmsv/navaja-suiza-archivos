@@ -7,7 +7,7 @@ import { FormsModule } from '@angular/forms';
 
 import { DocumentoPdf } from '../../core/pdf.service';
 import { Coincidencia } from './buscador';
-import { Marca } from './cambios';
+import { Marca, Texto } from './cambios';
 
 export type Pestana = 'paginas' | 'indice' | 'marcas' | 'buscar';
 
@@ -35,6 +35,7 @@ export class VisorPanelComponent implements AfterViewInit, OnChanges, OnDestroy 
   @Input() pestana: Pestana = 'paginas';
   @Input() indice: EntradaIndice[] = [];
   @Input() marcas: Marca[] = [];
+  @Input() textos: Texto[] = [];
   @Input() eliminadas = new Set<number>();
   @Input() rotaciones = new Map<number, number>();
   @Input() resultados: Coincidencia[] = [];
@@ -51,6 +52,7 @@ export class VisorPanelComponent implements AfterViewInit, OnChanges, OnDestroy 
   @Output() eliminar = new EventEmitter<number>();
   @Output() restaurar = new EventEmitter<number>();
   @Output() quitarMarca = new EventEmitter<string>();
+  @Output() quitarTexto = new EventEmitter<string>();
 
   numeros: number[] = [];
   /** Miniatura de cada página, según se van necesitando. */
@@ -96,9 +98,14 @@ export class VisorPanelComponent implements AfterViewInit, OnChanges, OnDestroy 
     return this.rotaciones.get(numero) ?? 0;
   }
 
-  textoDe(marca: Marca): string {
+  textoDe(marca: Marca | Texto): string {
     const texto = marca.texto.replace(/\s+/g, ' ').trim();
     return texto.length > 90 ? `${texto.slice(0, 90)}…` : texto || '(sin texto)';
+  }
+
+  /** Lo que hay anotado en total, que es lo que anuncia la pestaña. */
+  get cuantasAnotaciones(): number {
+    return this.marcas.length + this.textos.length;
   }
 
   private async dibujarMiniatura(numero: number): Promise<void> {

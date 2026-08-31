@@ -201,6 +201,13 @@
   color: var(--bs-danger);
 }
 
+.punto--escrito {
+  background: none;
+  font-size: 0.7rem;
+  line-height: 1;
+  color: var(--bs-secondary-color);
+}
+
 .punto {
   width: 0.7rem;
   height: 0.7rem;

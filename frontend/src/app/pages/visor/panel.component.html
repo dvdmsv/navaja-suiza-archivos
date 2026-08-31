@@ -8,9 +8,9 @@
   <button type="button" [class.activa]="pestana === 'buscar'" (click)="pestanaChange.emit('buscar')"
           title="Buscar"><i class="bi bi-search"></i></button>
   <button type="button" [class.activa]="pestana === 'marcas'" (click)="pestanaChange.emit('marcas')"
-          title="Tus marcas">
+          title="Lo que llevas anotado">
     <i class="bi bi-bookmark"></i>
-    <span class="cuenta" *ngIf="marcas.length">{{ marcas.length }}</span>
+    <span class="cuenta" *ngIf="cuantasAnotaciones">{{ cuantasAnotaciones }}</span>
   </button>
 </nav>
 
@@ -69,8 +69,8 @@
 
 <!-- Marcas -->
 <div class="contenido" *ngIf="pestana === 'marcas'">
-  <p class="aviso p-3" *ngIf="marcas.length === 0">
-    Aquí aparecerá lo que vayas subrayando o tachando.
+  <p class="aviso p-3" *ngIf="cuantasAnotaciones === 0">
+    Aquí aparecerá lo que vayas subrayando, tachando o escribiendo.
   </p>
   <div class="marca-lista" *ngFor="let marca of marcas">
     <button type="button" class="marca-lista__ir" (click)="irAPagina.emit(marca.pagina)">
@@ -81,5 +81,15 @@
     </button>
     <button type="button" class="marca-lista__quitar" title="Quitar"
             (click)="quitarMarca.emit(marca.id)"><i class="bi bi-x-lg"></i></button>
+  </div>
+
+  <div class="marca-lista" *ngFor="let texto of textos">
+    <button type="button" class="marca-lista__ir" (click)="irAPagina.emit(texto.pagina)">
+      <span class="punto punto--escrito"><i class="bi bi-fonts"></i></span>
+      <span class="marca-lista__texto">{{ textoDe(texto) }}</span>
+      <span class="marca-lista__pagina">p. {{ texto.pagina }}</span>
+    </button>
+    <button type="button" class="marca-lista__quitar" title="Quitar"
+            (click)="quitarTexto.emit(texto.id)"><i class="bi bi-x-lg"></i></button>
   </div>
 </div>

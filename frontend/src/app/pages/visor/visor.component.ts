@@ -13,17 +13,22 @@ import { VisorRenderService } from '../../core/visor-render.service';
 import { avisoError, avisoExito, mensajeDeError } from '../../shared/notify';
 import { copiarAlPortapapeles } from '../../shared/portapapeles';
 import { Coincidencia, IndiceTexto } from './buscador';
-import { Cambios, ColorSubrayado, ColorTachado, Marca } from './cambios';
+import { Cambios, ColorSubrayado, ColorTachado, Marca, Texto } from './cambios';
 import {
   Disposicion, Medida, PaginaColocada, calcularDisposicion, escalaParaAjustar, filasVisibles,
   paginaEnFoco,
 } from './disposicion';
 import {
-  AccionSeleccion, CambioDeColor, Seleccion, VisorPaginaComponent,
+  AccionSeleccion, CambioDeColor, CampoRelleno, EstiloEscritura, Seleccion, TextoEditado,
+  TextoMovido, TextoNuevo, VisorPaginaComponent,
 } from './pagina.component';
 import { EntradaIndice, Pestana, VisorPanelComponent } from './panel.component';
+import {
+  COLORES_TEXTO, ColorTexto, FUENTES, Fuente, TAMANO_MAXIMO, TAMANO_MINIMO, TAMANO_POR_DEFECTO,
+  tamanoValido,
+} from './tipografia';
 
-type Herramienta = 'leer' | 'subrayar' | 'tachar';
+type Herramienta = 'leer' | 'subrayar' | 'tachar' | 'texto';
 type ModoZoom = 'ancho' | 'pagina' | 'libre';
 
 /** Una página lista para colocarse en el lienzo de lectura. */
@@ -83,13 +88,26 @@ export class VisorComponent implements AfterViewInit, OnDestroy {
 
   // --- edición ----------------------------------------------------------
   cambios = new Cambios();
-  /** Las marcas agrupadas por página, con referencias estables. */
-  marcasPorPagina = new Map<number, Marca[]>();
   herramienta: Herramienta = 'leer';
   /** Si al soltar una selección leyendo se ofrece qué hacer con ella. */
   menuAlSeleccionar = true;
   colorSubrayado: ColorSubrayado = 'amarillo';
   colorTachado: ColorTachado = 'negro';
+  /** Con qué sale el próximo texto que se escriba. */
+  estiloEscritura: EstiloEscritura = {
+    fuente: 'sans', tamano: TAMANO_POR_DEFECTO, color: 'negro', negrita: false, cursiva: false,
+  };
+  /** El texto seleccionado, al que aplica lo que se toque en la barra. */
+  textoActivo: string | null = null;
+  /** Si el documento trae campos rellenables; hasta saberlo, no se anuncia nada. */
+  hayCampos = false;
+  /** Si se enseñan esos campos como controles. */
+  conFormulario = true;
+
+  readonly fuentes = FUENTES;
+  readonly coloresTexto = COLORES_TEXTO;
+  readonly tamanoMinimo = TAMANO_MINIMO;
+  readonly tamanoMaximo = TAMANO_MAXIMO;
   guardando = false;
   resultado: ArchivoServidor | null = null;
 
@@ -259,6 +277,8 @@ export class VisorComponent implements AfterViewInit, OnDestroy {
     this.visibles = [];
     this.disposicion = { filas: [], altoTotal: 0, anchoTotal: 0 };
     this.cambios = new Cambios();
+    this.textoActivo = null;
+    this.hayCampos = false;
     this.buscador.limpiar();
     this.resultados = [];
     this.consulta = '';
@@ -471,6 +491,116 @@ export class VisorComponent implements AfterViewInit, OnDestroy {
     this.refrescarMarcas();
   }
 
+  elegirHerramienta(herramienta: Herramienta): void {
+    this.herramienta = herramienta;
+    if (herramienta !== 'texto') {
+      this.textoActivo = null;
+    }
+  }
+
+  /** Si hay que marcar sobre la selección de texto (subrayar o tachar). */
+  get marcando(): boolean {
+    return this.herramienta === 'subrayar' || this.herramienta === 'tachar';
+  }
+
+  // --- campos del formulario --------------------------------------------
+
+  alEncontrarCampos(cuantos: number): void {
+    if (cuantos > 0 && !this.hayCampos) {
+      this.hayCampos = true;
+      this.cd.markForCheck();
+    }
+  }
+
+  alRellenarCampo({ nombre, valor, original }: CampoRelleno): void {
+    if (!this.cambios.rellenar(nombre, valor, original)) {
+      return;
+    }
+    // Copia nueva para que las páginas, que van en OnPush, se enteren.
+    this.cambios.campos = new Map(this.cambios.campos);
+    this.resultado = null;
+    this.recordarMasTarde();
+    this.cd.markForCheck();
+  }
+
+  alternarFormulario(): void {
+    this.conFormulario = !this.conFormulario;
+  }
+
+  // --- textos escritos encima -------------------------------------------
+
+  alCrearTexto(nuevo: TextoNuevo, pagina: number): void {
+    const escrito = this.cambios.escribir({ pagina, ...nuevo, ...this.estiloEscritura });
+    this.textoActivo = escrito.id;
+    this.tocado();
+  }
+
+  alEditarTexto({ id, texto }: TextoEditado): void {
+    if (this.cambios.editarTexto(id, { texto })) {
+      this.tocado();
+    }
+  }
+
+  alMoverTexto({ id, x, y }: TextoMovido): void {
+    if (this.cambios.moverTexto(id, x, y)) {
+      this.tocado();
+    }
+  }
+
+  alQuitarTexto(id: string): void {
+    this.cambios.quitarTexto(id);
+    if (this.textoActivo === id) {
+      this.textoActivo = null;
+    }
+    this.tocado();
+  }
+
+  alPulsarTexto(id: string | null): void {
+    if (this.textoActivo === id) {
+      return;
+    }
+    this.textoActivo = id;
+    // Con un texto seleccionado, la barra enseña y toca su estilo.
+    const texto = id ? this.cambios.textos.find(t => t.id === id) : null;
+    if (texto) {
+      const { fuente, tamano, color, negrita, cursiva } = texto;
+      this.estiloEscritura = { fuente, tamano, color, negrita, cursiva };
+    }
+    this.cd.markForCheck();
+  }
+
+  /**
+   * Lo que se toca en la barra.
+   *
+   * Con un texto seleccionado le cambia a él; sin nada seleccionado, fija cómo
+   * saldrá el siguiente. En los dos casos queda como estilo por defecto, que es
+   * lo que uno espera después de haberlo elegido una vez.
+   */
+  cambiarEstilo(cambio: Partial<EstiloEscritura>): void {
+    this.estiloEscritura = { ...this.estiloEscritura, ...cambio };
+    if (this.textoActivo && this.cambios.editarTexto(this.textoActivo, cambio)) {
+      this.tocado();
+      return;
+    }
+    this.cd.markForCheck();
+  }
+
+  cambiarTamano(valor: number | string): void {
+    this.cambiarEstilo({ tamano: tamanoValido(Number(valor)) });
+  }
+
+  textosDe(numero: number): Texto[] {
+    return this.cambios.textos.filter(texto => texto.pagina === numero);
+  }
+
+  /** Un cambio en los textos: copia nueva para las páginas, que van en OnPush. */
+  private tocado(): void {
+    this.cambios.textos = [...this.cambios.textos];
+    this.resultado = null;
+    this.recordarMasTarde();
+    this.cd.markForCheck();
+  }
+
   cambiarColorMarca({ id, color }: CambioDeColor): void {
     this.cambios.cambiarColor(id, color);
     this.resultado = null;
@@ -508,6 +638,8 @@ export class VisorComponent implements AfterViewInit, OnDestroy {
 
   deshacer(): void {
     this.cambios.deshacer();
+    this.cambios.textos = [...this.cambios.textos];
+    this.cambios.campos = new Map(this.cambios.campos);
     this.resultado = null;
     this.recalcular();
     this.recordarMasTarde();
@@ -732,8 +864,19 @@ export class VisorComponent implements AfterViewInit, OnDestroy {
 
   @HostListener('window:keydown', ['$event'])
   alPulsarTecla(evento: KeyboardEvent): void {
-    const escribiendo = (evento.target as HTMLElement)?.matches?.('input, textarea, select');
+    const destino = evento.target as HTMLElement;
+    const escribiendo = destino?.matches?.('input, textarea, select');
+    // En un campo de texto, `Ctrl+Z` es el deshacer del navegador y no se toca.
+    // En una casilla, una opción o un desplegable no hay tal cosa, así que ahí
+    // el atajo sí tiene que llegar al visor.
+    const escribiendoTexto = destino?.matches?.(
+      'textarea, input:not([type=checkbox]):not([type=radio])');
     if (!this.documento) {
+      return;
+    }
+    if (evento.ctrlKey && evento.key.toLowerCase() === 'z' && !escribiendoTexto) {
+      evento.preventDefault();
+      this.deshacer();
       return;
     }
     // Intro dentro del buscador salta al siguiente resultado; el resto de
@@ -770,6 +913,11 @@ export class VisorComponent implements AfterViewInit, OnDestroy {
     if (evento.ctrlKey && evento.key.toLowerCase() === 'z') {
       evento.preventDefault();
       this.deshacer();
+      return;
+    }
+    if ((evento.key === 'Delete' || evento.key === 'Backspace') && this.textoActivo) {
+      evento.preventDefault();
+      this.alQuitarTexto(this.textoActivo);
       return;
     }
     if (evento.key === 'F3' || (evento.key === 'Enter' && this.pestana === 'buscar')) {

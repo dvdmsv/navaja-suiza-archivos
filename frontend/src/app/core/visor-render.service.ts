@@ -69,6 +69,9 @@ export class VisorRenderService {
             canvas: lienzo,
             canvasContext: lienzo.getContext('2d', { alpha: false })!,
             viewport,
+            // Los campos rellenables se quedan fuera del lienzo: los pinta el
+            // visor como controles de verdad. Si no, se verían dos veces.
+            annotationMode: documento.modoConFormularios,
           });
           this.enCurso = { clave, tarea };
           await tarea.promise;

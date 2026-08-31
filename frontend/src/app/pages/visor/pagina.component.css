@@ -23,6 +23,127 @@
   color: var(--bs-secondary-color);
 }
 
+/* --- campos rellenables del propio formulario ---------------------------- */
+.campos {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.campos--inertes {
+  /* Con una herramienta activa no estorban: el arrastre llega al texto. */
+  visibility: hidden;
+}
+
+.campo {
+  position: absolute;
+  pointer-events: auto;
+  margin: 0;
+  padding: 0 2px;
+  border: 1px solid rgba(37, 99, 235, 0.45);
+  border-radius: 2px;
+  /* El azulito de siempre: dice dónde hay que escribir sin tapar la hoja. */
+  background-color: rgba(37, 99, 235, 0.09);
+  color: #111;
+  font: inherit;
+  line-height: 1.1;
+}
+
+.campo:focus {
+  outline: 2px solid var(--bs-primary);
+  outline-offset: 0;
+  background-color: rgba(37, 99, 235, 0.05);
+}
+
+.campo--texto {
+  resize: none;
+  overflow: hidden;
+  /* Que la letra quepa en el recuadro, sea del alto que sea. */
+  font-size: clamp(7px, 62%, 15px);
+}
+
+/*
+ * El recuadro tapa lo que pdf.js haya dibujado; dentro, el control nativo. El
+ * fondo tiene que ser opaco —el mismo azul, pero sin transparencia—: con el
+ * translúcido de los demás campos se seguiría viendo por debajo la marca del
+ * documento, y se contarían dos.
+ */
+.campo--marca {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background-color: #eef2fd;
+}
+
+.campo--marca input {
+  width: 80%;
+  height: 80%;
+  margin: 0;
+  accent-color: var(--bs-primary);
+}
+
+.campo--lista {
+  font-size: clamp(7px, 62%, 15px);
+}
+
+/* --- textos escritos encima --------------------------------------------- */
+.textos {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  /* La capa no estorba; cada caja sí atiende al ratón, porque se pulsa y se
+     arrastra. Es justo lo contrario que las marcas, que dejan pasar el clic
+     para poder seleccionar el texto de debajo. */
+  pointer-events: none;
+}
+
+.texto {
+  position: absolute;
+  pointer-events: auto;
+  white-space: pre;
+  cursor: move;
+  /* La caja se sitúa por el punto guardado y se coloca con `transform`, que
+     pone el componente: aquí no se toca. */
+}
+
+.texto--activo {
+  outline: 1px dashed var(--bs-primary);
+  outline-offset: 2px;
+}
+
+.texto--escribiendo {
+  cursor: text;
+}
+
+.texto__vista {
+  display: block;
+}
+
+/*
+ * El campo tiene que medir y colocar el texto exactamente igual que la vista:
+ * hereda la tipografía de la caja y se le quita todo lo que el navegador le
+ * pone por su cuenta, que desplazaría las letras al entrar y salir de edición.
+ */
+.texto__campo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  resize: none;
+  overflow: hidden;
+  background-color: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 0 0 1px var(--bs-primary);
+  font: inherit;
+  line-height: inherit;
+  color: inherit;
+  white-space: pre;
+}
+
 /* --- marcas del usuario y coincidencias de la búsqueda ------------------- */
 .marcas {
   position: absolute;
@@ -61,70 +182,21 @@
   border-radius: 2px;
 }
 
+/* --- menú flotante (marca, selección o letra) ---------------------------- */
 /*
- * Capa de texto invisible sobre la página: es lo que permite seleccionar,
- * copiar y subrayar. Los estilos son los que pdf.js necesita para colocar cada
- * fragmento donde le corresponde; están copiados de su hoja oficial, reducidos
- * a lo que usa este visor.
+ * En su propia capa y por encima de los textos (4) y de las marcas (3): dentro
+ * de `.marcas`, que crea contexto de apilamiento, el menú quedaba por debajo de
+ * las cajas de texto y sus botones no respondían donde se solaparan con una.
  */
-.capa-texto {
+.menus {
   position: absolute;
   inset: 0;
-  overflow: clip;
-  opacity: 1;
-  line-height: 1;
-  letter-spacing: normal;
-  word-spacing: normal;
-  text-align: initial;
-  text-size-adjust: none;
-  forced-color-adjust: none;
-  transform-origin: 0 0;
-  caret-color: CanvasText;
-  z-index: 2;
-  --min-font-size: 1;
-  --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
-  --min-font-size-inv: calc(1 / var(--min-font-size));
+  z-index: 6;
+  pointer-events: none;
 }
 
-/*
- * Los fragmentos los crea pdf.js con `createElement`, así que no llevan el
- * atributo con el que Angular acota los estilos del componente y las reglas
- * normales no los alcanzan: sin `::ng-deep` el texto sale negro encima de la
- * página y sin escalar. De ahí también el `:host`, para no soltar estas reglas
- * sobre toda la aplicación.
- */
-:host ::ng-deep .capa-texto span,
-:host ::ng-deep .capa-texto br {
-  color: transparent;
-  position: absolute;
-  white-space: pre;
-  cursor: text;
-  transform-origin: 0% 0%;
-  user-select: text;
-}
-
-:host ::ng-deep .capa-texto > :not(.markedContent),
-:host ::ng-deep .capa-texto .markedContent span:not(.markedContent) {
-  z-index: 1;
-  --font-height: 0;
-  font-size: calc(var(--text-scale-factor) * var(--font-height));
-  --scale-x: 1;
-  --rotate: 0deg;
-  transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
-}
-
-:host ::ng-deep .capa-texto .markedContent {
-  display: contents;
-}
-
-:host ::ng-deep .capa-texto ::selection {
-  background-color: rgba(0, 110, 255, 0.28);
-}
-
-/* --- menú flotante (marca o selección) --------------------------------------------------- */
 .menu-flotante {
   position: absolute;
-  z-index: 5;
   display: flex;
   align-items: center;
   gap: 0.3rem;
@@ -157,6 +229,11 @@
 .menu-flotante__color--negro    { background-color: #000; }
 .menu-flotante__color--blanco   { background-color: #fff; border-color: var(--bs-border-color); }
 
+/* Las tintas de escribir: el azul no es el del subrayado, de ahí el prefijo. */
+.menu-flotante__color--tinta-negro { background-color: #000000; }
+.menu-flotante__color--tinta-azul  { background-color: #1a3fd0; }
+.menu-flotante__color--tinta-rojo  { background-color: #c81e1e; }
+
 .menu-flotante__raya {
   width: 1px;
   height: 1rem;
@@ -173,4 +250,37 @@
 
 .menu-flotante__accion:hover {
   color: var(--bs-danger);
+}
+
+/* --- el menú de la letra ------------------------------------------------- */
+/*
+ * Los botones de familia se enseñan cada uno en su propia letra: dice de un
+ * vistazo en qué se va a escribir, mejor que su nombre.
+ */
+.menu-flotante__letra {
+  min-width: 1.5rem;
+  padding: 0 0.15rem;
+  border: 0;
+  border-radius: var(--bs-border-radius);
+  background: none;
+  color: var(--bs-body-color);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.menu-flotante__letra:hover {
+  background-color: var(--bs-tertiary-bg);
+}
+
+.menu-flotante__letra--puesta {
+  color: var(--bs-primary);
+  background-color: var(--bs-primary-bg-subtle);
+}
+
+.menu-flotante__cuerpo {
+  min-width: 1.4rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--bs-secondary-color);
+  font-variant-numeric: tabular-nums;
 }

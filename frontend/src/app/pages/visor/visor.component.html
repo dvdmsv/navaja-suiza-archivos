@@ -48,11 +48,11 @@
 
       <!-- Herramientas de marcado -->
       <button type="button" class="boton" [class.boton--activo]="herramienta === 'leer'"
-              (click)="herramienta = 'leer'" title="Leer">
+              (click)="elegirHerramienta('leer')" title="Leer">
         <i class="bi bi-hand-index"></i>
       </button>
       <button type="button" class="boton" [class.boton--activo]="herramienta === 'subrayar'"
-              (click)="herramienta = 'subrayar'" title="Subrayar el texto que selecciones">
+              (click)="elegirHerramienta('subrayar')" title="Subrayar el texto que selecciones">
         <i class="bi bi-highlighter"></i>
       </button>
       <span class="colores" *ngIf="herramienta === 'subrayar'">
@@ -67,7 +67,7 @@
       </span>
 
       <button type="button" class="boton" [class.boton--activo]="herramienta === 'tachar'"
-              (click)="herramienta = 'tachar'" title="Eliminar del PDF el texto que selecciones">
+              (click)="elegirHerramienta('tachar')" title="Eliminar del PDF el texto que selecciones">
         <i class="bi bi-eraser"></i>
       </button>
       <span class="colores" *ngIf="herramienta === 'tachar'">
@@ -76,6 +76,40 @@
         <button type="button" class="color color--blanco" [class.color--elegido]="colorTachado === 'blanco'"
                 (click)="colorTachado = 'blanco'" title="Dejarlo en blanco"></button>
       </span>
+
+      <button type="button" class="boton" [class.boton--activo]="herramienta === 'texto'"
+              (click)="elegirHerramienta('texto')"
+              title="Escribir sobre el documento: pulsa donde esté el hueco">
+        <i class="bi bi-fonts"></i>
+      </button>
+      <span class="escritura" *ngIf="herramienta === 'texto'">
+        <select class="escritura__fuente" [ngModel]="estiloEscritura.fuente"
+                (ngModelChange)="cambiarEstilo({ fuente: $event })" title="Tipo de letra">
+          <option *ngFor="let f of fuentes" [value]="f.valor">{{ f.nombre }}</option>
+        </select>
+        <input type="number" class="escritura__tamano" [min]="tamanoMinimo" [max]="tamanoMaximo"
+               [ngModel]="estiloEscritura.tamano" (ngModelChange)="cambiarTamano($event)"
+               title="Tamaño de la letra, en puntos">
+        <button type="button" class="boton boton--letra" [class.boton--activo]="estiloEscritura.negrita"
+                (click)="cambiarEstilo({ negrita: !estiloEscritura.negrita })" title="Negrita">
+          <strong>N</strong>
+        </button>
+        <button type="button" class="boton boton--letra" [class.boton--activo]="estiloEscritura.cursiva"
+                (click)="cambiarEstilo({ cursiva: !estiloEscritura.cursiva })" title="Cursiva">
+          <em>K</em>
+        </button>
+        <span class="colores">
+          <button type="button" class="color color--tinta-{{ tinta }}" *ngFor="let tinta of coloresTexto"
+                  [class.color--elegido]="estiloEscritura.color === tinta"
+                  [title]="'Escribir en ' + tinta" (click)="cambiarEstilo({ color: tinta })"></button>
+        </span>
+      </span>
+
+      <button type="button" class="boton" *ngIf="hayCampos"
+              [class.boton--activo]="conFormulario" (click)="alternarFormulario()"
+              title="Rellenar los campos del formulario">
+        <i class="bi bi-ui-checks"></i>
+      </button>
 
       <button type="button" class="boton" [class.boton--activo]="menuAlSeleccionar"
               (click)="alternarMenuAlSeleccionar()"
@@ -107,16 +141,18 @@
     <app-visor-panel *ngIf="documento && panelAbierto"
       [documento]="documento" [totalPaginas]="medidas.length" [paginaActual]="paginaActual"
       [pestana]="pestana" [indice]="indice" [marcas]="cambios.marcas"
+      [textos]="cambios.textos"
       [eliminadas]="cambios.eliminadas" [rotaciones]="cambios.rotaciones"
       [resultados]="resultados" [consulta]="consulta" [buscando]="indexando"
       [indexadas]="indexadas" [resultadoActual]="resultadoActual"
       (pestanaChange)="pestana = $event" (consultaChange)="buscar($event)"
       (irAPagina)="irAPaginaDesdePanel($event)" (irAResultado)="irAResultado($event)"
       (girar)="girarPagina($event)" (eliminar)="eliminarPagina($event)"
-      (restaurar)="restaurarPagina($event)" (quitarMarca)="quitarMarca($event)">
+      (restaurar)="restaurarPagina($event)" (quitarMarca)="quitarMarca($event)"
+      (quitarTexto)="alQuitarTexto($event)">
     </app-visor-panel>
 
-    <div class="lectura" #lectura [class.lectura--marcando]="herramienta !== 'leer'">
+    <div class="lectura" #lectura [class.lectura--marcando]="marcando" [class.lectura--escribiendo]="herramienta === 'texto'">
       <!-- Sin documento: sitio donde soltarlo -->
       <div class="bienvenida" *ngIf="!documento && !cargando"
            [class.bienvenida--soltando]="arrastrando"
@@ -146,11 +182,21 @@
           class="pagina-suelta"
           [style.top.px]="visible.top" [style.left.px]="visible.colocada.izquierda"
           [documento]="documento" [colocada]="visible.colocada" [escala]="escala"
-          [marcando]="herramienta !== 'leer'" [menuAlSeleccionar]="menuAlSeleccionar"
+          [marcando]="marcando" [menuAlSeleccionar]="menuAlSeleccionar"
+          [escribiendo]="herramienta === 'texto'" [textoActivo]="textoActivo"
+          [conFormulario]="conFormulario" [valoresDeCampos]="cambios.campos"
+          [estiloEscritura]="estiloEscritura"
           [marcas]="marcasDe(visible.colocada.numero)"
+          [textos]="textosDe(visible.colocada.numero)"
           [coincidencias]="coincidenciasDe(visible.colocada.numero)"
           (seleccionado)="alSeleccionar($event)" (marcaPulsada)="quitarMarca($event)"
-          (colorCambiado)="cambiarColorMarca($event)" (accionSeleccion)="alPedirAccion($event)">
+          (colorCambiado)="cambiarColorMarca($event)" (accionSeleccion)="alPedirAccion($event)"
+          (textoCreado)="alCrearTexto($event, visible.colocada.numero)"
+          (textoEditado)="alEditarTexto($event)" (textoMovido)="alMoverTexto($event)"
+          (textoQuitado)="alQuitarTexto($event)" (textoPulsado)="alPulsarTexto($event)"
+          (estiloPedido)="cambiarEstilo($event)"
+          (campoRelleno)="alRellenarCampo($event)"
+          (camposEncontrados)="alEncontrarCampos($event)">
         </app-visor-pagina>
       </div>
     </div>

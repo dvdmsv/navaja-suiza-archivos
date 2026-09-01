@@ -3,10 +3,11 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { ArchivoEnCola, FileQueueComponent } from '../../../shared/file-queue/file-queue.component';
-import { PaginaHerramienta } from '../../../shared/pagina-herramienta';
+import { PaginaConVista } from '../../../shared/pagina-con-vista';
 import { ResultListComponent } from '../../../shared/result-list/result-list.component';
 import { ToolControlsComponent } from '../../../shared/tool-controls/tool-controls.component';
 import { ToolPageComponent } from '../../../shared/tool-page/tool-page.component';
+import { VistaPaginaComponent } from '../../../shared/vista-pagina/vista-pagina.component';
 
 interface Opcion { id: string; nombre: string; }
 
@@ -14,11 +15,11 @@ interface Opcion { id: string; nombre: string; }
   selector: 'app-marca-de-agua',
   standalone: true,
   imports: [NgFor, NgIf, FormsModule, FileQueueComponent, ResultListComponent,
-            ToolControlsComponent, ToolPageComponent],
+            ToolControlsComponent, ToolPageComponent, VistaPaginaComponent],
   templateUrl: './marca-de-agua.component.html',
   styleUrl: './marca-de-agua.component.css',
 })
-export class MarcaDeAguaComponent extends PaginaHerramienta {
+export class MarcaDeAguaComponent extends PaginaConVista {
   protected readonly slug = 'marca-de-agua';
   protected override get mensajeExito(): string {
     return 'Marca de agua puesta';
@@ -75,14 +76,19 @@ export class MarcaDeAguaComponent extends PaginaHerramienta {
     return { ...comunes, imagen_id: this.imagenId, ancho: this.ancho / 100 };
   }
 
+  /** Con el logo aún sin subir no hay nada que enseñar. */
+  protected override get puedePrevisualizar(): boolean {
+    return super.puedePrevisualizar && (this.modo === 'texto' || this.imagenId !== '');
+  }
+
   cambiarModo(modo: 'texto' | 'imagen'): void {
     this.modo = modo;
-    this.alCambiarLista();
+    this.alCambiarAjuste();
   }
 
   elegir(campo: 'fuente' | 'color', id: string): void {
     this[campo] = id;
-    this.alCambiarLista();
+    this.alCambiarAjuste();
   }
 
   alAgregarImagen(nuevos: ArchivoEnCola[]): void {

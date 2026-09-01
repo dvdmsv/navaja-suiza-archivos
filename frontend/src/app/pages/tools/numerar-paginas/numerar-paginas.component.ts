@@ -3,10 +3,11 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { FileQueueComponent } from '../../../shared/file-queue/file-queue.component';
-import { PaginaHerramienta } from '../../../shared/pagina-herramienta';
+import { PaginaConVista } from '../../../shared/pagina-con-vista';
 import { ResultListComponent } from '../../../shared/result-list/result-list.component';
 import { ToolControlsComponent } from '../../../shared/tool-controls/tool-controls.component';
 import { ToolPageComponent } from '../../../shared/tool-page/tool-page.component';
+import { VistaPaginaComponent } from '../../../shared/vista-pagina/vista-pagina.component';
 
 interface Opcion { id: string; nombre: string; detalle?: string; }
 
@@ -14,10 +15,10 @@ interface Opcion { id: string; nombre: string; detalle?: string; }
   selector: 'app-numerar-paginas',
   standalone: true,
   imports: [NgFor, NgIf, FormsModule, FileQueueComponent, ResultListComponent,
-            ToolControlsComponent, ToolPageComponent],
+            ToolControlsComponent, ToolPageComponent, VistaPaginaComponent],
   templateUrl: './numerar-paginas.component.html',
 })
-export class NumerarPaginasComponent extends PaginaHerramienta {
+export class NumerarPaginasComponent extends PaginaConVista {
   protected readonly slug = 'numerar-paginas';
   protected override get mensajeExito(): string {
     return 'PDF numerado';
@@ -68,6 +69,6 @@ export class NumerarPaginasComponent extends PaginaHerramienta {
 
   elegir(campo: 'borde' | 'alineacion' | 'formato' | 'fuente' | 'color', id: string): void {
     this[campo] = id;
-    this.alCambiarLista();
+    this.alCambiarAjuste();
   }
 }

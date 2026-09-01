@@ -132,6 +132,31 @@ export class ApiService {
   }
 
   /**
+   * Cuántas páginas tiene un archivo ya subido.
+   *
+   * Lo dice el servidor para que un selector de página no obligue a cargar
+   * pdf.js en el navegador.
+   */
+  paginasDe(id: string): Observable<number> {
+    return this.http
+      .get<{ paginas: number }>(`/api/files/${id}/paginas`)
+      .pipe(map(respuesta => respuesta.paginas));
+  }
+
+  /**
+   * Cómo va a quedar una página, ya con lo que la herramienta le va a estampar.
+   *
+   * La dibuja el servidor con el mismo código que escribirá el archivo, así que
+   * lo que se ve es lo que sale. Quien la pida se encarga de revocar el object
+   * URL, igual que con `prepararFirma`.
+   */
+  previsualizar(slug: string, cuerpo: unknown): Observable<string> {
+    return this.http
+      .post(`/api/tools/${slug}/previsualizar`, cuerpo, { responseType: 'blob' })
+      .pipe(map(blob => URL.createObjectURL(blob)));
+  }
+
+  /**
    * Qué metadatos llevan dentro unos archivos, sin tocarlos.
    *
    * Es la primera mitad de "Limpiar metadatos": primero se enseña lo que hay y

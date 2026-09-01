@@ -29,8 +29,8 @@ El procesado ocurre en el servidor; el navegador sólo sube, ordena y descarga.
 | Documento a PDF | Pasa Word, ODT, RTF o texto plano a PDF | varios documentos de una vez |
 | PDF a Word | Saca un `.docx` editable de un PDF | varios documentos de una vez |
 | Limpiar metadatos | Enseña lo que tus archivos cuentan de ti y borra lo que elijas | campo a campo, limpieza a fondo |
-| Marca de agua | Estampa un texto o tu logo en todas las páginas | texto o imagen, mosaico, opacidad y giro |
-| Numerar páginas | Numera el documento | posición, formato, desde qué página |
+| Marca de agua | Estampa un texto o tu logo en todas las páginas | texto o imagen, mosaico, opacidad y giro, con vista previa |
+| Numerar páginas | Numera el documento | posición, formato, desde qué página, con vista previa |
 | Extraer imágenes | Saca las imágenes que lleva dentro un PDF | tamaño mínimo y formato |
 | Generar QR | Códigos QR de un enlace, tu wifi o tu contacto | PNG o SVG |
 
@@ -220,8 +220,42 @@ además el JavaScript incrustado, los adjuntos, el texto oculto y las miniaturas
 los enlaces y el índice se respetan a propósito. Y un archivo del que no se marca
 nada se entrega tal cual, sin reescribirlo.
 
-"Marca de agua" y "Numerar páginas" escriben en el contenido de la página, no
-como anotación: se ven en cualquier lector y se imprimen siempre. Las dos tienen
+"Marca de agua" y "Numerar páginas" enseñan **cómo va a quedar** antes de
+ejecutar, y la vista previa la dibuja el servidor: es la página de verdad con lo
+que se le va a estampar, hecha con el mismo código que escribirá el archivo. Si
+la imitara el navegador habría dos implementaciones que se desviarían, y estas
+dos pantallas tendrían que cargar los ~105 kB de pdf.js que hoy se ahorran. Se
+refresca al tocar cualquier ajuste, con 350 ms de espera para no pedir una imagen
+por píxel del deslizador, y un selector permite mirar cualquier página —en la
+numeración es la única forma de comprobar que "saltar la portada" hace lo que
+uno cree—.
+
+Va en JPEG y no en PNG por una razón medida: en una página con una foto a toda
+plana el PNG pesa 654 kB y el JPEG 120 kB, y aquí manda el caso peor porque la
+imagen se pide una y otra vez. Cuesta unos 20 ms, y **lo mismo con un PDF de dos
+páginas que con uno de doscientas**: sólo se estampa la página que se enseña.
+Comprobado comparando dónde cae la tinta en la vista previa y en el archivo
+final: coinciden con un desvío del 0,2 %, atribuible a la compresión, también en
+un PDF que venía con `/Rotate 90`.
+
+En mosaico, la marca **se recorta a lo que quepa en su celda**, así que las
+copias salen enteras en vez de cortarse por los bordes y pisarse unas a otras.
+Vale para las dos: el cuerpo del texto y el ancho del logo. Y sólo recorta —si
+lo pedido ya cabía, se respeta—: "BORRADOR" a 48 pt baja a 38, "CONFIDENCIAL -
+NO DISTRIBUIR" a 15, una "X" se queda en 48, y un logo al 40 % del ancho pasa
+al 30 %.
+
+El cálculo tiene en cuenta el giro, porque en diagonal la caja ocupa más que el
+propio ancho, y para el logo se resuelve con trigonometría en vez de midiendo el
+mapa de bits: así se decide el tamaño **antes** de rasterizar y no hay que
+hacerlo dos veces. En el texto se hace por página, ya que un documento puede
+mezclar tamaños.
+
+De paso quedó corregido que el porcentaje del logo es el del dibujo y no el de
+su caja girada, que es lo que ya hacía "Firmar documento": antes, una marca en
+diagonal salía más pequeña que el porcentaje elegido.
+
+Las dos escriben en el contenido de la página, no como anotación: se ven en cualquier lector y se imprimen siempre. Las dos tienen
 la misma trampa resuelta, la de un PDF que ya venía girado en el archivo: los
 puntos se llevan al espacio sin girar con `derotation_matrix` y al ángulo se le
 suma el de la página. Medido rasterizando el resultado, la marca cae centrada al
@@ -368,6 +402,9 @@ Las sesiones sin actividad se eliminan solas (2 horas por defecto,
 | `GET` | `/api/tools/pdf-a-imagen/formatos` | los mismos, sin PDF |
 | `POST` | `/api/tools/firmar/preparar` | la firma con el fondo ya recortado, en PNG |
 | `POST` | `/api/tools/limpiar-metadatos/inspeccionar` | qué metadatos lleva un archivo, sin tocarlo |
+| `POST` | `/api/tools/marca-de-agua/previsualizar` | cómo va a quedar una página, en JPEG |
+| `POST` | `/api/tools/numerar-paginas/previsualizar` | lo mismo, con el número puesto |
+| `GET` | `/api/files/<id>/paginas` | cuántas páginas tiene un archivo subido |
 | `POST` | `/api/tools/visor/guardar` | aplica de una vez todo lo hecho en el visor |
 | `POST` | `/api/session/keepalive` | marca la sesión como activa (la usa el visor) |
 | `GET` | `/api/health` | comprobación de estado |

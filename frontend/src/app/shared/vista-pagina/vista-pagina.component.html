@@ -1,0 +1,24 @@
+<section class="mt-4" *ngIf="imagen || cargando">
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+    <h2 class="h6 mb-0 me-auto">Así va a quedar</h2>
+
+    <span class="small text-body-secondary" *ngIf="cargando">
+      <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+      Actualizando…
+    </span>
+
+    <div *ngIf="paginas > 1">
+      <label for="pagina-vista" class="visually-hidden">Página</label>
+      <select class="form-select form-select-sm" id="pagina-vista" [disabled]="deshabilitado"
+              [ngModel]="pagina" (ngModelChange)="paginaChange.emit($event)">
+        <option *ngFor="let numero of numeros" [ngValue]="numero">
+          Página {{ numero }} de {{ paginas }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <div class="lienzo" *ngIf="imagen" [class.lienzo--viejo]="cargando">
+    <img class="pagina" [src]="imagen" alt="Vista previa de la página">
+  </div>
+</section>

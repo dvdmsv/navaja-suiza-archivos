@@ -12,13 +12,14 @@ texto se le suma el de la página. Sin esto, en un PDF con `/Rotate 180` la marc
 sale en la esquina contraria.
 """
 import io
+import math
 import os
 
 import fitz  # PyMuPDF
 from PIL import Image
 from flask import Blueprint, jsonify
 
-from api import current_session, imaging, params
+from api import current_session, imaging, params, vista_previa
 from api.tipografia import COLORES_TEXTO, FAMILIAS, TAMANO_MAXIMO, TAMANO_MINIMO, fuente, limpiar
 from errors import ApiError
 from storage import storage, nombre_seguro
@@ -37,6 +38,10 @@ ANCHO_MINIMO, ANCHO_MAXIMO, ANCHO_POR_DEFECTO = 0.05, 1.0, 0.4
 # Cuántas veces se repite la marca a lo ancho cuando va en mosaico.
 COLUMNAS_MOSAICO, FILAS_MOSAICO = 3, 4
 
+# Cuánto de su celda llena cada copia del mosaico. El hueco que queda es lo que
+# evita que se toquen entre ellas.
+APROVECHAMIENTO = 0.9
+
 PPP_MARCA = 200
 
 
@@ -46,29 +51,58 @@ def marca_de_agua():
     datos = params.cuerpo()
     file_ids = params.ids(datos, minimo=1, mensaje='Selecciona un PDF.')
 
-    modo = params.opcion(datos, 'modo', MODOS, 'texto')
-    opacidad = params.entero(datos, 'opacidad', OPACIDAD_POR_DEFECTO,
-                             OPACIDAD_MINIMA, OPACIDAD_MAXIMA) / 100
-    giro = params.decimal(datos, 'giro', 45.0, -GIRO_MAXIMO, GIRO_MAXIMO)
-    mosaico = params.booleano(datos, 'mosaico', False)
-    # Debajo del contenido se lee mejor el documento; encima se ve mejor la marca.
-    encima = params.booleano(datos, 'encima', True)
+    ajustes = _leer_ajustes(session_id, datos)
 
     record = storage.record_of(session_id, file_ids[0])
     if record.ext != '.pdf':
         raise ApiError(f'"{record.name}" no es un PDF.', 400)
     origen = storage.path_of(session_id, file_ids[0])
 
-    if modo == 'texto':
-        marca = _leer_texto(datos)
-    else:
-        marca = _leer_imagen(session_id, datos, opacidad)
+    modo, marca = ajustes['modo'], ajustes['marca']
+    opacidad, giro = ajustes['opacidad'], ajustes['giro']
+    mosaico, encima = ajustes['mosaico'], ajustes['encima']
 
     base = os.path.splitext(nombre_seguro(record.name))[0]
     destino, salida = storage.reserve_output(session_id, f'{base}-con-marca.pdf')
     _estampar(origen, destino, record.name, marca, modo, opacidad, giro, mosaico, encima)
 
     return jsonify({'files': [storage.commit_output(session_id, salida).to_json()]}), 201
+
+
+@bp.post('/marca-de-agua/previsualizar')
+def previsualizar():
+    """Cómo va a quedar una página, sin escribir nada."""
+    session_id = current_session()
+    datos = params.cuerpo()
+    file_ids = params.ids(datos, minimo=1, mensaje='Selecciona un PDF.')
+    ajustes = _leer_ajustes(session_id, datos)
+
+    record = storage.record_of(session_id, file_ids[0])
+    if record.ext != '.pdf':
+        raise ApiError(f'"{record.name}" no es un PDF.', 400)
+
+    with _abrir(storage.path_of(session_id, file_ids[0]), record.name) as documento:
+        numero = vista_previa.pagina_pedida(datos, documento.page_count)
+        _aplicar(documento, ajustes['marca'], ajustes['modo'], ajustes['opacidad'],
+                 ajustes['giro'], ajustes['mosaico'], ajustes['encima'], solo=numero)
+        return vista_previa.responder(vista_previa.pagina_a_jpeg(documento, numero))
+
+
+def _leer_ajustes(session_id: str, datos: dict) -> dict:
+    """Las opciones, validadas igual para la vista previa y para el resultado."""
+    modo = params.opcion(datos, 'modo', MODOS, 'texto')
+    opacidad = params.entero(datos, 'opacidad', OPACIDAD_POR_DEFECTO,
+                             OPACIDAD_MINIMA, OPACIDAD_MAXIMA) / 100
+    return {
+        'modo': modo,
+        'opacidad': opacidad,
+        'giro': params.decimal(datos, 'giro', 45.0, -GIRO_MAXIMO, GIRO_MAXIMO),
+        'mosaico': params.booleano(datos, 'mosaico', False),
+        # Debajo del contenido se lee mejor el documento; encima se ve mejor la marca.
+        'encima': params.booleano(datos, 'encima', True),
+        'marca': _leer_texto(datos) if modo == 'texto'
+                 else _leer_imagen(session_id, datos, opacidad),
+    }
 
 
 def _leer_texto(datos: dict) -> dict:
@@ -113,35 +147,61 @@ def _con_opacidad(imagen: Image.Image, opacidad: float) -> Image.Image:
     return copia
 
 
-def _estampar(origen, destino, nombre, marca, modo, opacidad, giro, mosaico, encima) -> None:
+def _abrir(origen: str, nombre: str):
     try:
         documento = fitz.open(origen)
     except Exception as err:
         raise ApiError(f'No se ha podido abrir "{nombre}": {err}', 422) from err
+    if documento.needs_pass:
+        documento.close()
+        raise ApiError(f'"{nombre}" está protegido con contraseña. Quítasela primero.', 422)
+    if documento.page_count == 0:
+        documento.close()
+        raise ApiError(f'"{nombre}" no tiene páginas.', 422)
+    return documento
 
-    with documento:
-        if documento.needs_pass:
-            raise ApiError(f'"{nombre}" está protegido con contraseña. Quítasela primero.', 422)
-        if documento.page_count == 0:
-            raise ApiError(f'"{nombre}" no tiene páginas.', 422)
 
-        xref = 0
-        estampa = b''
-        proporcion = 1.0
-        if modo == 'imagen':
-            # Se rasteriza y se gira una sola vez: las demás páginas y las demás
-            # copias del mosaico reutilizan el mismo recurso del PDF.
-            referencia = documento[0].rect.width * marca['ancho']
-            estampa, proporcion = _a_png(marca['imagen'], referencia, giro)
+def _aplicar(documento, marca, modo, opacidad, giro, mosaico, encima, solo=None) -> None:
+    """Estampa la marca en el documento abierto.
 
-        for pagina in documento:
-            for x, y in _posiciones(mosaico):
-                if modo == 'texto':
-                    _escribir(pagina, marca, x, y, giro, opacidad, encima)
-                else:
-                    xref = _pegar(pagina, estampa, xref, marca['ancho'],
-                                  proporcion, x, y, encima)
+    `solo` limita el trabajo a una página, que es lo que necesita la vista
+    previa: sin eso, enseñar una página de un PDF de doscientas estamparía las
+    doscientas en cada movimiento de un deslizador.
+    """
+    estampa = b''
+    ancho = marca.get('ancho', ANCHO_POR_DEFECTO)
+    crecimiento = (1.0, 1.0)
+    if modo == 'imagen':
+        # En mosaico el logo se encoge a lo que quepa en la celda, igual que el
+        # texto: al 40 % del ancho de la página no cabe en una columna de tres.
+        if mosaico:
+            ancho = _ancho_en_celda(documento[0], marca, giro)
+        # Se rasteriza y se gira una sola vez: las demás páginas y las demás
+        # copias del mosaico reutilizan el mismo recurso del PDF.
+        #
+        # La referencia es siempre la primera página, también cuando se
+        # previsualiza otra: si se midiera sobre la página que se enseña, en un
+        # documento con páginas de distinto tamaño la vista previa mentiría.
+        referencia = documento[0].rect.width * ancho
+        estampa, crecimiento = _a_png(marca['imagen'], referencia, giro)
 
+    paginas = [documento[solo - 1]] if solo else list(documento)
+    xref = 0
+    for pagina in paginas:
+        # En mosaico el cuerpo se recorta a lo que quepa en la celda, y se
+        # calcula por página porque un documento puede mezclar tamaños.
+        tamano = (_tamano_en_celda(pagina, marca, giro)
+                  if mosaico and modo == 'texto' else marca.get('tamano'))
+        for x, y in _posiciones(mosaico):
+            if modo == 'texto':
+                _escribir(pagina, marca, x, y, giro, opacidad, encima, tamano)
+            else:
+                xref = _pegar(pagina, estampa, xref, ancho, crecimiento, x, y, encima)
+
+
+def _estampar(origen, destino, nombre, marca, modo, opacidad, giro, mosaico, encima) -> None:
+    with _abrir(origen, nombre) as documento:
+        _aplicar(documento, marca, modo, opacidad, giro, mosaico, encima)
         try:
             documento.save(destino, deflate=True, garbage=3)
         except Exception as err:
@@ -162,8 +222,62 @@ def _posiciones(mosaico: bool) -> list[tuple[float, float]]:
 ALTURA_MAYUSCULAS = 0.7
 
 
+def _tamano_en_celda(pagina, marca: dict, giro: float) -> float:
+    """El cuerpo más grande con el que la marca cabe en su celda del mosaico.
+
+    Nunca agranda: si el tamaño pedido ya cabe, se respeta. Sin esto, con el
+    tamaño por defecto las copias se salen de la página y se pisan unas a otras.
+
+    El ancho del texto es proporcional al cuerpo, así que se mide una vez a 1 pt
+    y se escala: sale de una división en vez de una búsqueda a tientas.
+    """
+    ancho_celda = pagina.rect.width / COLUMNAS_MOSAICO * APROVECHAMIENTO
+    alto_celda = pagina.rect.height / FILAS_MOSAICO * APROVECHAMIENTO
+
+    unidad = fitz.get_text_length(marca['texto'], fontname=marca['fuente'], fontsize=1)
+    if unidad <= 0:
+        return marca['tamano']
+
+    # Girado, el texto ocupa una caja mayor: se proyectan su ancho y su alto.
+    radianes = math.radians(giro)
+    coseno, seno = abs(math.cos(radianes)), abs(math.sin(radianes))
+    por_ancho = unidad * coseno + ALTURA_MAYUSCULAS * seno
+    por_alto = unidad * seno + ALTURA_MAYUSCULAS * coseno
+
+    cabe = min(ancho_celda / por_ancho if por_ancho else marca['tamano'],
+               alto_celda / por_alto if por_alto else marca['tamano'])
+    # Por debajo del mínimo no se baja: ilegible no sirve de marca.
+    return max(TAMANO_MINIMO, min(marca['tamano'], cabe))
+
+
+def _crecimiento(proporcion: float, giro: float) -> tuple[float, float]:
+    """Cuánto ocupa la caja de una imagen girada, en múltiplos de su ancho.
+
+    Se calcula en vez de medirlo sobre el mapa de bits para poder decidir el
+    tamaño **antes** de rasterizar. `proporcion` es alto/ancho del original.
+    """
+    radianes = math.radians(giro)
+    coseno, seno = abs(math.cos(radianes)), abs(math.sin(radianes))
+    return coseno + proporcion * seno, seno + proporcion * coseno
+
+
+def _ancho_en_celda(pagina, marca: dict, giro: float) -> float:
+    """La anchura más grande con la que el logo cabe en su celda del mosaico.
+
+    Como con el texto, sólo encoge: si el ancho pedido ya cabía, se respeta.
+    """
+    imagen = marca['imagen']
+    crece_ancho, crece_alto = _crecimiento(imagen.height / imagen.width, giro)
+    caja = pagina.rect
+
+    # Todo en fracciones del ancho de la página, que es la unidad de `ancho`.
+    por_ancho = APROVECHAMIENTO / (COLUMNAS_MOSAICO * crece_ancho)
+    por_alto = (caja.height / caja.width) * APROVECHAMIENTO / (FILAS_MOSAICO * crece_alto)
+    return max(ANCHO_MINIMO, min(marca['ancho'], por_ancho, por_alto))
+
+
 def _escribir(pagina, marca: dict, x: float, y: float, giro: float,
-              opacidad: float, encima: bool) -> None:
+              opacidad: float, encima: bool, tamano: float | None = None) -> None:
     """Escribe la marca centrada en (x, y) y girada alrededor de ese mismo punto.
 
     El giro va con `morph` y no con `rotate` porque `rotate` sólo admite
@@ -172,17 +286,17 @@ def _escribir(pagina, marca: dict, x: float, y: float, giro: float,
     inicio de la línea base lo manda a paseo, y la marca acaba descentrada.
     """
     caja = pagina.rect
-    ancho = fitz.get_text_length(marca['texto'], fontname=marca['fuente'],
-                                 fontsize=marca['tamano'])
+    cuerpo = tamano if tamano is not None else marca['tamano']
+    ancho = fitz.get_text_length(marca['texto'], fontname=marca['fuente'], fontsize=cuerpo)
 
     centro = fitz.Point(caja.x0 + x * caja.width,
                         caja.y0 + y * caja.height) * pagina.derotation_matrix
     # De dónde arranca la línea base para que las letras queden centradas ahí.
     inicio = fitz.Point(centro.x - ancho / 2,
-                        centro.y + marca['tamano'] * ALTURA_MAYUSCULAS / 2)
+                        centro.y + cuerpo * ALTURA_MAYUSCULAS / 2)
 
     pagina.insert_text(inicio, marca['texto'], fontname=marca['fuente'],
-                       fontsize=marca['tamano'], color=marca['color'],
+                       fontsize=cuerpo, color=marca['color'],
                        fill_opacity=opacidad,
                        morph=(centro, fitz.Matrix(_giro_total(pagina, giro))),
                        overlay=encima)
@@ -193,12 +307,16 @@ def _giro_total(pagina, giro: float) -> float:
     return (pagina.rotation + giro) % 360
 
 
-def _pegar(pagina, estampa: bytes, xref: int, ancho: float, proporcion: float,
-           x: float, y: float, encima: bool) -> int:
+def _pegar(pagina, estampa: bytes, xref: int, ancho: float,
+           crecimiento: tuple[float, float], x: float, y: float, encima: bool) -> int:
     caja = pagina.rect
-    # Al girar, la caja que ocupa la imagen crece; el dibujo mantiene su tamaño.
-    medio_ancho = ancho * caja.width / 2
-    medio_alto = medio_ancho * proporcion
+    # Al girar, la caja que ocupa la imagen crece pero el dibujo mantiene su
+    # tamaño, así que el ancho pedido es el del logo y no el de su caja. Es lo
+    # mismo que hace `firmar.py`; sin esto una marca en diagonal saldría más
+    # pequeña que el porcentaje elegido.
+    crece_ancho, crece_alto = crecimiento
+    medio_ancho = ancho * caja.width * crece_ancho / 2
+    medio_alto = ancho * caja.width * crece_alto / 2
 
     centro_x, centro_y = caja.x0 + x * caja.width, caja.y0 + y * caja.height
     rect = fitz.Rect(centro_x - medio_ancho, centro_y - medio_alto,
@@ -214,8 +332,12 @@ def _pegar(pagina, estampa: bytes, xref: int, ancho: float, proporcion: float,
                                keep_proportion=True) or 0
 
 
-def _a_png(imagen: Image.Image, ancho_pt: float, giro: float) -> tuple[bytes, float]:
-    """Rasteriza y gira la marca. Devuelve el PNG y cuánto mide su caja ya girada.
+def _a_png(imagen: Image.Image, ancho_pt: float,
+           giro: float) -> tuple[bytes, tuple[float, float]]:
+    """Rasteriza y gira la marca.
+
+    Devuelve el PNG y cuánto mide su caja ya girada en múltiplos del ancho
+    pedido, para que quien la coloque sepa cuánto ocupa de verdad.
 
     El giro se hace aquí, con Pillow, y no en el PDF: `insert_image` sólo sabe
     girar en múltiplos de 90, y una marca de agua se quiere en diagonal.
@@ -230,4 +352,4 @@ def _a_png(imagen: Image.Image, ancho_pt: float, giro: float) -> tuple[bytes, fl
 
     buffer = io.BytesIO()
     girada.save(buffer, 'PNG', optimize=True)
-    return buffer.getvalue(), girada.height / girada.width
+    return buffer.getvalue(), (girada.width / ancho_px, girada.height / ancho_px)

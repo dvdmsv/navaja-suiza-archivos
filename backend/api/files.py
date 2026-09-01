@@ -6,6 +6,7 @@ y devuelven resultados que se descargan por aquí.
 import os
 import zipfile
 
+import fitz  # PyMuPDF
 from flask import Blueprint, jsonify, request, send_file
 
 from api import current_session, params
@@ -72,6 +73,31 @@ def download_file(file_id: str):
     record = storage.record_of(session_id, file_id)
     path = storage.path_of(session_id, file_id)
     return send_file(path, as_attachment=True, download_name=record.name)
+
+
+@bp.get('/files/<file_id>/paginas')
+def page_count(file_id: str):
+    """Cuántas páginas tiene un archivo ya subido.
+
+    Vive aquí y no en una herramienta porque no es de ninguna: lo necesita quien
+    quiera ofrecer un selector de página sin cargar pdf.js en el navegador. Es
+    barato, PyMuPDF sólo lee el índice del archivo para contarlas.
+    """
+    session_id = current_session()
+    record = storage.record_of(session_id, file_id)
+    if record.ext != '.pdf':
+        return jsonify({'paginas': 1})  # una imagen es una sola "página"
+
+    ruta = storage.path_of(session_id, file_id)
+    try:
+        with fitz.open(ruta) as documento:
+            if documento.needs_pass:
+                raise ApiError(f'"{record.name}" está protegido con contraseña.', 422)
+            return jsonify({'paginas': documento.page_count})
+    except ApiError:
+        raise
+    except Exception as err:
+        raise ApiError(f'No se ha podido abrir "{record.name}": {err}', 422) from err
 
 
 @bp.patch('/files/<file_id>')

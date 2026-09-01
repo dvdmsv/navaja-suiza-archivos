@@ -7,7 +7,7 @@
     [deshabilitado]="ocupado"
     ayuda="Arrastra el PDF que quieras numerar"
     (agregados)="alAgregar($event)"
-    (itemsChange)="alCambiarLista()">
+    (itemsChange)="alQuitarDocumento()">
   </app-file-queue>
 
   <fieldset class="mt-4">
@@ -57,14 +57,14 @@
         Tamaño: <span class="fw-normal">{{ tamano }} pt</span>
       </label>
       <input type="range" class="form-range" id="tamano" min="6" max="24" step="1"
-             [disabled]="ocupado" [(ngModel)]="tamano" (change)="alCambiarLista()">
+             [disabled]="ocupado" [(ngModel)]="tamano" (change)="alCambiarAjuste()">
     </div>
     <div class="col-12 col-md-6">
       <label for="margen" class="form-label h6 mb-1">
         Margen: <span class="fw-normal">{{ margen }} mm</span>
       </label>
       <input type="range" class="form-range" id="margen" min="5" max="30" step="1"
-             [disabled]="ocupado" [(ngModel)]="margen" (change)="alCambiarLista()">
+             [disabled]="ocupado" [(ngModel)]="margen" (change)="alCambiarAjuste()">
       <p class="form-text mt-0">Separación desde el borde de la página.</p>
     </div>
   </div>
@@ -73,13 +73,13 @@
     <div class="col-6 col-md-3">
       <label for="desde" class="form-label mb-1">Numerar desde la página</label>
       <input type="number" class="form-control" id="desde" min="1" step="1"
-             [disabled]="ocupado" [(ngModel)]="desde" (change)="alCambiarLista()">
+             [disabled]="ocupado" [(ngModel)]="desde" (change)="alCambiarAjuste()">
       <p class="form-text mt-0">Para saltarse la portada.</p>
     </div>
     <div class="col-6 col-md-3">
       <label for="empezar" class="form-label mb-1">Empezar a contar en</label>
       <input type="number" class="form-control" id="empezar" min="1" step="1"
-             [disabled]="ocupado" [(ngModel)]="empezarEn" (change)="alCambiarLista()">
+             [disabled]="ocupado" [(ngModel)]="empezarEn" (change)="alCambiarAjuste()">
     </div>
     <div class="col-12 col-md-3">
       <label class="form-label mb-1">Letra</label>
@@ -104,6 +104,11 @@
       </div>
     </div>
   </div>
+
+  <app-vista-pagina [imagen]="vista" [paginas]="paginas" [pagina]="paginaVista"
+                    [cargando]="previsualizando" [deshabilitado]="ocupado"
+                    (paginaChange)="cambiarPagina($event)">
+  </app-vista-pagina>
 
   <app-tool-controls [pagina]="pagina" accion="Numerar el PDF" icono="bi-list-ol">
   </app-tool-controls>

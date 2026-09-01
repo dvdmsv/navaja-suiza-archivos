@@ -13,7 +13,7 @@ import os
 import fitz  # PyMuPDF
 from flask import Blueprint, jsonify
 
-from api import current_session, params
+from api import current_session, params, vista_previa
 from api.tipografia import COLORES_TEXTO, FAMILIAS, TAMANO_MAXIMO, TAMANO_MINIMO, fuente
 from errors import ApiError
 from storage import storage, nombre_seguro
@@ -41,18 +41,7 @@ def numerar_paginas():
     datos = params.cuerpo()
     file_ids = params.ids(datos, minimo=1, mensaje='Selecciona un PDF.')
 
-    borde = params.opcion(datos, 'borde', BORDES, 'abajo')
-    alineacion = params.opcion(datos, 'alineacion', ALINEACIONES, 'centro')
-    plantilla = FORMATOS[params.opcion(datos, 'formato', FORMATOS, 'numero')]
-    tamano = params.entero(datos, 'tamano', 10, TAMANO_MINIMO, TAMANO_MAXIMO)
-    color = COLORES_TEXTO[params.opcion(datos, 'color', COLORES_TEXTO, 'negro')]
-    familia = fuente(params.opcion(datos, 'fuente', FAMILIAS, 'sans'), False, False)
-    margen = params.entero(datos, 'margen', MARGEN_POR_DEFECTO_MM,
-                           MARGEN_MINIMO_MM, MARGEN_MAXIMO_MM) * MILIMETRO
-    # Para saltar portadas: esas páginas se quedan sin número, pero siguen
-    # contando para el total, que es lo que espera cualquiera.
-    desde = params.entero(datos, 'desde', 1, 1, 100_000)
-    empezar_en = params.entero(datos, 'empezar_en', 1, 1, 100_000)
+    ajustes = _leer_ajustes(datos)
 
     record = storage.record_of(session_id, file_ids[0])
     if record.ext != '.pdf':
@@ -61,40 +50,89 @@ def numerar_paginas():
 
     base = os.path.splitext(nombre_seguro(record.name))[0]
     destino, salida = storage.reserve_output(session_id, f'{base}-numerado.pdf')
-
-    ajustes = {'borde': borde, 'alineacion': alineacion, 'plantilla': plantilla,
-               'tamano': tamano, 'color': color, 'fuente': familia, 'margen': margen,
-               'desde': desde, 'empezar_en': empezar_en}
     _numerar(origen, destino, record.name, ajustes)
 
     return jsonify({'files': [storage.commit_output(session_id, salida).to_json()]}), 201
 
 
-def _numerar(origen: str, destino: str, nombre: str, ajustes: dict) -> None:
+@bp.post('/numerar-paginas/previsualizar')
+def previsualizar():
+    """Cómo va a quedar una página, sin escribir nada."""
+    session_id = current_session()
+    datos = params.cuerpo()
+    file_ids = params.ids(datos, minimo=1, mensaje='Selecciona un PDF.')
+    ajustes = _leer_ajustes(datos)
+
+    record = storage.record_of(session_id, file_ids[0])
+    if record.ext != '.pdf':
+        raise ApiError(f'"{record.name}" no es un PDF.', 400)
+
+    with _abrir(storage.path_of(session_id, file_ids[0]), record.name) as documento:
+        numero = vista_previa.pagina_pedida(datos, documento.page_count)
+        texto = _texto_de_pagina(numero, documento.page_count, ajustes)
+        if texto is not None:
+            _escribir(documento[numero - 1], texto, ajustes)
+        return vista_previa.responder(vista_previa.pagina_a_jpeg(documento, numero))
+
+
+def _leer_ajustes(datos: dict) -> dict:
+    """Las opciones, validadas igual para la vista previa y para el resultado."""
+    return {
+        'borde': params.opcion(datos, 'borde', BORDES, 'abajo'),
+        'alineacion': params.opcion(datos, 'alineacion', ALINEACIONES, 'centro'),
+        'plantilla': FORMATOS[params.opcion(datos, 'formato', FORMATOS, 'numero')],
+        'tamano': params.entero(datos, 'tamano', 10, TAMANO_MINIMO, TAMANO_MAXIMO),
+        'color': COLORES_TEXTO[params.opcion(datos, 'color', COLORES_TEXTO, 'negro')],
+        'fuente': fuente(params.opcion(datos, 'fuente', FAMILIAS, 'sans'), False, False),
+        'margen': params.entero(datos, 'margen', MARGEN_POR_DEFECTO_MM,
+                                MARGEN_MINIMO_MM, MARGEN_MAXIMO_MM) * MILIMETRO,
+        # Para saltar portadas: esas páginas se quedan sin número, pero siguen
+        # contando para el total, que es lo que espera cualquiera.
+        'desde': params.entero(datos, 'desde', 1, 1, 100_000),
+        'empezar_en': params.entero(datos, 'empezar_en', 1, 1, 100_000),
+    }
+
+
+def _texto_de_pagina(indice: int, total_paginas: int, ajustes: dict) -> str | None:
+    """Qué número le toca a esta página, o `None` si no se numera.
+
+    Que devuelva `None` es información: así la vista previa de una página
+    anterior a la primera numerada sale sin número, que es justo lo que hay que
+    poder comprobar antes de ejecutar.
+    """
+    if indice < ajustes['desde']:
+        return None
+    # El total es el que verá el lector: cuántos números se han puesto.
+    numeradas = total_paginas - ajustes['desde'] + 1
+    total = numeradas + ajustes['empezar_en'] - 1
+    numero = indice - ajustes['desde'] + ajustes['empezar_en']
+    return ajustes['plantilla'].format(n=numero, total=total)
+
+
+def _abrir(origen: str, nombre: str):
     try:
         documento = fitz.open(origen)
     except Exception as err:
         raise ApiError(f'No se ha podido abrir "{nombre}": {err}', 422) from err
+    if documento.needs_pass:
+        documento.close()
+        raise ApiError(f'"{nombre}" está protegido con contraseña. Quítasela primero.', 422)
+    if documento.page_count == 0:
+        documento.close()
+        raise ApiError(f'"{nombre}" no tiene páginas.', 422)
+    return documento
 
-    with documento:
-        if documento.needs_pass:
-            raise ApiError(f'"{nombre}" está protegido con contraseña. Quítasela primero.', 422)
-        if documento.page_count == 0:
-            raise ApiError(f'"{nombre}" no tiene páginas.', 422)
+
+def _numerar(origen: str, destino: str, nombre: str, ajustes: dict) -> None:
+    with _abrir(origen, nombre) as documento:
         if ajustes['desde'] > documento.page_count:
             raise ApiError(f'"{nombre}" tiene {documento.page_count} páginas y has pedido '
                            f'empezar a numerar en la {ajustes["desde"]}.', 400)
 
-        # El total es el que verá el lector: cuántos números se han puesto.
-        numeradas = documento.page_count - ajustes['desde'] + 1
-        total = numeradas + ajustes['empezar_en'] - 1
-
         for indice, pagina in enumerate(documento, start=1):
-            if indice < ajustes['desde']:
-                continue
-            numero = indice - ajustes['desde'] + ajustes['empezar_en']
-            texto = ajustes['plantilla'].format(n=numero, total=total)
-            _escribir(pagina, texto, ajustes)
+            texto = _texto_de_pagina(indice, documento.page_count, ajustes)
+            if texto is not None:
+                _escribir(pagina, texto, ajustes)
 
         try:
             documento.save(destino, deflate=True, garbage=3)

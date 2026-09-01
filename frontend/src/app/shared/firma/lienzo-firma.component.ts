@@ -39,6 +39,11 @@ export class LienzoFirmaComponent {
   @Input() firma?: string;
   @Input({ required: true }) colocacion!: Colocacion;
   @Input() deshabilitado = false;
+  /**
+   * Si se puede girar la estampa. Un campo de firma de un PDF va siempre
+   * alineado con la página, así que "Firmar con certificado" lo apaga.
+   */
+  @Input() giratorio = true;
 
   /** Se emite al soltar: la colocación cambió y el resultado anterior ya no vale. */
   @Output() colocada = new EventEmitter<void>();

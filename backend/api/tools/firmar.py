@@ -47,7 +47,7 @@ def preparar():
     riesgo de que dejen de coincidir.
     """
     session_id = current_session()
-    firma = _firma_preparada(session_id, params.cuerpo())
+    firma = firma_preparada(session_id, params.cuerpo())
 
     buffer = io.BytesIO()
     firma.save(buffer, 'PNG', optimize=True)
@@ -71,7 +71,7 @@ def firmar():
 
     record = storage.record_of(session_id, file_ids[0])
     origen = storage.path_of(session_id, file_ids[0])
-    firma = _firma_preparada(session_id, datos)
+    firma = firma_preparada(session_id, datos)
 
     base = os.path.splitext(nombre_seguro(record.name))[0]
 
@@ -87,10 +87,17 @@ def firmar():
     return jsonify({'files': [storage.commit_output(session_id, salida).to_json()]}), 201
 
 
-def _firma_preparada(session_id: str, datos: dict) -> Image.Image:
-    """Abre la firma, le quita el fondo si se pide y la recorta."""
-    firma_id = datos.get('firma_id')
+def firma_preparada(session_id: str, datos: dict, clave: str = 'firma_id',
+                    obligatoria: bool = True) -> Image.Image | None:
+    """Abre la firma, le quita el fondo si se pide y la recorta.
+
+    Es pública porque "Firmar con certificado" reutiliza el mismo trazo dentro
+    de su sello, con otro nombre de parámetro (`trazo_id`) y sin ser obligatorio.
+    """
+    firma_id = datos.get(clave)
     if not isinstance(firma_id, str) or not firma_id:
+        if not obligatoria:
+            return None
         raise ApiError('Falta la firma: súbela o dibújala antes de continuar.', 400)
 
     record = storage.record_of(session_id, firma_id)

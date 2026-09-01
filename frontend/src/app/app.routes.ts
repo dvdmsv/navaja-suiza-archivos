@@ -30,6 +30,27 @@ export const routes: Routes = [
       import('./pages/tools/firmar/firmar.component').then(m => m.FirmarComponent),
   },
   {
+    path: 'herramientas/firmar-certificado',
+    title: 'Firmar con certificado',
+    loadComponent: () =>
+      import('./pages/tools/firmar-certificado/firmar-certificado.component')
+        .then(m => m.FirmarCertificadoComponent),
+  },
+  {
+    path: 'herramientas/comprobar-firmas',
+    title: 'Comprobar firmas',
+    loadComponent: () =>
+      import('./pages/tools/comprobar-firmas/comprobar-firmas.component')
+        .then(m => m.ComprobarFirmasComponent),
+  },
+  {
+    path: 'herramientas/crear-certificado',
+    title: 'Crear certificado',
+    loadComponent: () =>
+      import('./pages/tools/crear-certificado/crear-certificado.component')
+        .then(m => m.CrearCertificadoComponent),
+  },
+  {
     path: 'herramientas/dividir-pdf',
     title: 'Dividir PDF',
     loadComponent: () =>

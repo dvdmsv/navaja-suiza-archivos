@@ -15,7 +15,8 @@
     <ng-container *ngIf="!deshabilitado">
       <span class="tirador tirador--{{ esquina }}" *ngFor="let esquina of esquinas"
             (pointerdown)="empezar($event, 'escalar')"></span>
-      <span class="tirador tirador--giro" (pointerdown)="empezar($event, 'rotar')">
+      <span class="tirador tirador--giro" *ngIf="giratorio"
+            (pointerdown)="empezar($event, 'rotar')">
         <i class="bi bi-arrow-repeat"></i>
       </span>
     </ng-container>

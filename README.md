@@ -21,6 +21,8 @@ El procesado ocurre en el servidor; el navegador sólo sube, ordena y descarga.
 | Proteger PDF | Pone o quita la contraseña de apertura | cifrado AES-256 |
 | PDF con OCR | Reconoce el texto de un escaneado | español, inglés o ambos |
 | Firmar documento | Coloca tu firma sobre un PDF o una imagen | posición libre, tamaño, giro, página |
+| Firmar con certificado | Firma un PDF con tu certificado digital | con el certificado del equipo (AutoFirma) o un `.p12`, visible o invisible, sello de tiempo |
+| Comprobar firmas | Dice quién firmó un PDF y si lo han tocado después | ninguna: se comprueba al subirlo |
 | Comprimir PDF | Recomprime las imágenes del documento | suave, media, fuerte |
 | Comprimir imagen | Baja el peso de varias imágenes a la vez | calidad y tamaño máximo |
 | Convertir imagen | Cambia de formato | JPG, PNG, WebP, TIFF, BMP, PDF |
@@ -33,6 +35,7 @@ El procesado ocurre en el servidor; el navegador sólo sube, ordena y descarga.
 | Numerar páginas | Numera el documento | posición, formato, desde qué página, con vista previa |
 | Extraer imágenes | Saca las imágenes que lleva dentro un PDF | tamaño mínimo y formato |
 | Generar QR | Códigos QR de un enlace, tu wifi o tu contacto | PNG o SVG |
+| Crear certificado | Genera un certificado propio para firmar | validez, tamaño de clave, contraseña |
 
 Cualquier resultado se puede ver antes de descargarlo, con el ojo que hay junto
 a su nombre: se abre encima de la página y se cierra con `Esc`. Los PDF los
@@ -56,6 +59,84 @@ arranque, así que la interfaz nunca ofrece uno que después falle al guardar.
 "PDF a imagen" ofrece la misma lista sin PDF, y admite cualquier formato de
 salida disponible; "Imagen a PDF" acepta como entrada todo lo que Pillow sepa
 abrir en esta instalación.
+
+### Firmar con certificado
+
+"Firmar documento" estampa el **dibujo** de una firma. Se parece a una firma y no
+prueba nada: se recorta y se pega en otro documento, y nada delata si el texto ha
+cambiado. "Firmar con certificado" es otra cosa: la firma va **dentro** del PDF,
+atada a sus bytes, y demuestra quién firmó y que nadie lo ha tocado desde
+entonces. Es lo que enseña Adobe Reader con su banda azul y lo que pide una
+administración.
+
+Hasta ahora, para firmar con el certificado de la FNMT había dos caminos:
+instalar AutoFirma, o subir el documento a una web ajena. Y para lo contrario
+—comprobar si el PDF que te llega está firmado de verdad y por quién— sólo
+quedaba el segundo, con el agravante de que ese suele ser justo el documento que
+menos ganas hay de enseñar.
+
+### Por qué no sale el selector de certificados del navegador
+
+Hay dos formas de firmar, y la diferencia entre ellas es dónde está la clave.
+
+La pregunta natural es por qué la herramienta pide un archivo `.p12` en vez de
+abrir el almacén de certificados, como cualquier sede electrónica. **Porque
+ninguna página web puede hacerlo**: no existe API, y es deliberado —si la
+hubiera, cualquier web podría pedir que firmaras con tu certificado—. Los applets
+de Java y ActiveX están eliminados, `<keygen>` se retiró del estándar, y
+WebCrypto sólo maneja claves que la propia página genera o importa. Con el DNIe
+ni siquiera cabría el arreglo: su clave no es exportable por diseño.
+
+Lo que hacen las sedes es lanzar **AutoFirma**, un programa instalado en el
+equipo. La página carga `autoscript.js`, que habla con él por un WebSocket local
+o el protocolo `afirma://`; AutoFirma abre el almacén del sistema, enseña el
+selector, firma **en la máquina del usuario** y devuelve el PDF. El navegador es
+sólo la lanzadera. Aquí se hace lo mismo, y es la vía recomendada: **ni la clave
+ni el documento salen del equipo**, no se teclea ninguna contraseña en un
+formulario web, y es la única forma de firmar con el DNIe o una tarjeta.
+
+El sello sigue siendo el nuestro: se compone aquí como imagen y se le pasa a
+AutoFirma como rúbrica, así que la vista previa vale para las dos vías. La
+colocación también la calcula el servidor, con las mismas funciones, para no
+tener la corrección del giro de página implementada dos veces.
+
+Requiere AutoFirma instalado, claro. Por eso la vía del `.p12` sigue estando: sin
+él, o desde el móvil, es la que funciona.
+
+### El archivo `.p12`: la clave sí pasa por el servidor
+
+**La clave privada no toca el disco.** El `.p12` no se sube por `/api/files`,
+que lo dejaría escrito en la carpeta de la sesión durante dos horas: se lee en el
+navegador y viaja en base64 dentro del cuerpo de cada petición. Así no queda
+estado ninguno en el servidor. Lo que sí conviene saber: la aplicación se sirve
+en HTTP plano, y si no hay HTTPS delante, la pantalla lo avisa antes de que
+metas nada.
+
+El recuadro de la firma se coloca arrastrándolo, como en "Firmar documento", y lo
+que se arrastra es **el sello de verdad**: lo dibuja pyHanko con la misma clase
+que compone la apariencia de una firma, así que no hay una versión para enseñar y
+otra para escribir. Puede llevar además tu firma a mano, a la izquierda del texto;
+no añade validez —eso lo pone el certificado— pero es lo que se reconoce de un
+vistazo.
+
+El **sello de tiempo** es opcional y viene apagado (en la vía de AutoFirma lo
+configura la propia aplicación, en Herramientas → Preferencias). Sin él, la fecha que aparece
+la pone el reloj del servidor y no demuestra nada; peor aún, el día que caduque
+tu certificado la firma deja de verificarse, porque nadie puede saber si firmaste
+antes o después. Con él, una autoridad de sellado da fe de la hora y la firma
+aguanta. Es la única función de toda la aplicación que sale a internet, y lo
+único que manda es un resumen de 32 bytes: el documento no viaja.
+
+"Comprobar firmas" contesta lo que se puede contestar sin conexión: si el
+documento está intacto, hasta dónde alcanza cada firma —una firma puede estar
+perfectamente bien y aun así no cubrir las páginas que alguien añadió después—,
+quién dice haber firmado y si su certificado estaba vigente. Lo que **no**
+contesta, y la pantalla lo dice, es si el firmante es quien dice ser: para eso
+haría falta contrastar su certificado con las listas de confianza europeas.
+
+Y para quien no tiene certificado, "Crear certificado" genera uno autofirmado.
+Sirve para demostrar integridad y para firmar entre gente que ya se conoce, pero
+Adobe lo marcará como "identidad no verificada": no vale para trámites oficiales.
 
 ### El visor
 
@@ -404,6 +485,10 @@ Las sesiones sin actividad se eliminan solas (2 horas por defecto,
 | `POST` | `/api/tools/limpiar-metadatos/inspeccionar` | qué metadatos lleva un archivo, sin tocarlo |
 | `POST` | `/api/tools/marca-de-agua/previsualizar` | cómo va a quedar una página, en JPEG |
 | `POST` | `/api/tools/numerar-paginas/previsualizar` | lo mismo, con el número puesto |
+| `POST` | `/api/tools/firmar-certificado/certificado` | de quién es un certificado y hasta cuándo vale |
+| `POST` | `/api/tools/firmar-certificado/apariencia` | el recuadro del sello, en PNG |
+| `POST` | `/api/tools/firmar-certificado/autofirma` | colocación, rúbrica y algoritmo para que firme AutoFirma |
+| `POST` | `/api/tools/comprobar-firmas/inspeccionar` | qué firmas lleva un PDF y si siguen en pie |
 | `GET` | `/api/files/<id>/paginas` | cuántas páginas tiene un archivo subido |
 | `POST` | `/api/tools/visor/guardar` | aplica de una vez todo lo hecho en el visor |
 | `POST` | `/api/session/keepalive` | marca la sesión como activa (la usa el visor) |

@@ -41,6 +41,58 @@ export interface MetadatosArchivo {
   ubicacion: boolean;
 }
 
+/** Quién es el titular de un certificado y hasta cuándo vale. */
+export interface DatosCertificado {
+  nombre: string;
+  emisor: string;
+  /** En ISO 8601, tal y como vienen del certificado. */
+  desde: string;
+  hasta: string;
+  caducado: boolean;
+  todavia_no: boolean;
+  /** Un certificado que se expidió a sí mismo: sirve, pero nadie lo respalda. */
+  autofirmado: boolean;
+}
+
+/** Una firma digital encontrada dentro de un PDF. */
+export interface FirmaEncontrada {
+  campo: string;
+  firmante: string;
+  emisor: string;
+  autofirmado: boolean;
+  fecha: string | null;
+  /** La hora que puso una autoridad de sellado, si la hay. */
+  sello_tiempo: string | null;
+  /** Si los bytes firmados son los que hay. `null` si no se ha podido saber. */
+  intacta: boolean | null;
+  /** `todo`, `revision` (se añadió algo después) o `parcial`. */
+  cobertura: string;
+  cambios: string | null;
+  vigente_al_firmar: boolean | null;
+  error: string | null;
+}
+
+/** Lo que AutoFirma necesita para estampar el mismo sello que estampamos aquí. */
+export interface PaqueteAutofirma {
+  /** Numerada desde uno, que es como las cuenta AutoFirma. */
+  pagina: number;
+  /** `[x0, y0, x1, y1]` en puntos, con el origen abajo a la izquierda. */
+  recuadro: number[] | null;
+  /** El sello en JPEG y base64, ya acotado de tamaño. */
+  rubrica: string;
+  /** El que le corresponde a la clave del certificado. */
+  algoritmo: string;
+  motivo: string;
+  lugar: string;
+}
+
+/** Lo que "Comprobar firmas" ha encontrado en un archivo. */
+export interface InformeFirmas {
+  id: string;
+  archivo: string;
+  firmas: FirmaEncontrada[];
+}
+
 /** Respuesta de cualquier herramienta: siempre una lista de archivos. */
 export interface Resultado {
   files: ArchivoServidor[];
@@ -154,6 +206,50 @@ export class ApiService {
     return this.http
       .post(`/api/tools/${slug}/previsualizar`, cuerpo, { responseType: 'blob' })
       .pipe(map(blob => URL.createObjectURL(blob)));
+  }
+
+  /**
+   * De quién es un certificado digital y hasta cuándo vale.
+   *
+   * Sirve a las dos vías: el `.p12` con su contraseña —que va en base64 dentro
+   * del cuerpo, y no como archivo subido, para que la clave privada no llegue a
+   * tocar el disco del servidor— y el certificado suelto que devuelve el
+   * selector de AutoFirma, que es sólo la parte pública.
+   */
+  inspeccionarCertificado(cuerpo: unknown): Observable<DatosCertificado> {
+    return this.http.post<DatosCertificado>('/api/tools/firmar-certificado/certificado', cuerpo);
+  }
+
+  /**
+   * El recuadro del sello de firma, como imagen lista para colocar.
+   *
+   * Lo dibuja pyHanko —el mismo código que va a firmar—, así que se puede
+   * arrastrar sobre la página sabiendo que es exactamente lo que saldrá. Quien
+   * lo pide se encarga de revocar el object URL.
+   */
+  aparienciaDeFirma(cuerpo: unknown): Observable<string> {
+    return this.http
+      .post('/api/tools/firmar-certificado/apariencia', cuerpo, { responseType: 'blob' })
+      .pipe(map(blob => URL.createObjectURL(blob)));
+  }
+
+  /**
+   * La colocación y el sello para que los estampe AutoFirma.
+   *
+   * Lo calcula el servidor con las mismas funciones que la vía del `.p12`: la
+   * conversión de coordenadas tiene que corregir el giro de la página, y
+   * duplicarla aquí en TypeScript sería garantizar que las dos se desvían.
+   */
+  paraAutofirma(cuerpo: unknown): Observable<PaqueteAutofirma> {
+    return this.http.post<PaqueteAutofirma>('/api/tools/firmar-certificado/autofirma', cuerpo);
+  }
+
+  /** Qué firmas digitales lleva dentro un PDF y si siguen en pie. */
+  comprobarFirmas(ids: string[]): Observable<InformeFirmas[]> {
+    return this.http
+      .post<{ informes: InformeFirmas[] }>('/api/tools/comprobar-firmas/inspeccionar',
+                                           { file_ids: ids })
+      .pipe(map(respuesta => respuesta.informes));
   }
 
   /**

@@ -4,8 +4,9 @@ Para añadir una herramienta nueva: crea un módulo en esta carpeta que exponga 
 Blueprint llamado ``bp`` con ``url_prefix='/api/tools'`` e inclúyelo en la lista
 de abajo. No hay que tocar nada más ni en el arranque ni en nginx.
 """
-from api.tools import (a_markdown, comprimir_imagen, comprimir_pdf, convertir_imagen, dividir_pdf,
-                       documento_a_pdf, extraer_imagenes, firmar, generar_qr, imagen_a_pdf,
+from api.tools import (a_markdown, comprimir_imagen, comprimir_pdf, comprobar_firmas,
+                       convertir_imagen, crear_certificado, dividir_pdf, documento_a_pdf,
+                       extraer_imagenes, firmar, firmar_certificado, generar_qr, imagen_a_pdf,
                        limpiar_metadatos, marca_de_agua, numerar_paginas, ocr_pdf, organizar_pdf,
                        pdf_a_imagen, pdf_a_word, proteger_pdf, unir_pdf, visor)
 
@@ -29,6 +30,9 @@ BLUEPRINTS = [
     extraer_imagenes.bp,
     limpiar_metadatos.bp,
     generar_qr.bp,
+    firmar_certificado.bp,
+    comprobar_firmas.bp,
+    crear_certificado.bp,
     visor.bp,
 ]
 

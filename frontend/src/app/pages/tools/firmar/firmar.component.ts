@@ -9,9 +9,9 @@ import { ResultListComponent } from '../../../shared/result-list/result-list.com
 import { ToolControlsComponent } from '../../../shared/tool-controls/tool-controls.component';
 import { ToolPageComponent } from '../../../shared/tool-page/tool-page.component';
 import { avisoError, mensajeDeError } from '../../../shared/notify';
-import { COLOCACION_INICIAL, Colocacion } from './colocacion';
-import { LienzoFirmaComponent } from './lienzo-firma.component';
-import { PizarraComponent } from './pizarra.component';
+import { COLOCACION_INICIAL, Colocacion } from '../../../shared/firma/colocacion';
+import { LienzoFirmaComponent } from '../../../shared/firma/lienzo-firma.component';
+import { PizarraComponent } from '../../../shared/firma/pizarra.component';
 
 /** Espera antes de repreparar la firma mientras se mueve el umbral. */
 const ESPERA_UMBRAL = 350;

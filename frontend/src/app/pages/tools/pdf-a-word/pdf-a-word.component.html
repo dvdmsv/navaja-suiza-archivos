@@ -1,0 +1,25 @@
+<app-tool-page slug="pdf-a-word">
+
+  <app-file-queue
+    [items]="archivos"
+    accept=".pdf"
+    [deshabilitado]="ocupado"
+    ayuda="Arrastra tus PDF aquí o haz clic para elegirlos"
+    (agregados)="alAgregar($event)"
+    (itemsChange)="alCambiarLista()">
+  </app-file-queue>
+
+  <app-tool-controls [pagina]="pagina" accion="Convertir a Word" icono="bi-file-earmark-word">
+  </app-tool-controls>
+
+  <p class="text-body-secondary small mt-3 mb-0">
+    <i class="bi bi-info-circle me-1"></i>
+    Un PDF guarda posiciones, no párrafos: la maquetación se reconstruye de forma
+    aproximada y conviene repasarla. Si el PDF es un escaneado no hay texto que
+    sacar; pásale antes «PDF con OCR».
+  </p>
+
+  <app-result-list [archivos]="resultados" [resumen]="resumen" nombreZip="documentos-word.zip">
+  </app-result-list>
+
+</app-tool-page>

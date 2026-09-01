@@ -114,6 +114,22 @@ export const HERRAMIENTAS: Herramienta[] = [
     disponible: true,
   },
   {
+    slug: 'documento-a-pdf',
+    nombre: 'Documento a PDF',
+    descripcion: 'Convierte Word, ODT, RTF o texto plano a PDF conservando el formato.',
+    icono: 'bi-filetype-pdf',
+    categoria: 'Documentos',
+    disponible: true,
+  },
+  {
+    slug: 'pdf-a-word',
+    nombre: 'PDF a Word',
+    descripcion: 'Saca un .docx editable de un PDF, con su texto, sus tablas y sus imágenes.',
+    icono: 'bi-file-earmark-word',
+    categoria: 'Documentos',
+    disponible: true,
+  },
+  {
     slug: 'a-markdown',
     nombre: 'Documento a Markdown',
     descripcion: 'Pasa un PDF, Word, Excel o PowerPoint a Markdown para dárselo a una IA.',

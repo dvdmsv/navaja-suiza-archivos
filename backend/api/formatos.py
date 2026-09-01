@@ -35,6 +35,10 @@ EXTENSIONES_DOCUMENTO = {
     '.md', '.epub',
 }
 
+# Documentos de texto que sólo entiende LibreOffice ("Documento a PDF"), no
+# markitdown: por eso van aparte y no dentro de EXTENSIONES_DOCUMENTO.
+EXTENSIONES_OFIMATICA = {'.doc', '.odt', '.rtf'}
+
 
 def salidas_disponibles() -> list[dict]:
     """Formatos a los que se puede convertir, en el orden en que se muestran."""

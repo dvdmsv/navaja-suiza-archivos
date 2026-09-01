@@ -12,7 +12,12 @@ services:
       - MAX_CONTENT_LENGTH_MB=50
     # Topes, no reservas: si una conversión se desmadra muere el contenedor y
     # lo reinicia Docker, en vez de llevarse por delante al resto de la VM.
-    mem_limit: 512m
+    #
+    # 768 y no 512 desde que existe "Documento a PDF": LibreOffice Writer se
+    # come unos 250-350 MB mientras convierte y con 512 moría en cuanto el
+    # documento traía imágenes. Sólo se paga mientras alguien convierte, y el
+    # turno de `api/conversion.py` garantiza que sea una conversión cada vez.
+    mem_limit: 768m
     cpus: 4.0
     networks:
       - app-network

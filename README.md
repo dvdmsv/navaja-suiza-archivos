@@ -4,8 +4,8 @@ Aplicación web con varias utilidades para trabajar con documentos e imágenes.
 El procesado ocurre en el servidor; el navegador sólo sube, ordena y descarga.
 
 - **Frontend**: Angular 17 (standalone components) + Bootstrap 5.
-- **Backend**: Flask con un blueprint por herramienta (PyMuPDF, Pillow, pypdf y
-  markitdown hacen el trabajo).
+- **Backend**: Flask con un blueprint por herramienta (PyMuPDF, Pillow, pypdf,
+  markitdown y LibreOffice hacen el trabajo).
 - **Despliegue**: Docker Compose, con nginx sirviendo el frontend y haciendo de
   pasarela hacia el backend.
 
@@ -26,6 +26,8 @@ El procesado ocurre en el servidor; el navegador sólo sube, ordena y descarga.
 | Convertir imagen | Cambia de formato | JPG, PNG, WebP, TIFF, BMP, PDF |
 | Imagen a PDF | Reúne varias imágenes en un PDF | tamaño de página, orientación, margen y calidad |
 | Documento a Markdown | Extrae el contenido para dárselo a un LLM | unir todo en un archivo |
+| Documento a PDF | Pasa Word, ODT, RTF o texto plano a PDF | varios documentos de una vez |
+| PDF a Word | Saca un `.docx` editable de un PDF | varios documentos de una vez |
 
 Cualquier resultado se puede renombrar antes de descargarlo, con el lápiz que
 hay junto a su nombre: como la lista de resultados es la misma para todas, la
@@ -157,6 +159,30 @@ notablemente más lento. `.zip` se queda fuera de los formatos admitidos a
 propósito, aunque markitdown lo soporte: descomprimir en el servidor lo que suba
 cualquiera invita a una zip bomb.
 
+"Documento a PDF" y "PDF a Word" cierran el otro círculo, el de la ofimática.
+
+De Word a PDF convierte **LibreOffice Writer sin interfaz**, que es lo único que
+respeta estilos, tablas, imágenes y saltos de página de un `.docx`; pandoc, la
+alternativa ligera, reescribe el documento y la maquetación se queda por el
+camino. Acepta también `.doc`, `.odt`, `.rtf` y texto plano, y todo el lote se
+convierte en **una sola llamada**: arrancar LibreOffice cuesta unos segundos y
+cada documento, décimas.
+
+De PDF a Word lo hace [pdf2docx](https://github.com/ArtifexSoftware/pdf2docx),
+que reconstruye párrafos, tablas e imágenes leyendo el archivo con PyMuPDF. Sale
+un `.docx` editable, pero **aproximado**: un PDF no guarda párrafos, sino
+posiciones de letras sobre la página, así que hay que repasarlo. Y un escaneado
+no tiene texto que sacar; para eso está "PDF con OCR" antes.
+
+Las dos son caras y se lanzan **como proceso aparte**, igual que el OCR: así se
+pueden cortar por tiempo, su memoria vuelve entera al terminar y ni opencv ni
+numpy se quedan residentes en el servidor entre conversión y conversión. Y las
+dos comparten **turno** (`backend/api/conversion.py`): sólo una conversión de
+estas a la vez en todo el proceso, porque el servidor atiende con cuatro hilos y
+cuatro LibreOffice arrancando a la vez se llevan por delante el contenedor. A
+quien llega y lo encuentra ocupado se le dice que vuelva en un momento, en lugar
+de dejarle esperando hasta que nginx corte.
+
 Las herramientas que enseñan páginas —el visor, firmar, dividir y organizar—
 rasterizan el PDF en el navegador con `core/pdf.service.ts`. Ese servicio arranca poniendo
 un `Promise.try` que falta: pdf.js lo usa al decodificar imágenes y zone.js, que
@@ -252,9 +278,11 @@ aplicaciones—, así que la configuración va medida a eso:
   se queda en unos 75 MB y sólo sube a ~200 MB si alguien convierte a Markdown;
   como los workers se reciclan cada 200 peticiones, esa memoria se devuelve
   sola.
-- **Topes de 512 MB y 2 CPU** en `docker-compose.yml`, para que una conversión
+- **Topes de 768 MB y 4 CPU** en `docker-compose.yml`, para que una conversión
   desbocada mate su contenedor en vez de la VM entera, y subidas limitadas a
-  50 MB en producción (`MAX_CONTENT_LENGTH_MB`).
+  50 MB en producción (`MAX_CONTENT_LENGTH_MB`). El tope subió de 512 MB al
+  entrar LibreOffice, que gasta unos 250-350 MB mientras convierte: es un tope,
+  no una reserva, y sólo se paga mientras alguien convierte.
 
 El porqué de cada opción está comentado en `backend/Dockerfile`.
 

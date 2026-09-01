@@ -4,12 +4,22 @@ FROM python:3.12-slim
 # Establece el directorio de trabajo
 WORKDIR /app
 
-# Lo único que esta aplicación necesita de fuera de Python, y lo necesita sólo
-# el reconocimiento de texto: Tesseract hace el OCR y Ghostscript el trabajo con
-# el PDF. `tesseract-ocr-spa` añade el español; el inglés viene con el paquete
-# base.
+# Lo que esta aplicación necesita de fuera de Python, y lo necesitan sólo dos
+# herramientas:
+#
+#   - El reconocimiento de texto: Tesseract hace el OCR y Ghostscript el trabajo
+#     con el PDF. `tesseract-ocr-spa` añade el español; el inglés viene con el
+#     paquete base.
+#   - "Documento a PDF": LibreOffice, y sólo `libreoffice-writer`, que arrastra
+#     `libreoffice-core` y nada más. El metapaquete `libreoffice` traería Calc,
+#     Impress y Base, que aquí no se usan, y multiplicaría el tamaño de la
+#     imagen. `--no-install-recommends` es lo que además evita `default-jre`:
+#     Writer no necesita Java para exportar a PDF y son ~180 MB de menos.
+#     `fonts-liberation` da las métricas de Arial, Times New Roman y Courier
+#     New, para que un .docx hecho en Windows pagine donde tiene que paginar.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ghostscript tesseract-ocr tesseract-ocr-spa \
+       libreoffice-writer fonts-liberation \
     && rm -rf /var/lib/apt/lists/*
 
 # Las dependencias van antes que el código a propósito: así un cambio de código

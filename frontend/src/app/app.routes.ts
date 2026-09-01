@@ -80,6 +80,19 @@ export const routes: Routes = [
       import('./pages/tools/imagen-a-pdf/imagen-a-pdf.component').then(m => m.ImagenAPdfComponent),
   },
   {
+    path: 'herramientas/documento-a-pdf',
+    title: 'Documento a PDF',
+    loadComponent: () =>
+      import('./pages/tools/documento-a-pdf/documento-a-pdf.component')
+        .then(m => m.DocumentoAPdfComponent),
+  },
+  {
+    path: 'herramientas/pdf-a-word',
+    title: 'PDF a Word',
+    loadComponent: () =>
+      import('./pages/tools/pdf-a-word/pdf-a-word.component').then(m => m.PdfAWordComponent),
+  },
+  {
     path: 'herramientas/a-markdown',
     title: 'Documento a Markdown',
     loadComponent: () =>

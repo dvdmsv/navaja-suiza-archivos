@@ -44,6 +44,11 @@
         </button>
       </ng-container>
 
+      <button type="button" class="btn btn-sm btn-outline-secondary flex-shrink-0"
+              *ngIf="editando !== archivo.id && sePuedeVer(archivo)" (click)="ver(archivo, $event)">
+        <i class="bi bi-eye"></i><span class="visually-hidden">Ver {{ archivo.name }}</span>
+      </button>
+
       <button type="button" class="btn btn-sm btn-outline-success flex-shrink-0"
               *ngIf="editando !== archivo.id" (click)="descargar(archivo)">
         <i class="bi bi-download"></i><span class="visually-hidden">Descargar {{ archivo.name }}</span>
@@ -64,4 +69,6 @@
       Descargar todo en un ZIP
     </button>
   </div>
+
+  <app-vista-previa [archivo]="viendo" (cerrado)="cerrarVista()"></app-vista-previa>
 </section>

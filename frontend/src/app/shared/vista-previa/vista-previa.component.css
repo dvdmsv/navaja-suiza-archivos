@@ -1,0 +1,60 @@
+/* Ventana propia: sólo se carga el CSS de Bootstrap, no su JavaScript, así que
+   sus modales no funcionarían. Los colores salen de sus variables para que esto
+   respete el modo claro y el oscuro sin saber en cuál está. */
+
+.fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 1055;
+  display: flex;
+  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.ventana {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 60rem;
+  margin: auto;
+  max-height: 100%;
+  overflow: hidden;
+  border-radius: var(--bs-border-radius-lg);
+  background-color: var(--bs-body-bg);
+  box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.3);
+}
+
+.cabecera {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+.cuerpo {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  background-color: var(--bs-tertiary-bg);
+}
+
+/* El visor del navegador necesita una altura de verdad, no la de su contenido. */
+.marco {
+  display: block;
+  width: 100%;
+  height: 80vh;
+  border: 0;
+}
+
+.imagen {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin-inline: auto;
+}
+
+.texto {
+  padding: 1rem;
+  font-size: 0.85rem;
+  /* Igual que en "Documento a Markdown": líneas largas partidas, sin scroll lateral. */
+  white-space: pre-wrap;
+  word-break: break-word;
+}

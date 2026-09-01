@@ -1,0 +1,43 @@
+<div class="fondo" *ngIf="archivo as actual" (click)="alPulsarFuera($event)"
+     role="dialog" aria-modal="true" [attr.aria-label]="'Vista previa de ' + actual.name">
+
+  <div class="ventana">
+    <header class="cabecera d-flex align-items-center gap-2">
+      <i class="bi bi-eye text-body-secondary flex-shrink-0"></i>
+      <span class="text-truncate flex-grow-1" [title]="actual.name">{{ actual.name }}</span>
+      <span class="small text-body-secondary flex-shrink-0 d-none d-sm-inline">
+        {{ actual.size | peso }}
+      </span>
+
+      <button type="button" class="btn btn-sm btn-outline-success flex-shrink-0"
+              (click)="descargar()">
+        <i class="bi bi-download"></i><span class="visually-hidden">Descargar</span>
+      </button>
+      <button #botonCerrar type="button" class="btn btn-sm btn-outline-secondary flex-shrink-0"
+              (click)="cerrar()">
+        <i class="bi bi-x-lg"></i><span class="visually-hidden">Cerrar la vista previa</span>
+      </button>
+    </header>
+
+    <div class="cuerpo" [ngSwitch]="tipo">
+      <p class="text-body-secondary text-center py-5 mb-0" *ngIf="cargando">
+        <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+        Preparando la vista previa…
+      </p>
+
+      <ng-container *ngIf="!cargando">
+        <iframe *ngSwitchCase="'pdf'" class="marco" [src]="urlSegura"
+                [title]="'Vista previa de ' + actual.name"></iframe>
+
+        <img *ngSwitchCase="'imagen'" class="imagen" [src]="imagen"
+             [alt]="'Vista previa de ' + actual.name">
+
+        <pre *ngSwitchCase="'texto'" class="texto mb-0"><code>{{ texto }}</code></pre>
+      </ng-container>
+    </div>
+
+    <p class="small text-body-secondary border-top px-3 py-2 mb-0" *ngIf="recortado">
+      Se enseña sólo el principio del archivo. Descárgalo para verlo entero.
+    </p>
+  </div>
+</div>

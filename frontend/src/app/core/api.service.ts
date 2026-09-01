@@ -114,6 +114,17 @@ export class ApiService {
   }
 
   /**
+   * El contenido de un archivo, para enseñarlo sin descargarlo.
+   *
+   * Va por HttpClient por lo mismo que `descargar`: la sesión viaja en una
+   * cabecera, así que un `<iframe src="/api/…">` se quedaría fuera. Quien lo
+   * pida se encarga de crear el object URL y de revocarlo.
+   */
+  contenido(archivo: ArchivoServidor): Observable<Blob> {
+    return this.http.get(`/api/files/${archivo.id}/download`, { responseType: 'blob' });
+  }
+
+  /**
    * Cambia el nombre con el que se descargará un archivo. La extensión la
    * conserva el servidor, así que da igual si el nombre nuevo la lleva o no.
    */

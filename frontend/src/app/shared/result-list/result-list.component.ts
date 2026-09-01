@@ -4,19 +4,21 @@ import { FormsModule } from '@angular/forms';
 
 import { ApiService, ArchivoServidor, ResumenTamano } from '../../core/api.service';
 import { PesoPipe } from '../peso.pipe';
+import { VistaPreviaComponent } from '../vista-previa/vista-previa.component';
+import { tipoDeVistaPrevia } from '../tipos-archivo';
 import { avisoError, mensajeDeError } from '../notify';
 
 /**
- * Resultados de una herramienta: renombrar antes de descargar, descarga
- * individual, descarga de todo en un ZIP y, si la herramienta lo aporta,
- * cuánto se ha ahorrado.
+ * Resultados de una herramienta: verlos y renombrarlos antes de descargar,
+ * descarga individual, descarga de todo en un ZIP y, si la herramienta lo
+ * aporta, cuánto se ha ahorrado.
  *
  * Al ser común a todas las herramientas, lo que se añada aquí lo tienen todas.
  */
 @Component({
   selector: 'app-result-list',
   standalone: true,
-  imports: [NgFor, NgIf, FormsModule, PesoPipe],
+  imports: [NgFor, NgIf, FormsModule, PesoPipe, VistaPreviaComponent],
   templateUrl: './result-list.component.html',
   styleUrl: './result-list.component.css',
 })
@@ -40,10 +42,35 @@ export class ResultListComponent implements OnChanges {
   /** Nombre del ZIP, sin la extensión: el usuario puede cambiarlo. */
   nombreDelZip = '';
 
+  /** Archivo que se está viendo en la ventana de vista previa, si hay alguno. */
+  viendo: ArchivoServidor | null = null;
+  /** El ojo que la abrió, para devolverle el foco al cerrar. */
+  private abrioLaVista: HTMLElement | null = null;
+
   /** Cada tanda de resultados vuelve a proponer el nombre de su herramienta. */
   ngOnChanges(): void {
     this.nombreDelZip = sinExtension(this.nombreZip);
     this.editando = null;
+    this.viendo = null;
+  }
+
+  // --- vista previa -----------------------------------------------------
+
+  /** Si el navegador sabe enseñar este resultado; si no, no se ofrece el ojo. */
+  sePuedeVer(archivo: ArchivoServidor): boolean {
+    return tipoDeVistaPrevia(archivo.name) !== null;
+  }
+
+  ver(archivo: ArchivoServidor, evento: Event): void {
+    this.abrioLaVista = evento.currentTarget as HTMLElement;
+    this.viendo = archivo;
+  }
+
+  cerrarVista(): void {
+    this.viendo = null;
+    // Quien navegue con el teclado vuelve al botón que abrió la ventana.
+    this.abrioLaVista?.focus();
+    this.abrioLaVista = null;
   }
 
   /** Porcentaje ahorrado; null si no hubo ahorro o no hay datos. */

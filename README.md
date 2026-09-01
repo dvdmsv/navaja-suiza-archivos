@@ -29,10 +29,17 @@ El procesado ocurre en el servidor; el navegador sólo sube, ordena y descarga.
 | Documento a PDF | Pasa Word, ODT, RTF o texto plano a PDF | varios documentos de una vez |
 | PDF a Word | Saca un `.docx` editable de un PDF | varios documentos de una vez |
 
-Cualquier resultado se puede renombrar antes de descargarlo, con el lápiz que
-hay junto a su nombre: como la lista de resultados es la misma para todas, la
-opción está en todas las herramientas. La extensión la conserva el servidor, así
-que un PDF sigue siendo un PDF por mucho que se le cambie el nombre.
+Cualquier resultado se puede ver antes de descargarlo, con el ojo que hay junto
+a su nombre: se abre encima de la página y se cierra con `Esc`. Los PDF los
+enseña el visor del propio navegador, así que no cuesta ni un kilobyte de
+descarga; las imágenes se ven tal cual y el texto —Markdown, CSV, JSON— se lee
+en pantalla. Donde no hay nada que enseñar no aparece el ojo: un `.docx` no lo
+sabe abrir ningún navegador.
+
+También se puede renombrar antes de descargarlo, con el lápiz que hay al lado.
+Como la lista de resultados es la misma para todas, ambas opciones están en
+todas las herramientas. La extensión la conserva el servidor, así que un PDF
+sigue siendo un PDF por mucho que se le cambie el nombre.
 
 Las herramientas de imagen aceptan varios archivos y ofrecen descargar todo en un
 ZIP, cuyo nombre también se puede cambiar. "Comprimir PDF" nunca devuelve un archivo más pesado que el original: si la

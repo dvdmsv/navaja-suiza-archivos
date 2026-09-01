@@ -23,7 +23,6 @@ import { Injectable } from '@angular/core';
 declare const AutoScript: {
   cargarAppAfirma: (direccion?: string, almacen?: string) => void;
   setStickySignatory: (fijo: boolean) => void;
-  setServlets: (almacen: string, recogida: string) => void;
   selectCertificate: (params: string | null,
                       ok: (certificadoB64: string) => void,
                       error: (tipo: string, mensaje: string) => void) => void;
@@ -33,21 +32,6 @@ declare const AutoScript: {
 };
 
 const RUTA = 'assets/autofirma/autoscript.js';
-
-/**
- * El buzón por el que contesta la app del móvil.
- *
- * En el ordenador, el navegador y AutoFirma hablan por un socket local y esto no
- * se usa. En el móvil eso es imposible —la app y el navegador están aislados por
- * el sistema—, así que la librería deja el encargo en un servidor y la app
- * recoge de ahí. Si no se le dice dónde, lo busca en unas rutas por defecto que
- * no existen en este servidor, y el resultado de la firma se pierde: la app se
- * abre, eliges certificado y la página se queda esperando para siempre.
- *
- * Van bajo `/api/` porque es lo que nginx ya proxea al backend.
- */
-const BUZON_ALMACEN = '/api/afirma/almacen';
-const BUZON_RECOGIDA = '/api/afirma/recoger';
 
 /** Lo que dice AutoFirma cuando el usuario cierra el selector sin elegir. */
 const CANCELADO = /cancel/i;
@@ -68,17 +52,6 @@ export const DESCARGA_AUTOFIRMA = 'https://firmaelectronica.gob.es/Home/Descarga
  */
 const ESPERA_SELECCION = 90_000;
 const ESPERA_FIRMA = 180_000;
-
-/**
- * En el móvil el recorrido es otro y mucho más largo: salir del navegador, abrir
- * la app, elegir el certificado, teclear el PIN y volver. Con los plazos del
- * escritorio saltaría un error mientras el usuario sigue a medias, así que aquí
- * se es generoso. El plazo hace falta igual, porque `autoscript.js` no siempre
- * llama al callback de error y sin él la pantalla se queda colgada.
- */
-const ESPERA_MOVIL = 300_000;
-
-const ES_MOVIL = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 /** Se distingue de un fallo de verdad para no enseñar un error al cancelar. */
 export class FirmaCancelada extends Error {
@@ -106,10 +79,6 @@ export class AutofirmaService {
       const etiqueta = document.createElement('script');
       etiqueta.src = RUTA;
       etiqueta.onload = () => {
-        // Antes de arrancar: la librería propaga estas direcciones al cliente
-        // cuando se carga.
-        AutoScript.setServlets(location.origin + BUZON_ALMACEN,
-                               location.origin + BUZON_RECOGIDA);
         AutoScript.cargarAppAfirma();
         // Con esto el certificado se elige una vez y vale para la firma que
         // viene después; con el DNIe, además, sólo pide el PIN al firmar.
@@ -129,7 +98,7 @@ export class AutofirmaService {
    */
   async elegirCertificado(): Promise<string> {
     await this.cargar();
-    return this.conPlazo(ES_MOVIL ? ESPERA_MOVIL : ESPERA_SELECCION, (ok, fallo) =>
+    return this.conPlazo(ESPERA_SELECCION, (ok, fallo) =>
       AutoScript.selectCertificate(null, ok, (tipo, mensaje) => fallo(this.traducir(tipo, mensaje))));
   }
 
@@ -142,7 +111,7 @@ export class AutofirmaService {
       .map(([clave, valor]) => `${clave}=${valor}`)
       .join('\n');
 
-    return this.conPlazo(ES_MOVIL ? ESPERA_MOVIL : ESPERA_FIRMA, (ok, fallo) =>
+    return this.conPlazo(ESPERA_FIRMA, (ok, fallo) =>
       AutoScript.sign(pdfB64, algoritmo, 'PAdES', params, firma => ok(firma),
                       (tipo, mensaje) => fallo(this.traducir(tipo, mensaje))));
   }

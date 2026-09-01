@@ -100,21 +100,8 @@ AutoFirma como rúbrica, así que la vista previa vale para las dos vías. La
 colocación también la calcula el servidor, con las mismas funciones, para no
 tener la corrección del giro de página implementada dos veces.
 
-Funciona también **desde el móvil**, con la app de AutoFirma. Ahí el mecanismo
-cambia por debajo: el navegador y la app están aislados por el sistema y no
-pueden hablarse directamente, así que la librería deja el encargo en un buzón del
-servidor y la app recoge de ahí. Ese buzón lo pone `backend/api/afirma.py`; sin
-él la app se abre y deja elegir certificado, pero la respuesta se pierde y la
-página se queda esperando.
-
-Del buzón conviene saber dos cosas. Que **no puede leer lo que guarda**: el
-navegador lo cifra antes de dejarlo y la clave viaja a la app dentro del enlace
-`afirma://`, nunca al servidor. Y que es **el único sitio de la API sin sesión**,
-porque la app del móvil no conoce la cabecera `X-Session-Id`; se acota con
-identificadores aleatorios, un solo uso, cinco minutos de vida y topes de tamaño.
-
 Requiere AutoFirma instalado, claro. Por eso la vía del `.p12` sigue estando: sin
-él es la que funciona.
+él, o desde el móvil, es la que funciona.
 
 ### El archivo `.p12`: la clave sí pasa por el servidor
 
@@ -501,7 +488,6 @@ Las sesiones sin actividad se eliminan solas (2 horas por defecto,
 | `POST` | `/api/tools/firmar-certificado/certificado` | de quién es un certificado y hasta cuándo vale |
 | `POST` | `/api/tools/firmar-certificado/apariencia` | el recuadro del sello, en PNG |
 | `POST` | `/api/tools/firmar-certificado/autofirma` | colocación, rúbrica y algoritmo para que firme AutoFirma |
-| `GET`/`POST` | `/api/afirma/almacen` y `/api/afirma/recoger` | el buzón por el que contesta la app de AutoFirma del móvil |
 | `POST` | `/api/tools/comprobar-firmas/inspeccionar` | qué firmas lleva un PDF y si siguen en pie |
 | `GET` | `/api/files/<id>/paginas` | cuántas páginas tiene un archivo subido |
 | `POST` | `/api/tools/visor/guardar` | aplica de una vez todo lo hecho en el visor |

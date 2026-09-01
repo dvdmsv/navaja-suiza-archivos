@@ -385,16 +385,47 @@ mide lo que la imagen (según sus ppp, o 96 si no los declara) y se limita a uno
 
 ## Puesta en marcha
 
-### Con Docker (como en producción)
+### Con Docker (recomendado, y es como corre en producción)
+
+Lo único que hace falta es Docker con el plugin de Compose. Las imágenes traen
+dentro todo lo demás.
 
 ```bash
+git clone https://github.com/dvdmsv/merge-pdf.git
+cd merge-pdf
 docker compose up --build
 # http://localhost:8081
 ```
 
+La primera construcción tarda un rato: la imagen del backend instala LibreOffice
+y Tesseract, que son unos 300 MB de paquetes.
+
+Los archivos que se suban acaban en `backend/uploads/`, montado como volumen
+para que sobrevivan a un reinicio del contenedor. Se borran solos a las dos
+horas.
+
 ### En desarrollo
 
-Dos terminales:
+Hacen falta **Python 3.11 o superior** (ocrmypdf no admite menos) y **Node 18 o
+superior**.
+
+Cuatro herramientas llaman a programas externos que **no vienen con pip** y hay
+que instalar aparte. Sin ellos el resto de la aplicación funciona igual; sólo
+fallan esas cuatro, y con un mensaje que lo dice. En Debian o Ubuntu:
+
+```bash
+sudo apt install ghostscript tesseract-ocr tesseract-ocr-spa \
+                 libreoffice-writer fonts-liberation
+```
+
+| Programa | Lo necesita |
+|---|---|
+| `tesseract-ocr` + `tesseract-ocr-spa` | PDF con OCR (el español; el inglés viene en el paquete base) |
+| `ghostscript` | PDF con OCR |
+| `libreoffice-writer` | Documento a PDF |
+| `fonts-liberation` | Que un `.docx` hecho en Windows pagine donde tiene que paginar |
+
+Y luego, en dos terminales:
 
 ```bash
 # Backend en http://localhost:5000
@@ -410,6 +441,43 @@ cd frontend
 npm install
 npm start
 ```
+
+### Configuración
+
+Todo se ajusta por variables de entorno; los valores por defecto sirven para
+empezar. En `docker-compose.yml` se le pasan al contenedor del backend.
+
+| Variable | Por defecto | Para qué |
+|---|---|---|
+| `UPLOAD_ROOT` | `uploads` | Dónde se guardan los archivos de cada sesión |
+| `MAX_CONTENT_LENGTH_MB` | `200` | Tope de una petición completa. En el `docker-compose.yml` se baja a 50 |
+| `SESSION_TTL_MINUTES` | `120` | Cuánto sobreviven los archivos sin actividad |
+| `CLEANUP_INTERVAL_MINUTES` | `15` | Cada cuánto pasa el recolector |
+| `TSA_URL` | `https://freetsa.org/tsr` | Autoridad de sellado de tiempo, sólo si se marca la casilla al firmar |
+| `TSA_TIMEOUT_SECONDS` | `15` | Cuánto se espera a esa autoridad |
+
+Si se cambia el tope de subida hay que tocarlo **en dos sitios**:
+`MAX_CONTENT_LENGTH_MB` y el `client_max_body_size` de `frontend/nginx.conf`.
+El más bajo de los dos es el que manda.
+
+### Antes de exponerlo a internet
+
+Esto está pensado para una red doméstica o una VPN, y conviene saber por qué:
+
+- **No hay cuentas ni contraseñas.** El aislamiento entre usuarios se apoya en un
+  identificador que genera el propio navegador, no en autenticación: cualquiera
+  que alcance la URL puede usar el servidor. No hay nada que impida a un extraño
+  gastar tu CPU y tu disco.
+- **Va por HTTP.** No incluye HTTPS. Si se publica, hay que poner un proxy
+  inverso delante que termine el TLS, y acordarse de llevarle también el tamaño
+  máximo de subida y los tiempos de espera largos, o se romperán los archivos
+  grandes y las conversiones.
+- **Las herramientas pueden costar tiempo y memoria.** El OCR y las conversiones
+  de ofimática lanzan procesos pesados. Están acotadas por tiempo y por turno,
+  pero no hay límite de peticiones por usuario.
+
+Con eso en mente, delante de una VPN o en una red de confianza funciona
+perfectamente.
 
 ## Cómo está organizado
 
@@ -584,3 +652,48 @@ CHROME_BIN=$(node -e "console.log(require('puppeteer').executablePath())") \
 
 En un contenedor o en WSL puede hacer falta arrancarlo con `--no-sandbox`,
 apuntando `CHROME_BIN` a un pequeño script que añada esa opción.
+
+## Licencia
+
+**AGPL-3.0.** El texto completo está en [`LICENSE`](LICENSE).
+
+No es una elección de gusto, y conviene entender por qué antes de reutilizar
+esto: el motor que hace casi todo el trabajo con los PDF, **PyMuPDF, es
+AGPL-3.0** (o comercial, pagando a Artifex). Al construir sobre él, lo que se
+publique tiene que ser compatible, y la AGPL es la opción que lo es sin pagar
+nada.
+
+En la práctica, para quien quiera usarlo: puedes montarlo, modificarlo y
+ofrecerlo a quien quieras. Lo que la AGPL añade sobre la GPL es que **si lo
+ofreces como servicio a través de una red, también tienes que ofrecer el código
+fuente de tu versión**. Para una herramienta que existe precisamente para no
+depender de servicios ajenos, parece lo apropiado.
+
+No soy abogado y esto no es asesoramiento legal: si vas a construir algo
+comercial encima, mira las licencias tú.
+
+### Lo que viene de fuera
+
+| Componente | Licencia |
+|---|---|
+| **PyMuPDF** | AGPL-3.0 o comercial — la que condiciona todo lo demás |
+| **`frontend/src/assets/autofirma/autoscript.js`** | GPL-2.0-or-later / EUPL-1.1. Es la librería oficial del Gobierno de España para hablar con AutoFirma; se incluye sin modificar y con su procedencia anotada en [`NOTICE.md`](frontend/src/assets/autofirma/NOTICE.md) |
+| ocrmypdf | MPL-2.0 |
+| pypdf, Flask, segno | BSD-3-Clause |
+| Pillow, pyHanko, markitdown, pdf2docx, Flask-Cors, gunicorn | MIT |
+| Angular, Bootstrap, pdf.js | MIT / Apache-2.0 |
+
+**AutoFirma no se distribuye aquí.** Sólo la librería de JavaScript que lo
+invoca; la aplicación la instala cada usuario desde
+[el portal oficial](https://firmaelectronica.gob.es/).
+
+## Aviso
+
+Es un proyecto personal, hecho para uso propio y publicado por si le sirve a
+alguien más. Se ofrece **sin ninguna garantía**: antes de confiarle un documento
+que importe, pruébalo con una copia.
+
+Un apunte concreto sobre la firma electrónica: las herramientas de firma
+producen firmas PAdES válidas y así se ha comprobado, pero **la validez legal de
+una firma depende de tu certificado y de quién la reciba**, no de este programa.
+Si el trámite es serio, comprueba el resultado antes de darlo por bueno.

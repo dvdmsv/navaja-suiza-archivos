@@ -9,6 +9,8 @@ El procesado ocurre en el servidor; el navegador sólo sube, ordena y descarga.
 - **Despliegue**: Docker Compose, con nginx sirviendo el frontend y haciendo de
   pasarela hacia el backend.
 
+![La portada, con el catálogo de herramientas](docs/capturas/portada.png)
+
 ## Herramientas
 
 | Herramienta | Qué hace | Opciones |
@@ -59,6 +61,35 @@ arranque, así que la interfaz nunca ofrece uno que después falle al guardar.
 "PDF a imagen" ofrece la misma lista sin PDF, y admite cualquier formato de
 salida disponible; "Imagen a PDF" acepta como entrada todo lo que Pillow sepa
 abrir en esta instalación.
+
+### Algunas pantallas
+
+**Firmar con certificado.** Dos formas de firmar, según dónde esté tu clave: con
+un certificado instalado en el equipo, a través de AutoFirma, o con un archivo
+`.p12`. En cuanto se abre el certificado, la pantalla dice de quién es y hasta
+cuándo vale.
+
+![Firmar con certificado](docs/capturas/firmar-con-certificado.png)
+
+**Comprobar firmas.** Quién firmó, cuándo, si el documento sigue intacto y hasta
+dónde alcanza cada firma. Con la advertencia, bien visible, de lo que esto **no**
+comprueba.
+
+![Comprobar firmas](docs/capturas/comprobar-firmas.png)
+
+**Marca de agua.** La vista previa la dibuja el servidor con el mismo código que
+va a escribir el archivo, así que lo que se ve es lo que sale.
+
+![Marca de agua](docs/capturas/marca-de-agua.png)
+
+**Limpiar metadatos.** Primero enseña lo que tus archivos cuentan de ti, campo a
+campo, y tú eliges qué se borra.
+
+![Limpiar metadatos](docs/capturas/limpiar-metadatos.png)
+
+**El visor**, que ocupa la pantalla entera y está pensado para sesiones largas.
+
+![El visor de PDF](docs/capturas/visor.png)
 
 ### Firmar con certificado
 

@@ -23,17 +23,21 @@ export interface VistaPrevia {
   palabras: number;
 }
 
-/** Un dato que un archivo llevaba dentro sin que su dueño lo supiera. */
+/** Un dato que un archivo lleva dentro sin que su dueño lo sepa. */
 export interface CampoMetadato {
+  /** Con la que se le dice al servidor que lo borre. */
+  clave: string;
   etiqueta: string;
   valor: string;
 }
 
-/** Lo que "Limpiar metadatos" encontró en un archivo antes de borrarlo. */
+/** Lo que "Limpiar metadatos" ha encontrado en un archivo. */
 export interface MetadatosArchivo {
+  /** Id del archivo en el servidor, para casar el informe con la selección. */
+  id: string;
   archivo: string;
   campos: CampoMetadato[];
-  /** Si llevaba dentro dónde se hizo la foto. */
+  /** Si lleva dentro dónde se hizo la foto. */
   ubicacion: boolean;
 }
 
@@ -42,7 +46,6 @@ export interface Resultado {
   files: ArchivoServidor[];
   resumen?: ResumenTamano;
   vista_previa?: VistaPrevia;
-  metadatos?: MetadatosArchivo[];
 }
 
 /** Formato de imagen ofrecido por el servidor. */
@@ -126,6 +129,19 @@ export class ApiService {
     return this.http
       .get(`/api/files/${archivo.id}/download`, { responseType: 'blob' })
       .pipe(map(blob => guardarComo(blob, archivo.name)));
+  }
+
+  /**
+   * Qué metadatos llevan dentro unos archivos, sin tocarlos.
+   *
+   * Es la primera mitad de "Limpiar metadatos": primero se enseña lo que hay y
+   * luego el usuario decide qué se borra.
+   */
+  inspeccionarMetadatos(ids: string[]): Observable<MetadatosArchivo[]> {
+    return this.http
+      .post<{ metadatos: MetadatosArchivo[] }>('/api/tools/limpiar-metadatos/inspeccionar',
+                                               { file_ids: ids })
+      .pipe(map(respuesta => respuesta.metadatos));
   }
 
   /**

@@ -6,63 +6,90 @@
     [deshabilitado]="ocupado"
     ayuda="Arrastra aquí tus PDF o tus fotos"
     (agregados)="alAgregar($event)"
-    (itemsChange)="alCambiarLista()">
+    (itemsChange)="alQuitar()">
   </app-file-queue>
 
-  <div class="form-check mt-4">
-    <input class="form-check-input" type="checkbox" id="a-fondo"
-           [disabled]="ocupado" [(ngModel)]="aFondo" (change)="alCambiarLista()">
-    <label class="form-check-label" for="a-fondo">
-      Limpieza a fondo de los PDF
-      <span class="d-block form-text mt-0">
-        Además de los metadatos quita el JavaScript incrustado, los archivos
-        adjuntos, el texto oculto y las miniaturas. Los enlaces y el índice se
-        respetan.
-      </span>
-    </label>
-  </div>
+  <p class="text-body-secondary small mt-3 mb-0" *ngIf="inspeccionando">
+    <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+    Mirando qué llevan dentro…
+  </p>
 
-  <app-tool-controls [pagina]="pagina" accion="Limpiar los metadatos" icono="bi-incognito">
-  </app-tool-controls>
-
-  <section class="card mt-4" *ngIf="metadatos as informe">
+  <section class="card mt-4" *ngIf="informe.length > 0 && !inspeccionando">
     <div class="card-header d-flex flex-wrap align-items-center gap-2">
-      <strong class="me-auto">Esto llevaban dentro tus archivos</strong>
+      <strong class="me-auto">Esto llevan dentro tus archivos</strong>
       <span class="badge text-bg-danger" *ngIf="algunaUbicacion">
-        <i class="bi bi-geo-alt-fill me-1"></i>con tu ubicación
+        <i class="bi bi-geo-alt-fill me-1"></i>uno lleva tu ubicación
       </span>
     </div>
 
     <p class="small text-body-secondary px-3 pt-3 mb-0" *ngIf="sinRastro">
-      No llevaban nada: ni autor, ni programa, ni fecha. Aun así se han vuelto a
-      guardar limpios.
+      No llevan nada: ni autor, ni programa, ni fecha. No hay nada que borrar.
+    </p>
+
+    <p class="small text-body-secondary px-3 pt-3 mb-0" *ngIf="!sinRastro">
+      Marcado es lo que se va a borrar. Desmarca lo que quieras conservar: puedes
+      tirar la ubicación de una foto y quedarte con la fecha.
     </p>
 
     <ul class="list-group list-group-flush">
       <li class="list-group-item" *ngFor="let archivo of informe">
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex flex-wrap align-items-center gap-2">
           <i class="bi bi-file-earmark text-body-secondary"></i>
-          <span class="text-truncate fw-semibold">{{ archivo.archivo }}</span>
+          <span class="text-truncate fw-semibold me-auto">{{ archivo.archivo }}</span>
+
+          <div class="btn-group btn-group-sm" *ngIf="archivo.campos.length > 1">
+            <button type="button" class="btn btn-outline-secondary" [disabled]="ocupado"
+                    (click)="marcarTodo(archivo)">Todo</button>
+            <button type="button" class="btn btn-outline-secondary" [disabled]="ocupado"
+                    (click)="marcarNada(archivo)">Nada</button>
+          </div>
         </div>
 
         <p class="small text-body-secondary mb-0 mt-1" *ngIf="archivo.campos.length === 0">
           Sin metadatos.
         </p>
 
-        <dl class="row small mb-0 mt-2" *ngIf="archivo.campos.length > 0">
-          <ng-container *ngFor="let campo of archivo.campos">
-            <dt class="col-5 col-sm-4 text-body-secondary fw-normal">{{ campo.etiqueta }}</dt>
-            <dd class="col-7 col-sm-8 mb-1 text-break">{{ campo.valor }}</dd>
-          </ng-container>
-        </dl>
+        <div class="mt-2" *ngIf="archivo.campos.length > 0">
+          <div class="form-check" *ngFor="let campo of archivo.campos">
+            <input class="form-check-input" type="checkbox" [id]="clave(archivo, campo)"
+                   [checked]="esta(archivo, campo)" [disabled]="ocupado"
+                   (change)="alternar(archivo, campo)">
+            <label class="form-check-label small" [for]="clave(archivo, campo)">
+              <span class="text-body-secondary">{{ campo.etiqueta }}:</span>
+              <span class="text-break">{{ campo.valor }}</span>
+              <i class="bi bi-geo-alt-fill text-danger ms-1"
+                 *ngIf="campo.clave === 'gps'" title="Dice dónde se hizo la foto"></i>
+            </label>
+          </div>
 
-        <p class="small text-danger mb-0 mt-1" *ngIf="archivo.ubicacion">
-          <i class="bi bi-exclamation-triangle-fill me-1"></i>
-          Esta foto llevaba dentro dónde se hizo. Ya no.
-        </p>
+          <p class="small text-body-secondary mb-0 mt-2">
+            {{ cuantas(archivo) }} de {{ archivo.campos.length }} marcados para borrar.
+          </p>
+        </div>
       </li>
     </ul>
   </section>
+
+  <div class="form-check mt-4" *ngIf="informe.length > 0">
+    <input class="form-check-input" type="checkbox" id="a-fondo"
+           [disabled]="ocupado" [(ngModel)]="aFondo">
+    <label class="form-check-label" for="a-fondo">
+      Limpieza a fondo de los PDF
+      <span class="d-block form-text mt-0">
+        Además de lo marcado, quita el JavaScript incrustado, los archivos
+        adjuntos, el texto oculto y las miniaturas. Los enlaces y el índice se
+        respetan.
+      </span>
+    </label>
+  </div>
+
+  <app-tool-controls [pagina]="pagina" accion="Borrar lo marcado" icono="bi-incognito">
+  </app-tool-controls>
+
+  <p class="text-body-secondary small mt-2 mb-0"
+     *ngIf="informe.length > 0 && !sinRastro && marcadas.size === 0">
+    No has marcado nada, así que no hay nada que borrar.
+  </p>
 
   <app-result-list [archivos]="resultados" [resumen]="resumen" nombreZip="sin-metadatos.zip">
   </app-result-list>

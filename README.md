@@ -28,7 +28,7 @@ El procesado ocurre en el servidor; el navegador sólo sube, ordena y descarga.
 | Documento a Markdown | Extrae el contenido para dárselo a un LLM | unir todo en un archivo |
 | Documento a PDF | Pasa Word, ODT, RTF o texto plano a PDF | varios documentos de una vez |
 | PDF a Word | Saca un `.docx` editable de un PDF | varios documentos de una vez |
-| Limpiar metadatos | Enseña lo que tus archivos cuentan de ti y lo borra | limpieza a fondo |
+| Limpiar metadatos | Enseña lo que tus archivos cuentan de ti y borra lo que elijas | campo a campo, limpieza a fondo |
 | Marca de agua | Estampa un texto o tu logo en todas las páginas | texto o imagen, mosaico, opacidad y giro |
 | Numerar páginas | Numera el documento | posición, formato, desde qué página |
 | Extraer imágenes | Saca las imágenes que lleva dentro un PDF | tamaño mínimo y formato |
@@ -198,14 +198,27 @@ de dejarle esperando hasta que nginx corte.
 "Limpiar metadatos" es la que mejor explica por qué existe esta aplicación. Un
 PDF lleva dentro quién lo escribió y con qué programa; una foto de móvil lleva el
 modelo de la cámara, la fecha exacta y, muy a menudo, **las coordenadas del sitio
-donde se hizo**. Todo eso viaja cada vez que se manda un archivo. La herramienta
-hace dos cosas en este orden: primero **enseña lo que ha encontrado** —con las
-coordenadas en grados, para que se vea que no es un dato abstracto— y luego lo
-quita. En los JPEG los metadatos se arrancan **sin recomprimir la imagen**: se
-eliminan los segmentos que los llevan (EXIF, XMP, IPTC) y el resto del archivo se
-copia tal cual, así que limpiar no cuesta calidad. Con "limpieza a fondo" los PDF
-pierden además el JavaScript incrustado, los adjuntos, el texto oculto y las
-miniaturas; los enlaces y el índice se respetan a propósito.
+donde se hizo**. Todo eso viaja cada vez que se manda un archivo.
+
+Va en dos fases, y ahí está la gracia: al soltar los archivos se **inspeccionan
+sin tocarlos** y se enseña lo que llevan dentro —las coordenadas en grados, para
+que se vea que no es un dato abstracto—, con una casilla por dato. Marcado es lo
+que se va a borrar, así que se puede **tirar la ubicación de una foto y quedarse
+con la fecha de la toma**. Todo empieza marcado, que es lo que quiere quien entra
+aquí, y hay botones de "Todo" y "Nada" por archivo.
+
+Lo que no se enseña de una en una —exposición, resolución y demás tecnicismos—
+se agrupa en un "Otros datos de la cámara (N campos)" con su propia casilla: si
+no apareciera, se borraría sin que nadie lo hubiera visto.
+
+En los JPEG los metadatos se quitan **sin recomprimir la imagen**. Si se borra
+todo el EXIF se omite su segmento; si se conserva una parte, se reconstruye el
+segmento con lo que queda y los datos comprimidos se copian tal cual. Medido: el
+bloque de imagen del archivo limpio es **idéntico byte a byte** al del original,
+así que limpiar nunca cuesta calidad. Con "limpieza a fondo" los PDF pierden
+además el JavaScript incrustado, los adjuntos, el texto oculto y las miniaturas;
+los enlaces y el índice se respetan a propósito. Y un archivo del que no se marca
+nada se entrega tal cual, sin reescribirlo.
 
 "Marca de agua" y "Numerar páginas" escriben en el contenido de la página, no
 como anotación: se ven en cualquier lector y se imprimen siempre. Las dos tienen
@@ -354,6 +367,7 @@ Las sesiones sin actividad se eliminan solas (2 horas por defecto,
 | `GET` | `/api/tools/convertir-imagen/formatos` | formatos de imagen disponibles |
 | `GET` | `/api/tools/pdf-a-imagen/formatos` | los mismos, sin PDF |
 | `POST` | `/api/tools/firmar/preparar` | la firma con el fondo ya recortado, en PNG |
+| `POST` | `/api/tools/limpiar-metadatos/inspeccionar` | qué metadatos lleva un archivo, sin tocarlo |
 | `POST` | `/api/tools/visor/guardar` | aplica de una vez todo lo hecho en el visor |
 | `POST` | `/api/session/keepalive` | marca la sesión como activa (la usa el visor) |
 | `GET` | `/api/health` | comprobación de estado |

@@ -1,0 +1,113 @@
+<app-tool-page slug="numerar-paginas">
+
+  <app-file-queue
+    [items]="archivos"
+    accept=".pdf"
+    [multiple]="false"
+    [deshabilitado]="ocupado"
+    ayuda="Arrastra el PDF que quieras numerar"
+    (agregados)="alAgregar($event)"
+    (itemsChange)="alCambiarLista()">
+  </app-file-queue>
+
+  <fieldset class="mt-4">
+    <legend class="h6">Cómo se escribe</legend>
+    <div class="row g-2">
+      <div class="col-12 col-sm-4" *ngFor="let opcion of formatos">
+        <input type="radio" class="btn-check" name="formato" [id]="'fmt-' + opcion.id"
+               [checked]="formato === opcion.id" [disabled]="ocupado"
+               (change)="elegir('formato', opcion.id)">
+        <label class="btn btn-outline-primary w-100 text-start" [for]="'fmt-' + opcion.id">
+          <span class="d-block fw-semibold">{{ opcion.nombre }}</span>
+          <small class="text-body-secondary">{{ opcion.detalle }}</small>
+        </label>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="mt-4">
+    <legend class="h6">Dónde va</legend>
+    <div class="row g-3">
+      <div class="col-12 col-sm-6">
+        <div class="d-flex flex-wrap gap-2">
+          <ng-container *ngFor="let opcion of bordes">
+            <input type="radio" class="btn-check" name="borde" [id]="'bor-' + opcion.id"
+                   [checked]="borde === opcion.id" [disabled]="ocupado"
+                   (change)="elegir('borde', opcion.id)">
+            <label class="btn btn-outline-primary" [for]="'bor-' + opcion.id">{{ opcion.nombre }}</label>
+          </ng-container>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6">
+        <div class="d-flex flex-wrap gap-2">
+          <ng-container *ngFor="let opcion of alineaciones">
+            <input type="radio" class="btn-check" name="alineacion" [id]="'ali-' + opcion.id"
+                   [checked]="alineacion === opcion.id" [disabled]="ocupado"
+                   (change)="elegir('alineacion', opcion.id)">
+            <label class="btn btn-outline-primary" [for]="'ali-' + opcion.id">{{ opcion.nombre }}</label>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </fieldset>
+
+  <div class="row g-4 mt-1">
+    <div class="col-12 col-md-6">
+      <label for="tamano" class="form-label h6 mb-1">
+        Tamaño: <span class="fw-normal">{{ tamano }} pt</span>
+      </label>
+      <input type="range" class="form-range" id="tamano" min="6" max="24" step="1"
+             [disabled]="ocupado" [(ngModel)]="tamano" (change)="alCambiarLista()">
+    </div>
+    <div class="col-12 col-md-6">
+      <label for="margen" class="form-label h6 mb-1">
+        Margen: <span class="fw-normal">{{ margen }} mm</span>
+      </label>
+      <input type="range" class="form-range" id="margen" min="5" max="30" step="1"
+             [disabled]="ocupado" [(ngModel)]="margen" (change)="alCambiarLista()">
+      <p class="form-text mt-0">Separación desde el borde de la página.</p>
+    </div>
+  </div>
+
+  <div class="row g-3 mt-1">
+    <div class="col-6 col-md-3">
+      <label for="desde" class="form-label mb-1">Numerar desde la página</label>
+      <input type="number" class="form-control" id="desde" min="1" step="1"
+             [disabled]="ocupado" [(ngModel)]="desde" (change)="alCambiarLista()">
+      <p class="form-text mt-0">Para saltarse la portada.</p>
+    </div>
+    <div class="col-6 col-md-3">
+      <label for="empezar" class="form-label mb-1">Empezar a contar en</label>
+      <input type="number" class="form-control" id="empezar" min="1" step="1"
+             [disabled]="ocupado" [(ngModel)]="empezarEn" (change)="alCambiarLista()">
+    </div>
+    <div class="col-12 col-md-3">
+      <label class="form-label mb-1">Letra</label>
+      <div class="d-flex flex-wrap gap-2">
+        <ng-container *ngFor="let opcion of fuentes">
+          <input type="radio" class="btn-check" name="fuente" [id]="'fue-' + opcion.id"
+                 [checked]="fuente === opcion.id" [disabled]="ocupado"
+                 (change)="elegir('fuente', opcion.id)">
+          <label class="btn btn-sm btn-outline-primary" [for]="'fue-' + opcion.id">{{ opcion.nombre }}</label>
+        </ng-container>
+      </div>
+    </div>
+    <div class="col-12 col-md-3">
+      <label class="form-label mb-1">Tinta</label>
+      <div class="d-flex flex-wrap gap-2">
+        <ng-container *ngFor="let opcion of colores">
+          <input type="radio" class="btn-check" name="color" [id]="'col-' + opcion.id"
+                 [checked]="color === opcion.id" [disabled]="ocupado"
+                 (change)="elegir('color', opcion.id)">
+          <label class="btn btn-sm btn-outline-primary" [for]="'col-' + opcion.id">{{ opcion.nombre }}</label>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+  <app-tool-controls [pagina]="pagina" accion="Numerar el PDF" icono="bi-list-ol">
+  </app-tool-controls>
+
+  <app-result-list [archivos]="resultados" [resumen]="resumen"></app-result-list>
+
+</app-tool-page>

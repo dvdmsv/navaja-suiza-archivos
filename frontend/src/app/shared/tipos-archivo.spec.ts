@@ -6,7 +6,8 @@ describe('tipoDeVistaPrevia', () => {
   });
 
   it('reconoce las imágenes que el navegador sabe pintar', () => {
-    ['foto.jpg', 'foto.jpeg', 'foto.png', 'foto.webp', 'foto.gif', 'foto.bmp', 'foto.avif']
+    ['foto.jpg', 'foto.jpeg', 'foto.png', 'foto.webp', 'foto.gif', 'foto.bmp', 'foto.avif',
+     'codigo-qr.svg']
       .forEach(nombre => expect(tipoDeVistaPrevia(nombre)).withContext(nombre).toBe('imagen'));
   });
 

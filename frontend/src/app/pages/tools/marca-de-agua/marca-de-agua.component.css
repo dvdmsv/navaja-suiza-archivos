@@ -1,0 +1,4 @@
+/* Igual que en "Proteger PDF": las pestañas se ven como pestañas de verdad. */
+.nav-pills .nav-link {
+  border: 1px solid var(--bs-border-color);
+}

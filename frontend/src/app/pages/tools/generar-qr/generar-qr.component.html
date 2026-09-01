@@ -1,0 +1,168 @@
+<app-tool-page slug="generar-qr">
+
+  <p class="text-body-secondary small">
+    <i class="bi bi-shield-check me-1"></i>
+    El código se genera en tu servidor. Ni la contraseña de tu wifi ni tus datos
+    de contacto salen de aquí.
+  </p>
+
+  <fieldset>
+    <legend class="h6">Qué va dentro</legend>
+    <div class="d-flex flex-wrap gap-2">
+      <ng-container *ngFor="let opcion of tipos">
+        <input type="radio" class="btn-check" name="tipo" [id]="'tipo-' + opcion.id"
+               [checked]="tipo === opcion.id" [disabled]="ocupado"
+               (change)="elegirTipo(opcion.id)">
+        <label class="btn btn-outline-primary" [for]="'tipo-' + opcion.id">
+          <i class="bi {{ opcion.icono }} me-1"></i>{{ opcion.nombre }}
+        </label>
+      </ng-container>
+    </div>
+  </fieldset>
+
+  <div class="row g-3 mt-1" [ngSwitch]="tipo">
+
+    <ng-container *ngSwitchCase="'texto'">
+      <div class="col-12">
+        <label for="texto" class="form-label mb-1">Texto o enlace</label>
+        <input type="text" class="form-control" id="texto" placeholder="https://…"
+               [disabled]="ocupado" [(ngModel)]="texto" (input)="alCambiarLista()">
+      </div>
+    </ng-container>
+
+    <ng-container *ngSwitchCase="'wifi'">
+      <div class="col-12 col-md-6">
+        <label for="red" class="form-label mb-1">Nombre de la red</label>
+        <input type="text" class="form-control" id="red" [disabled]="ocupado"
+               [(ngModel)]="red" (input)="alCambiarLista()">
+      </div>
+      <div class="col-12 col-md-6" *ngIf="seguridad !== 'nopass'">
+        <label for="clave" class="form-label mb-1">Contraseña</label>
+        <input type="text" class="form-control" id="clave" autocomplete="off"
+               [disabled]="ocupado" [(ngModel)]="clave" (input)="alCambiarLista()">
+      </div>
+      <div class="col-12 col-md-8">
+        <label class="form-label mb-1">Seguridad</label>
+        <div class="d-flex flex-wrap gap-2">
+          <ng-container *ngFor="let opcion of seguridades">
+            <input type="radio" class="btn-check" name="seguridad" [id]="'seg-' + opcion.id"
+                   [value]="opcion.id" [disabled]="ocupado"
+                   [(ngModel)]="seguridad" (change)="alCambiarLista()">
+            <label class="btn btn-sm btn-outline-primary" [for]="'seg-' + opcion.id">
+              {{ opcion.nombre }}
+            </label>
+          </ng-container>
+        </div>
+      </div>
+      <div class="col-12 col-md-4 d-flex align-items-end">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="oculta"
+                 [disabled]="ocupado" [(ngModel)]="oculta" (change)="alCambiarLista()">
+          <label class="form-check-label" for="oculta">Red oculta</label>
+        </div>
+      </div>
+      <div class="col-12">
+        <p class="form-text mt-0">
+          Al apuntar con la cámara, el móvil se conecta solo. Muy socorrido para las visitas.
+        </p>
+      </div>
+    </ng-container>
+
+    <ng-container *ngSwitchCase="'contacto'">
+      <div class="col-12 col-md-6">
+        <label for="nombre" class="form-label mb-1">Nombre</label>
+        <input type="text" class="form-control" id="nombre" [disabled]="ocupado"
+               [(ngModel)]="nombre" (input)="alCambiarLista()">
+      </div>
+      <div class="col-12 col-md-6">
+        <label for="organizacion" class="form-label mb-1">Organización</label>
+        <input type="text" class="form-control" id="organizacion" [disabled]="ocupado"
+               [(ngModel)]="organizacion" (input)="alCambiarLista()">
+      </div>
+      <div class="col-12 col-md-4">
+        <label for="tel-contacto" class="form-label mb-1">Teléfono</label>
+        <input type="tel" class="form-control" id="tel-contacto" [disabled]="ocupado"
+               [(ngModel)]="telefono" (input)="alCambiarLista()">
+      </div>
+      <div class="col-12 col-md-4">
+        <label for="correo-contacto" class="form-label mb-1">Correo</label>
+        <input type="email" class="form-control" id="correo-contacto" [disabled]="ocupado"
+               [(ngModel)]="correo" (input)="alCambiarLista()">
+      </div>
+      <div class="col-12 col-md-4">
+        <label for="web" class="form-label mb-1">Web</label>
+        <input type="text" class="form-control" id="web" [disabled]="ocupado"
+               [(ngModel)]="web" (input)="alCambiarLista()">
+      </div>
+    </ng-container>
+
+    <ng-container *ngSwitchCase="'correo'">
+      <div class="col-12 col-md-6">
+        <label for="correo" class="form-label mb-1">Dirección</label>
+        <input type="email" class="form-control" id="correo" [disabled]="ocupado"
+               [(ngModel)]="correo" (input)="alCambiarLista()">
+      </div>
+      <div class="col-12 col-md-6">
+        <label for="asunto" class="form-label mb-1">Asunto</label>
+        <input type="text" class="form-control" id="asunto" [disabled]="ocupado"
+               [(ngModel)]="asunto" (input)="alCambiarLista()">
+      </div>
+      <div class="col-12">
+        <label for="mensaje" class="form-label mb-1">Mensaje</label>
+        <input type="text" class="form-control" id="mensaje" [disabled]="ocupado"
+               [(ngModel)]="mensaje" (input)="alCambiarLista()">
+      </div>
+    </ng-container>
+
+    <ng-container *ngSwitchDefault>
+      <div class="col-12 col-md-6">
+        <label for="telefono" class="form-label mb-1">Número de teléfono</label>
+        <input type="tel" class="form-control" id="telefono" placeholder="+34…"
+               [disabled]="ocupado" [(ngModel)]="telefono" (input)="alCambiarLista()">
+      </div>
+    </ng-container>
+  </div>
+
+  <div class="row g-3 mt-1">
+    <div class="col-12 col-md-4">
+      <label class="form-label mb-1">Formato</label>
+      <div class="d-flex flex-wrap gap-2">
+        <input type="radio" class="btn-check" name="formato" id="fmt-png" value="png"
+               [disabled]="ocupado" [(ngModel)]="formato" (change)="alCambiarLista()">
+        <label class="btn btn-sm btn-outline-primary" for="fmt-png">PNG</label>
+        <input type="radio" class="btn-check" name="formato" id="fmt-svg" value="svg"
+               [disabled]="ocupado" [(ngModel)]="formato" (change)="alCambiarLista()">
+        <label class="btn btn-sm btn-outline-primary" for="fmt-svg">SVG</label>
+      </div>
+      <p class="form-text mt-1">SVG no pierde nitidez por grande que se imprima.</p>
+    </div>
+    <div class="col-12 col-md-4">
+      <label for="escala" class="form-label mb-1">
+        Tamaño: <span class="text-body-secondary">×{{ escala }}</span>
+      </label>
+      <input type="range" class="form-range" id="escala" min="4" max="20" step="1"
+             [disabled]="ocupado" [(ngModel)]="escala" (change)="alCambiarLista()">
+    </div>
+    <div class="col-12 col-md-4">
+      <label class="form-label mb-1">Tolerancia a daños</label>
+      <div class="d-flex flex-wrap gap-2">
+        <ng-container *ngFor="let opcion of correcciones">
+          <input type="radio" class="btn-check" name="correccion" [id]="'cor-' + opcion.id"
+                 [value]="opcion.id" [disabled]="ocupado"
+                 [(ngModel)]="correccion" (change)="alCambiarLista()">
+          <label class="btn btn-sm btn-outline-primary" [for]="'cor-' + opcion.id">
+            {{ opcion.nombre }}
+          </label>
+        </ng-container>
+      </div>
+      <p class="form-text mt-1">Más tolerancia, código más denso, pero se lee sucio o arrugado.</p>
+    </div>
+  </div>
+
+  <app-tool-controls [pagina]="pagina" accion="Generar el código" icono="bi-qr-code">
+  </app-tool-controls>
+
+  <app-result-list [archivos]="resultados" [resumen]="resumen" nombreZip="codigos-qr.zip">
+  </app-result-list>
+
+</app-tool-page>

@@ -5,7 +5,7 @@ El procesado ocurre en el servidor; el navegador sólo sube, ordena y descarga.
 
 - **Frontend**: Angular 17 (standalone components) + Bootstrap 5.
 - **Backend**: Flask con un blueprint por herramienta (PyMuPDF, Pillow, pypdf,
-  markitdown y LibreOffice hacen el trabajo).
+  markitdown, LibreOffice y segno hacen el trabajo).
 - **Despliegue**: Docker Compose, con nginx sirviendo el frontend y haciendo de
   pasarela hacia el backend.
 
@@ -28,6 +28,11 @@ El procesado ocurre en el servidor; el navegador sólo sube, ordena y descarga.
 | Documento a Markdown | Extrae el contenido para dárselo a un LLM | unir todo en un archivo |
 | Documento a PDF | Pasa Word, ODT, RTF o texto plano a PDF | varios documentos de una vez |
 | PDF a Word | Saca un `.docx` editable de un PDF | varios documentos de una vez |
+| Limpiar metadatos | Enseña lo que tus archivos cuentan de ti y lo borra | limpieza a fondo |
+| Marca de agua | Estampa un texto o tu logo en todas las páginas | texto o imagen, mosaico, opacidad y giro |
+| Numerar páginas | Numera el documento | posición, formato, desde qué página |
+| Extraer imágenes | Saca las imágenes que lleva dentro un PDF | tamaño mínimo y formato |
+| Generar QR | Códigos QR de un enlace, tu wifi o tu contacto | PNG o SVG |
 
 Cualquier resultado se puede ver antes de descargarlo, con el ojo que hay junto
 a su nombre: se abre encima de la página y se cierra con `Esc`. Los PDF los
@@ -189,6 +194,40 @@ estas a la vez en todo el proceso, porque el servidor atiende con cuatro hilos y
 cuatro LibreOffice arrancando a la vez se llevan por delante el contenedor. A
 quien llega y lo encuentra ocupado se le dice que vuelva en un momento, en lugar
 de dejarle esperando hasta que nginx corte.
+
+"Limpiar metadatos" es la que mejor explica por qué existe esta aplicación. Un
+PDF lleva dentro quién lo escribió y con qué programa; una foto de móvil lleva el
+modelo de la cámara, la fecha exacta y, muy a menudo, **las coordenadas del sitio
+donde se hizo**. Todo eso viaja cada vez que se manda un archivo. La herramienta
+hace dos cosas en este orden: primero **enseña lo que ha encontrado** —con las
+coordenadas en grados, para que se vea que no es un dato abstracto— y luego lo
+quita. En los JPEG los metadatos se arrancan **sin recomprimir la imagen**: se
+eliminan los segmentos que los llevan (EXIF, XMP, IPTC) y el resto del archivo se
+copia tal cual, así que limpiar no cuesta calidad. Con "limpieza a fondo" los PDF
+pierden además el JavaScript incrustado, los adjuntos, el texto oculto y las
+miniaturas; los enlaces y el índice se respetan a propósito.
+
+"Marca de agua" y "Numerar páginas" escriben en el contenido de la página, no
+como anotación: se ven en cualquier lector y se imprimen siempre. Las dos tienen
+la misma trampa resuelta, la de un PDF que ya venía girado en el archivo: los
+puntos se llevan al espacio sin girar con `derotation_matrix` y al ángulo se le
+suma el de la página. Medido rasterizando el resultado, la marca cae centrada al
+50 % del ancho y del alto tanto en un PDF normal como en uno con `/Rotate 90`, y
+el número queda a 44 pt del borde en los dos. La marca de agua se gira con
+`morph` alrededor **del centro del texto**: girándola alrededor del inicio de la
+línea base —que es lo que sitúa `insert_text`— se va a la esquina.
+
+"Extraer imágenes" saca los bytes tal y como están en el archivo, sin
+recomprimir. Descarta las que no llegan a un tamaño mínimo porque un PDF de
+texto corriente lleva docenas de fragmentos diminutos —viñetas, filetes de las
+tablas— y sin ese filtro el ZIP se vuelve inservible.
+
+"Generar QR" es la única herramienta que no necesita que subas nada. Además del
+texto libre trae atajos para lo que nadie escribe a mano: la red wifi con su
+sintaxis `WIFI:S:…;T:WPA;P:…;;` —que el móvil reconoce y conecta solo, y que
+escapa los `;` y `:` de la contraseña—, la tarjeta de contacto, el correo y el
+teléfono. Lo hace [segno](https://github.com/heuer/segno): 75 kB, sin una sola
+dependencia, y escribe PNG y SVG sin pasar por Pillow.
 
 Las herramientas que enseñan páginas —el visor, firmar, dividir y organizar—
 rasterizan el PDF en el navegador con `core/pdf.service.ts`. Ese servicio arranca poniendo

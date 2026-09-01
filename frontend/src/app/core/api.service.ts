@@ -23,11 +23,26 @@ export interface VistaPrevia {
   palabras: number;
 }
 
+/** Un dato que un archivo llevaba dentro sin que su dueño lo supiera. */
+export interface CampoMetadato {
+  etiqueta: string;
+  valor: string;
+}
+
+/** Lo que "Limpiar metadatos" encontró en un archivo antes de borrarlo. */
+export interface MetadatosArchivo {
+  archivo: string;
+  campos: CampoMetadato[];
+  /** Si llevaba dentro dónde se hizo la foto. */
+  ubicacion: boolean;
+}
+
 /** Respuesta de cualquier herramienta: siempre una lista de archivos. */
 export interface Resultado {
   files: ArchivoServidor[];
   resumen?: ResumenTamano;
   vista_previa?: VistaPrevia;
+  metadatos?: MetadatosArchivo[];
 }
 
 /** Formato de imagen ofrecido por el servidor. */

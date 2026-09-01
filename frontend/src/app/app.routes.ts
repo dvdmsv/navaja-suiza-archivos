@@ -80,6 +80,39 @@ export const routes: Routes = [
       import('./pages/tools/imagen-a-pdf/imagen-a-pdf.component').then(m => m.ImagenAPdfComponent),
   },
   {
+    path: 'herramientas/marca-de-agua',
+    title: 'Marca de agua',
+    loadComponent: () =>
+      import('./pages/tools/marca-de-agua/marca-de-agua.component').then(m => m.MarcaDeAguaComponent),
+  },
+  {
+    path: 'herramientas/numerar-paginas',
+    title: 'Numerar páginas',
+    loadComponent: () =>
+      import('./pages/tools/numerar-paginas/numerar-paginas.component')
+        .then(m => m.NumerarPaginasComponent),
+  },
+  {
+    path: 'herramientas/extraer-imagenes',
+    title: 'Extraer imágenes',
+    loadComponent: () =>
+      import('./pages/tools/extraer-imagenes/extraer-imagenes.component')
+        .then(m => m.ExtraerImagenesComponent),
+  },
+  {
+    path: 'herramientas/limpiar-metadatos',
+    title: 'Limpiar metadatos',
+    loadComponent: () =>
+      import('./pages/tools/limpiar-metadatos/limpiar-metadatos.component')
+        .then(m => m.LimpiarMetadatosComponent),
+  },
+  {
+    path: 'herramientas/generar-qr',
+    title: 'Generar QR',
+    loadComponent: () =>
+      import('./pages/tools/generar-qr/generar-qr.component').then(m => m.GenerarQrComponent),
+  },
+  {
     path: 'herramientas/documento-a-pdf',
     title: 'Documento a PDF',
     loadComponent: () =>

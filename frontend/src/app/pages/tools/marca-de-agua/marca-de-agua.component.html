@@ -1,0 +1,142 @@
+<app-tool-page slug="marca-de-agua">
+
+  <app-file-queue
+    [items]="archivos"
+    accept=".pdf"
+    [multiple]="false"
+    [deshabilitado]="ocupado"
+    ayuda="Arrastra el PDF que quieras marcar"
+    (agregados)="alAgregar($event)"
+    (itemsChange)="alCambiarLista()">
+  </app-file-queue>
+
+  <ul class="nav nav-pills gap-2 mt-4">
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="modo === 'texto'"
+              [disabled]="ocupado" (click)="cambiarModo('texto')">
+        <i class="bi bi-fonts me-1"></i>Un texto
+      </button>
+    </li>
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="modo === 'imagen'"
+              [disabled]="ocupado" (click)="cambiarModo('imagen')">
+        <i class="bi bi-image me-1"></i>Mi logo
+      </button>
+    </li>
+  </ul>
+
+  <div class="row g-3 mt-1" *ngIf="modo === 'texto'">
+    <div class="col-12 col-md-6">
+      <label for="texto" class="form-label mb-1">Texto</label>
+      <input type="text" class="form-control" id="texto" maxlength="120"
+             placeholder="BORRADOR, CONFIDENCIAL, tu nombre…"
+             [disabled]="ocupado" [(ngModel)]="texto" (input)="alCambiarLista()">
+    </div>
+    <div class="col-12 col-md-6">
+      <label for="tamano" class="form-label mb-1">
+        Tamaño: <span class="text-body-secondary">{{ tamano }} pt</span>
+      </label>
+      <input type="range" class="form-range" id="tamano" min="6" max="96" step="2"
+             [disabled]="ocupado" [(ngModel)]="tamano" (change)="alCambiarLista()">
+    </div>
+    <div class="col-12 col-md-4">
+      <label class="form-label mb-1">Letra</label>
+      <div class="d-flex flex-wrap gap-2">
+        <ng-container *ngFor="let opcion of fuentes">
+          <input type="radio" class="btn-check" name="fuente" [id]="'fue-' + opcion.id"
+                 [checked]="fuente === opcion.id" [disabled]="ocupado"
+                 (change)="elegir('fuente', opcion.id)">
+          <label class="btn btn-sm btn-outline-primary" [for]="'fue-' + opcion.id">{{ opcion.nombre }}</label>
+        </ng-container>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <label class="form-label mb-1">Tinta</label>
+      <div class="d-flex flex-wrap gap-2">
+        <ng-container *ngFor="let opcion of colores">
+          <input type="radio" class="btn-check" name="color" [id]="'col-' + opcion.id"
+                 [checked]="color === opcion.id" [disabled]="ocupado"
+                 (change)="elegir('color', opcion.id)">
+          <label class="btn btn-sm btn-outline-primary" [for]="'col-' + opcion.id">{{ opcion.nombre }}</label>
+        </ng-container>
+      </div>
+    </div>
+    <div class="col-12 col-md-4 d-flex align-items-end">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="negrita"
+               [disabled]="ocupado" [(ngModel)]="negrita" (change)="alCambiarLista()">
+        <label class="form-check-label" for="negrita">En negrita</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-3" *ngIf="modo === 'imagen'">
+    <app-file-queue
+      [items]="imagenes"
+      accept="image/*"
+      [multiple]="false"
+      [deshabilitado]="ocupado"
+      ayuda="Un PNG con fondo transparente es lo que mejor queda"
+      (agregados)="alAgregarImagen($event)"
+      (itemsChange)="alCambiarLista()">
+    </app-file-queue>
+
+    <div class="row g-3 mt-1" *ngIf="imagenes.length > 0">
+      <div class="col-12 col-md-6">
+        <label for="ancho" class="form-label mb-1">
+          Tamaño: <span class="text-body-secondary">{{ ancho }} % del ancho</span>
+        </label>
+        <input type="range" class="form-range" id="ancho" min="5" max="100" step="5"
+               [disabled]="ocupado" [(ngModel)]="ancho" (change)="alCambiarLista()">
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mt-1">
+    <div class="col-12 col-md-6">
+      <label for="opacidad" class="form-label h6 mb-1">
+        Opacidad: <span class="fw-normal">{{ opacidad }} %</span>
+      </label>
+      <input type="range" class="form-range" id="opacidad" min="5" max="100" step="5"
+             [disabled]="ocupado" [(ngModel)]="opacidad" (change)="alCambiarLista()">
+      <p class="form-text mt-0">Cuanto más baja, más se lee lo que hay debajo.</p>
+    </div>
+    <div class="col-12 col-md-6">
+      <label for="giro" class="form-label h6 mb-1">
+        Giro: <span class="fw-normal">{{ giro }}°</span>
+      </label>
+      <input type="range" class="form-range" id="giro" min="-90" max="90" step="15"
+             [disabled]="ocupado" [(ngModel)]="giro" (change)="alCambiarLista()">
+      <p class="form-text mt-0">En diagonal es como mejor se ve que es una marca.</p>
+    </div>
+  </div>
+
+  <div class="row g-2 mt-1">
+    <div class="col-12 col-md-6">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="mosaico"
+               [disabled]="ocupado" [(ngModel)]="mosaico" (change)="alCambiarLista()">
+        <label class="form-check-label" for="mosaico">
+          Repetir por toda la página
+          <span class="d-block form-text mt-0">Así recortarla deja de ser una opción.</span>
+        </label>
+      </div>
+    </div>
+    <div class="col-12 col-md-6">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="encima"
+               [disabled]="ocupado" [(ngModel)]="encima" (change)="alCambiarLista()">
+        <label class="form-check-label" for="encima">
+          Por encima del contenido
+          <span class="d-block form-text mt-0">Desmárcalo y la marca irá detrás del texto.</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <app-tool-controls [pagina]="pagina" accion="Poner la marca de agua" icono="bi-droplet-half">
+  </app-tool-controls>
+
+  <app-result-list [archivos]="resultados" [resumen]="resumen"></app-result-list>
+
+</app-tool-page>

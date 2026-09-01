@@ -11,9 +11,10 @@ export type TipoVistaPrevia = 'pdf' | 'imagen' | 'texto';
  * Imágenes que un navegador pinta en un `<img>`.
  *
  * `.tiff` se queda fuera a propósito aunque "Convertir imagen" lo genere:
- * ninguno lo muestra, y ofrecer verlo sólo enseñaría un hueco roto.
+ * ninguno lo muestra, y ofrecer verlo sólo enseñaría un hueco roto. El `.svg`
+ * de "Generar QR" sí entra: en un `<img>` se pinta y no ejecuta nada.
  */
-const IMAGENES = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.avif'];
+const IMAGENES = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.avif', '.svg'];
 
 /** Texto plano. El HTML se enseña como texto, nunca renderizado. */
 const TEXTOS = ['.md', '.txt', '.csv', '.json', '.xml', '.html', '.htm'];

@@ -15,6 +15,7 @@ import subprocess
 import fitz  # PyMuPDF
 from flask import Blueprint, current_app, jsonify
 
+import config
 from api import current_session, params
 from errors import ApiError
 from storage import storage, nombre_seguro
@@ -23,13 +24,15 @@ bp = Blueprint('ocr_pdf', __name__, url_prefix='/api/tools')
 
 IDIOMAS = {'spa', 'eng', 'spa+eng'}
 
-# El OCR es con diferencia lo más caro que hace esta aplicación, y el contenedor
-# vive con 512 MB. Mejor un límite claro que un contenedor muerto.
-MAXIMO_PAGINAS = 50
+# El OCR es con diferencia lo más caro que hace esta aplicación: mejor un límite
+# claro que un contenedor muerto. El valor por defecto está medido para los
+# 768 MB del `docker-compose.yml`; con más memoria se puede subir.
+MAXIMO_PAGINAS = config.entorno_entero('OCR_MAX_PAGES', 50)
 
-# Por debajo del plazo de gunicorn (300 s), para poder contestar con un error
-# entendible en vez de que nos corten la respuesta.
-TIEMPO_LIMITE = 240
+# Por debajo del plazo de gunicorn, para poder contestar con un error entendible
+# en vez de que nos corten la respuesta. Si se sube, hay que subir también
+# `GUNICORN_TIMEOUT`.
+TIEMPO_LIMITE = config.entorno_entero('OCR_TIMEOUT_SECONDS', 240)
 
 # Qué significa cada código de salida de ocrmypdf, en cristiano.
 ERRORES = {

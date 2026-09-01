@@ -16,13 +16,21 @@ import threading
 
 from flask import current_app
 
+import config
 from errors import ApiError
 
-_turno = threading.BoundedSemaphore(1)
+# Cuántas de estas conversiones pueden correr a la vez en todo el proceso.
+#
+# Una, por defecto, porque cada LibreOffice se come 250-350 MB y cuatro a la vez
+# matan un contenedor pequeño. En una máquina con memoria de sobra, subirlo es
+# lo que hace que varias personas puedan convertir sin hacer cola: calcula unos
+# 400 MB por conversión simultánea.
+CONVERSIONES_A_LA_VEZ = config.entorno_entero('MAX_CONCURRENT_CONVERSIONS', 1)
+_turno = threading.BoundedSemaphore(CONVERSIONES_A_LA_VEZ)
 
 # Cuánto se espera a que quede libre el turno. Sumado al tiempo máximo de una
 # conversión tiene que caber en el plazo de gunicorn (300 s).
-ESPERA_MAXIMA = 45
+ESPERA_MAXIMA = config.entorno_entero('CONVERSION_QUEUE_TIMEOUT_SECONDS', 45)
 
 
 def ejecutar(orden: list[str], tiempo_limite: int, programa: str,

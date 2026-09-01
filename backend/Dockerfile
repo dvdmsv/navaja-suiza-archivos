@@ -43,9 +43,9 @@ EXPOSE 5000
 #   --workers 1 --threads 4  un solo proceso que atiende cuatro peticiones a la
 #                            vez. Los hilos bastan porque PyMuPDF y Pillow
 #                            sueltan el GIL mientras trabajan, y un worker de
-#                            más costaría otros ~190 MB de RAM: esto se
-#                            despliega en una VM con 1,4 GB para cuatro
-#                            aplicaciones, no en un equipo de sobremesa.
+#                            más cuesta otros ~190 MB de RAM: el valor por
+#                            defecto es para una VM pequeña, no una imposición.
+#                            Con memoria de sobra, `GUNICORN_WORKERS` sube.
 #   --timeout 300            lo mismo que espera nginx (proxy_read_timeout):
 #                            un PDF largo a 300 ppp o un markitdown recién
 #                            arrancado pasan de 30 s con facilidad.
@@ -55,8 +55,12 @@ EXPOSE 5000
 # Sin --preload a propósito: precargar haría el fork después de arrancar el hilo
 # que limpia las sesiones caducadas, y los hilos no sobreviven a un fork, así
 # que la limpieza dejaría de ejecutarse.
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", \
-     "--workers", "1", "--threads", "4", \
-     "--timeout", "300", "--graceful-timeout", "30", \
-     "--max-requests", "200", "--max-requests-jitter", "20", \
-     "app:app"]
+# Va en forma de shell, y no como lista, porque así se pueden ajustar los tres
+# valores que dependen de la máquina sin reconstruir la imagen. El `exec` no es
+# decorativo: sin él gunicorn quedaría como hijo de `sh`, dejaría de recibir el
+# SIGTERM al parar el contenedor y se perdería el apagado ordenado.
+CMD ["sh", "-c", "exec gunicorn --bind 0.0.0.0:5000 \
+     --workers ${GUNICORN_WORKERS:-1} --threads ${GUNICORN_THREADS:-4} \
+     --timeout ${GUNICORN_TIMEOUT:-300} --graceful-timeout 30 \
+     --max-requests 200 --max-requests-jitter 20 \
+     app:app"]

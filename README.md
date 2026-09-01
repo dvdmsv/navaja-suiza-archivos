@@ -491,6 +491,47 @@ Si se cambia el tope de subida hay que tocarlo **en dos sitios**:
 `MAX_CONTENT_LENGTH_MB` y el `client_max_body_size` de `frontend/nginx.conf`.
 El más bajo de los dos es el que manda.
 
+### Ajustar a la máquina que tengas
+
+Los valores por defecto están medidos para donde nació esto: una VM con 1,4 GB
+de RAM compartidos con otras tres aplicaciones. **Están para que arranque en
+cualquier sitio, no porque sean los correctos para tu servidor.** Si el tuyo es
+mejor, éstos son los que conviene subir:
+
+| Variable | Por defecto | Qué significa subirla |
+|---|---|---|
+| `GUNICORN_WORKERS` | `1` | Procesos que atienden peticiones. Cada uno cuesta unos 190 MB. Con memoria de sobra, 2-4 |
+| `GUNICORN_THREADS` | `4` | Peticiones a la vez por proceso. Bastan hilos porque PyMuPDF y Pillow sueltan el GIL |
+| `GUNICORN_TIMEOUT` | `300` | Plazo de una petición. Tiene que ser mayor que los plazos de las herramientas |
+| `MAX_CONCURRENT_CONVERSIONS` | `1` | Conversiones de ofimática simultáneas. Calcula unos 400 MB por cada una: es lo que evita que varias personas hagan cola |
+| `CONVERSION_QUEUE_TIMEOUT_SECONDS` | `45` | Cuánto espera una petición a que le toque el turno |
+| `OCR_MAX_PAGES` | `50` | Páginas por trabajo de OCR. Es lo más caro que hace la aplicación |
+| `OCR_TIMEOUT_SECONDS` | `240` | Plazo del OCR. Súbelo con `OCR_MAX_PAGES`, y por debajo de `GUNICORN_TIMEOUT` |
+| `PDF_TO_WORD_MAX_PAGES` | `100` | Páginas por lote al convertir a `.docx` |
+| `PDF_TO_WORD_TIMEOUT_SECONDS` | `240` | Su plazo, con la misma regla |
+| `PDF_TO_IMAGE_MAX_PAGES` | `200` | Páginas al pasar un PDF a imágenes. A 300 ppp son cientos de megas |
+| `DOC_TO_PDF_MAX_FILES` | `10` | Documentos por lote hacia PDF |
+| `DOC_TO_PDF_TIMEOUT_SECONDS` | `180` | Su plazo |
+| `BACKEND_MEM_LIMIT` | `768m` | Tope de memoria del contenedor, en `docker-compose.yml` |
+
+Se pasan por el entorno, sin reconstruir la imagen. Con un `.env` al lado del
+`docker-compose.yml`:
+
+```bash
+GUNICORN_WORKERS=3
+MAX_CONCURRENT_CONVERSIONS=3
+OCR_MAX_PAGES=300
+BACKEND_MEM_LIMIT=4g
+```
+
+Dos reglas al tocarlos. Los **plazos de las herramientas van siempre por debajo
+de `GUNICORN_TIMEOUT`**: si no, gunicorn corta la respuesta y el usuario ve un
+error feo en vez de uno explicado. Y de la **memoria** manda la suma: cada worker
+más sus hilos, más unos 400 MB por conversión simultánea.
+
+Un valor que no sea un número no tumba el servidor: avisa por el log y sigue con
+el valor por defecto.
+
 ### Antes de exponerlo a internet
 
 Esto está pensado para una red doméstica o una VPN, y conviene saber por qué:

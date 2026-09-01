@@ -14,6 +14,7 @@ import os
 import fitz  # PyMuPDF
 from flask import Blueprint, current_app, jsonify
 
+import config
 from api import conversion, current_session, params
 from errors import ApiError
 from storage import storage, cambiar_extension
@@ -21,12 +22,12 @@ from storage import storage, cambiar_extension
 bp = Blueprint('pdf_a_word', __name__, url_prefix='/api/tools')
 
 # Páginas de todo el lote juntas. Reconstruir la maquetación es caro en tiempo y
-# en memoria, y el contenedor no da para alegrías.
-MAXIMO_PAGINAS = 100
+# en memoria; el valor por defecto es prudente para un contenedor pequeño.
+MAXIMO_PAGINAS = config.entorno_entero('PDF_TO_WORD_MAX_PAGES', 100)
 
-# Por debajo del plazo de gunicorn (300 s), para contestar con un error
-# entendible en vez de que nos corten la respuesta.
-TIEMPO_LIMITE = 240
+# Por debajo del plazo de gunicorn, para contestar con un error entendible en vez
+# de que nos corten la respuesta. Si se sube, hay que subir `GUNICORN_TIMEOUT`.
+TIEMPO_LIMITE = config.entorno_entero('PDF_TO_WORD_TIMEOUT_SECONDS', 240)
 
 
 @bp.post('/pdf-a-word')

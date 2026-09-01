@@ -16,6 +16,7 @@ import tempfile
 
 from flask import Blueprint, current_app, jsonify
 
+import config
 from api import conversion, current_session, params
 from errors import ApiError
 from storage import storage, cambiar_extension
@@ -25,11 +26,11 @@ bp = Blueprint('documento_a_pdf', __name__, url_prefix='/api/tools')
 EXTENSIONES_ADMITIDAS = {'.docx', '.doc', '.odt', '.rtf', '.txt'}
 
 # Cada documento es rápido, pero un lote largo acabaría pasándose del plazo de
-# gunicorn (300 s) y el usuario vería un corte, no un error.
-MAXIMO_ARCHIVOS = 10
+# gunicorn y el usuario vería un corte, no un error.
+MAXIMO_ARCHIVOS = config.entorno_entero('DOC_TO_PDF_MAX_FILES', 10)
 
 # De sobra para el lote entero, contando el arranque de LibreOffice.
-TIEMPO_LIMITE = 180
+TIEMPO_LIMITE = config.entorno_entero('DOC_TO_PDF_TIMEOUT_SECONDS', 180)
 
 
 @bp.post('/documento-a-pdf')

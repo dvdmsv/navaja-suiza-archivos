@@ -6,6 +6,7 @@ import fitz  # PyMuPDF
 from PIL import Image
 from flask import Blueprint, jsonify
 
+import config
 from api import current_session, imaging, params
 from api.formatos import extension_de, salidas_de_imagen
 from errors import ApiError
@@ -20,7 +21,7 @@ CALIDAD_MINIMA, CALIDAD_MAXIMA, CALIDAD_POR_DEFECTO = 20, 100, 90
 
 # Un PDF largo a 300 ppp puede generar cientos de megas: mejor un límite claro
 # que un servidor sin memoria.
-MAXIMO_PAGINAS = 200
+MAXIMO_PAGINAS = config.entorno_entero('PDF_TO_IMAGE_MAX_PAGES', 200)
 
 
 @bp.get('/pdf-a-imagen/formatos')

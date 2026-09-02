@@ -1,5 +1,7 @@
-# Usa una imagen base de Node.js para compilar Angular
-FROM node:18 AS builder
+# Node 22 porque Angular lo exige a partir de la 20, y porque Node 18 dejó de
+# recibir parches. La etiqueta sin fijar trae siempre el último 22.x, que es lo
+# que quiere Angular 22 (pide 22.22.3 como mínimo).
+FROM node:22 AS builder
 
 # Establece el directorio de trabajo
 WORKDIR /app
@@ -7,11 +9,14 @@ WORKDIR /app
 # Copia los archivos de Angular
 COPY . /app
 
-# Instala las dependencias de Angular
-RUN npm install
+# `npm ci` y no `npm install`: instala exactamente lo que dice el
+# package-lock.json y falla si los dos no concuerdan. Es lo que hace que la
+# imagen se construya igual hoy que dentro de un año, y lo que evita que una
+# dependencia se cuele con otra versión sin que nadie lo note.
+RUN npm ci
 
 # Compila la aplicación Angular
-RUN npm run build --prod
+RUN npm run build
 
 # Usa una imagen de NGINX para servir el frontend
 FROM nginx:alpine

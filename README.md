@@ -494,24 +494,33 @@ El más bajo de los dos es el que manda.
 
 ### Ajustar a la máquina que tengas
 
-Los valores por defecto son prudentes: **están para que arranque en cualquier
-sitio, no porque sean los correctos para tu servidor.** Si el tuyo da para más,
-éstos son los que conviene subir. Todos están comentados en
-[`.env.example`](.env.example).
+**Normalmente no hay que ajustar nada.** Al arrancar, el backend le pregunta al
+cgroup cuántos núcleos y cuánta memoria tiene el contenedor y se dimensiona a
+eso, así que la misma imagen sale prudente en un VPS de 512 MB y aprovechada en
+una máquina holgada. Lo elegido queda dicho en el log:
+
+```
+$ docker compose logs backend | grep "Máquina detectada"
+Máquina detectada: 4 núcleos, 1536 MB de memoria -> 2 workers, 4 hilos
+```
+
+Si quieres llevarle la contraria, cualquiera de estas variables manda sobre lo
+calculado. Todas están comentadas en [`.env.example`](.env.example).
 
 | Variable | Por defecto | Qué significa subirla |
 |---|---|---|
-| `GUNICORN_WORKERS` | `1` | Procesos que atienden peticiones. Cada uno ronda los 300 MB con las bibliotecas cargadas. Con memoria de sobra, 2-3 |
+| `GUNICORN_WORKERS` | *se calcula* | Procesos que atienden peticiones. Los que quepan a 768 MB cada uno, sin pasar de los núcleos ni de 4 |
 | `GUNICORN_THREADS` | `4` | Peticiones a la vez por proceso. Bastan hilos porque PyMuPDF y Pillow sueltan el GIL |
 | `GUNICORN_TIMEOUT` | `300` | Plazo de una petición. Tiene que ser **mayor que todos** los plazos de abajo |
-| `MAX_CONCURRENT_CONVERSIONS` | `1` | Conversiones de ofimática simultáneas. Cada una arranca su LibreOffice: entre 130 y 350 MB según el documento |
+| `MAX_CONCURRENT_CONVERSIONS` | `1` | Conversiones de ofimática simultáneas **por worker** — las reales son `GUNICORN_WORKERS` × ésta. Cada una arranca su LibreOffice: entre 130 y 350 MB |
 | `CONVERSION_QUEUE_TIMEOUT_SECONDS` | `45` | Cuánto espera una petición a que le toque el turno |
-| `OCR_JOBS` | `1` | Páginas que el OCR reconoce a la vez. **El ajuste que más se nota**: con 4 núcleos, 60 páginas pasan de 36 s a 21 s, a cambio de 150 MB más |
+| `OCR_JOBS` | *se calcula* | Páginas que el OCR reconoce a la vez; por defecto, los núcleos que haya. **El ajuste que más se nota**: con 4 núcleos, 60 páginas pasan de 36 s a 21 s, a cambio de 150 MB más |
 | `OCR_OPTIMIZE` | `1` | Cuánto aprieta el PDF resultante, de 0 a 3. El 1 sale casi gratis: mismo tiempo y archivos hasta cuatro veces menores |
 | `OCR_TIMEOUT_SECONDS` | `240` | Plazo del OCR |
 | `PDF_TO_WORD_TIMEOUT_SECONDS` | `240` | Plazo al convertir a `.docx` |
 | `DOC_TO_PDF_TIMEOUT_SECONDS` | `180` | Plazo del lote hacia PDF |
-| `BACKEND_MEM_LIMIT` | `1536m` | Tope de memoria del contenedor |
+| `BACKEND_MEM_LIMIT` | `1536m` | Tope de memoria del contenedor. **Es la entrada del cálculo de arriba**: subirlo da más workers |
+| `MAX_CONTENT_LENGTH_MB` | `200` | Tamaño máximo de una petición. nginx tiene el suyo y manda el más bajo |
 
 **No hay límite de páginas ni de archivos en ninguna herramienta.** Lo que las
 acota es el tiempo, que es lo que de verdad protege: se mide que un OCR de 10

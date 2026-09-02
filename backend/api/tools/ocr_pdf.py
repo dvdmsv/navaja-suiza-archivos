@@ -39,9 +39,10 @@ TIEMPO_LIMITE = config.entorno_entero('OCR_TIMEOUT_SECONDS', 240)
 # un contenedor de 4 núcleos: con 1 tarda 36 s y consume 180 MB; con 4 tarda
 # 21 s y consume 327 MB. Es decir, 42 % más rápido por 150 MB más.
 #
-# El valor por defecto es 1 porque este repositorio tiene que arrancar en
-# cualquier máquina, no porque sea el bueno: si tienes núcleos y memoria, súbelo.
-TRABAJOS = config.entorno_entero('OCR_JOBS', 1)
+# Por defecto, los núcleos que tenga la máquina —que es también lo que hace
+# ocrmypdf cuando se le deja elegir—. Los 150 MB extra son de la suma de los
+# procesos de reconocimiento, y esos van y vienen con la petición.
+TRABAJOS = config.entorno_entero('OCR_JOBS', config.nucleos())
 
 # Cuánto aprieta ocrmypdf el PDF resultante, de 0 a 3.
 #

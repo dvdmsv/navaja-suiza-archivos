@@ -36,6 +36,64 @@ def entorno_entero(nombre: str, defecto: int, minimo: int = 1) -> int:
     return valor
 
 
+def nucleos() -> int:
+    """Núcleos que puede usar este proceso, no los que tenga la máquina.
+
+    Dentro de un contenedor `os.cpu_count()` devuelve los del anfitrión, que con
+    un `cpus: 4.0` puesto es mentira. El cgroup sí dice la verdad.
+    """
+    try:
+        cuota, periodo = open('/sys/fs/cgroup/cpu.max').read().split()
+        if cuota != 'max':
+            return max(1, round(int(cuota) / int(periodo)))
+    except (OSError, ValueError):
+        pass
+    return os.cpu_count() or 1
+
+
+def memoria_mb() -> int:
+    """Memoria que puede usar este proceso, en MB.
+
+    Mismo problema que con los núcleos: `/proc/meminfo` dentro de un contenedor
+    enseña la del anfitrión. Se pregunta primero al cgroup, que es quien conoce
+    el `mem_limit`, y sólo si no hay tope se mira la de la máquina.
+    """
+    try:
+        crudo = open('/sys/fs/cgroup/memory.max').read().strip()
+        if crudo != 'max':
+            return int(crudo) // (1024 * 1024)
+    except (OSError, ValueError):
+        pass
+    try:
+        for linea in open('/proc/meminfo'):
+            if linea.startswith('MemTotal:'):
+                return int(linea.split()[1]) // 1024
+    except OSError:
+        pass
+    return 1024  # si no se puede saber, se supone poca
+
+
+# Cuánta memoria se le supone a cada worker con las bibliotecas ya cargadas.
+# Medido: unos 300 MB. Se redondea a 768 para dejar sitio a los procesos que
+# lanza (LibreOffice, pdf2docx, ocrmypdf) sin tener que modelar cada caso.
+MEMORIA_POR_WORKER_MB = 768
+
+# Techo de workers. No lo pone la memoria, lo pone que esto es una herramienta
+# de trabajo, no un servicio con miles de visitas: pasado este punto la
+# concurrencia ya la dan los hilos y lo único que se gana es ocupar RAM.
+MAXIMO_WORKERS = 4
+
+
+def workers_recomendados() -> int:
+    """Cuántos procesos caben en esta máquina.
+
+    La idea es que el proyecto se despliegue bien afinado sin que nadie tenga que
+    tocar un `.env`: en una máquina holgada saca varios workers, y en una
+    pequeña se queda en uno.
+    """
+    return max(1, min(nucleos(), memoria_mb() // MEMORIA_POR_WORKER_MB, MAXIMO_WORKERS))
+
+
 # Carpeta raíz donde vive el almacenamiento temporal de todas las sesiones.
 UPLOAD_ROOT = os.environ.get('UPLOAD_ROOT', 'uploads')
 

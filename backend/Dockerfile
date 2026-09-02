@@ -59,8 +59,4 @@ EXPOSE 5000
 # valores que dependen de la máquina sin reconstruir la imagen. El `exec` no es
 # decorativo: sin él gunicorn quedaría como hijo de `sh`, dejaría de recibir el
 # SIGTERM al parar el contenedor y se perdería el apagado ordenado.
-CMD ["sh", "-c", "exec gunicorn --bind 0.0.0.0:5000 \
-     --workers ${GUNICORN_WORKERS:-1} --threads ${GUNICORN_THREADS:-4} \
-     --timeout ${GUNICORN_TIMEOUT:-300} --graceful-timeout 30 \
-     --max-requests 200 --max-requests-jitter 20 \
-     app:app"]
+CMD ["gunicorn", "-c", "gunicorn.conf.py", "app:app"]

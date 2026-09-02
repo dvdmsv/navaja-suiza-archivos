@@ -19,12 +19,16 @@ from flask import current_app
 import config
 from errors import ApiError
 
-# Cuántas de estas conversiones pueden correr a la vez en todo el proceso.
+# Cuántas de estas conversiones pueden correr a la vez **en cada worker**.
 #
-# Una, por defecto, porque cada LibreOffice se come 250-350 MB y cuatro a la vez
-# matan un contenedor pequeño. En una máquina con memoria de sobra, subirlo es
-# lo que hace que varias personas puedan convertir sin hacer cola: calcula unos
-# 400 MB por conversión simultánea.
+# Ojo con esto, que se presta a error: el semáforo es un objeto de módulo, así
+# que cada proceso de gunicorn tiene el suyo. Las conversiones simultáneas de
+# verdad son `GUNICORN_WORKERS` × este número.
+#
+# Por eso el valor por defecto se queda en 1 aunque la máquina sea grande: quien
+# reparte la memoria es el cálculo de workers de `config.py`, que ya reserva
+# sitio para una conversión por worker (cada LibreOffice se come 250-350 MB).
+# Con dos workers salen dos conversiones a la vez sin tocar nada.
 CONVERSIONES_A_LA_VEZ = config.entorno_entero('MAX_CONCURRENT_CONVERSIONS', 1)
 _turno = threading.BoundedSemaphore(CONVERSIONES_A_LA_VEZ)
 

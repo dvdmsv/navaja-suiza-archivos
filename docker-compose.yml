@@ -7,18 +7,28 @@ services:
       - ./backend/uploads:/app/uploads
     environment:
       - FLASK_ENV=production
-      # Todos los ajustes están comentados en `.env.example`, con qué significa
-      # tocar cada uno. Aquí sólo se les da un valor por defecto prudente.
-      - MAX_CONTENT_LENGTH_MB=${MAX_CONTENT_LENGTH_MB:-50}
-      - GUNICORN_WORKERS=${GUNICORN_WORKERS:-1}
-      - GUNICORN_THREADS=${GUNICORN_THREADS:-4}
-      - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-300}
-      - MAX_CONCURRENT_CONVERSIONS=${MAX_CONCURRENT_CONVERSIONS:-1}
-      - OCR_TIMEOUT_SECONDS=${OCR_TIMEOUT_SECONDS:-240}
-      - OCR_JOBS=${OCR_JOBS:-1}
-      - OCR_OPTIMIZE=${OCR_OPTIMIZE:-1}
-      - PDF_TO_WORD_TIMEOUT_SECONDS=${PDF_TO_WORD_TIMEOUT_SECONDS:-240}
-      - DOC_TO_PDF_TIMEOUT_SECONDS=${DOC_TO_PDF_TIMEOUT_SECONDS:-180}
+      # Estas variables se pasan **vacías** si no las defines, y vacío significa
+      # "no dicho": entonces manda el valor por defecto del código, que para los
+      # workers y el OCR se calcula mirando los núcleos y la memoria que tenga
+      # esta máquina. Así no hay que escribir un `.env` para desplegar bien.
+      #
+      # Si aquí se pusieran valores fijos, pisarían ese cálculo. Lo que hay que
+      # tocar se toca en el `.env`, que está explicado en `.env.example`.
+      - MAX_CONTENT_LENGTH_MB=${MAX_CONTENT_LENGTH_MB:-}
+      - GUNICORN_WORKERS=${GUNICORN_WORKERS:-}
+      - GUNICORN_THREADS=${GUNICORN_THREADS:-}
+      - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-}
+      - MAX_CONCURRENT_CONVERSIONS=${MAX_CONCURRENT_CONVERSIONS:-}
+      - OCR_TIMEOUT_SECONDS=${OCR_TIMEOUT_SECONDS:-}
+      - OCR_JOBS=${OCR_JOBS:-}
+      - OCR_OPTIMIZE=${OCR_OPTIMIZE:-}
+      - PDF_TO_WORD_TIMEOUT_SECONDS=${PDF_TO_WORD_TIMEOUT_SECONDS:-}
+      - DOC_TO_PDF_TIMEOUT_SECONDS=${DOC_TO_PDF_TIMEOUT_SECONDS:-}
+      - CONVERSION_QUEUE_TIMEOUT_SECONDS=${CONVERSION_QUEUE_TIMEOUT_SECONDS:-}
+      - SESSION_TTL_MINUTES=${SESSION_TTL_MINUTES:-}
+      - CLEANUP_INTERVAL_MINUTES=${CLEANUP_INTERVAL_MINUTES:-}
+      - TSA_URL=${TSA_URL:-}
+      - TSA_TIMEOUT_SECONDS=${TSA_TIMEOUT_SECONDS:-}
     # Un tope, no una reserva: si algo se desmadra muere este contenedor y lo
     # reinicia Docker, en vez de que el kernel se ponga a matar procesos por toda
     # la máquina y se lleve por delante a lo que haya al lado.

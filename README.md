@@ -711,19 +711,23 @@ opciones, o `pages/tools/unir-pdf/` si no las tiene.
 ## Pruebas
 
 ```bash
-cd frontend && npm test     # tests del frontend (necesita Chrome)
+cd frontend && npm test
 ```
 
-Si la máquina no tiene Chrome instalado, sirve el que descarga Puppeteer:
+Son 103 tests con **Vitest** sobre jsdom. No hacen falta ni navegador ni
+pantalla, así que corren igual en un portátil que en una integración continua, y
+tardan unos dos segundos.
 
-```bash
-npx puppeteer browsers install chrome
-CHROME_BIN=$(node -e "console.log(require('puppeteer').executablePath())") \
-  npx ng test --watch=false --browsers=ChromeHeadless
-```
+Casi todos prueban lógica pura y separada del DOM: dónde cae cada página en el
+visor (`disposicion`), lo hecho sin guardar y su deshacer (`cambios`), la
+conversión de coordenadas entre pantalla y archivo (`coordenadas`), el buscador,
+los rangos de páginas y la coherencia entre el catálogo de herramientas y las
+rutas. Es a propósito: es donde se puede probar de verdad sin montar media
+aplicación.
 
-En un contenedor o en WSL puede hacer falta arrancarlo con `--no-sandbox`,
-apuntando `CHROME_BIN` a un pequeño script que añada esa opción.
+Un aviso que jsdom escupe y se puede ignorar: no implementa `getContext()` de
+`<canvas>`. Ningún test lo necesita; si alguno llegara a necesitarlo, habría que
+añadir el paquete `canvas`.
 
 ## Licencia
 

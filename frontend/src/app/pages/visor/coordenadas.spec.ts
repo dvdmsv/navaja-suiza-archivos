@@ -29,7 +29,7 @@ describe('coordenadas del visor', () => {
     const rect: Rect = [0.1, 0.2, 0.6, 0.35];
     for (const rotacion of [0, 90, 180, 270]) {
       const vuelta = desgirar(girar(rect, rotacion), rotacion).map(v => Math.round(v * 1000) / 1000);
-      expect(vuelta).withContext(`giro de ${rotacion}°`).toEqual(rect);
+      expect(vuelta, `giro de ${rotacion}°`).toEqual(rect);
     }
   });
 

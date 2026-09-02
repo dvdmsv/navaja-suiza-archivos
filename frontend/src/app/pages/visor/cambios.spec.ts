@@ -189,10 +189,10 @@ describe('cambios del visor', () => {
       const { id } = cambios.escribir(texto());
 
       expect(cambios.editarTexto(id, { texto: 'Ana', tamano: 20, negrita: true })).toBe(true);
-      expect(cambios.textos[0]).toEqual(jasmine.objectContaining({ texto: 'Ana', tamano: 20, negrita: true }));
+      expect(cambios.textos[0]).toEqual(expect.objectContaining({ texto: 'Ana', tamano: 20, negrita: true }));
 
       cambios.deshacer();
-      expect(cambios.textos[0]).toEqual(jasmine.objectContaining({ texto: 'Juan Pérez', tamano: 12, negrita: false }));
+      expect(cambios.textos[0]).toEqual(expect.objectContaining({ texto: 'Juan Pérez', tamano: 12, negrita: false }));
     });
 
     it('editar sin cambiar nada no gasta un paso de deshacer', () => {

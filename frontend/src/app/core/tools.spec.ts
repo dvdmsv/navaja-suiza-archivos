@@ -15,8 +15,7 @@ describe('catálogo de herramientas', () => {
   it('cada herramienta disponible tiene su ruta registrada', () => {
     const declaradas = new Set(routes.map(r => `/${r.path}`));
     HERRAMIENTAS.filter(h => h.disponible).forEach(herramienta => {
-      expect(declaradas.has(rutaDe(herramienta)))
-        .withContext(`falta la ruta de "${herramienta.nombre}" en app.routes.ts`)
+      expect(declaradas.has(rutaDe(herramienta)), `falta la ruta de "${herramienta.nombre}" en app.routes.ts`)
         .toBe(true);
     });
   });

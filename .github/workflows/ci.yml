@@ -1,0 +1,87 @@
+name: CI
+
+# Se comprueba lo mismo que comprobaría alguien que clona el repositorio por
+# primera vez: instalar desde el lockfile, compilar, pasar los tests y construir
+# las imágenes. Si esto pasa, el proyecto se levanta en una máquina limpia.
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  frontend:
+    name: Frontend (compilar y probar)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # La versión sale del .nvmrc, para que no haya dos sitios que
+          # mantener. Angular 22 exige 22.22.3 como mínimo.
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # `npm ci` y no `npm install`: falla si el lockfile y el package.json no
+      # concuerdan, que es justo lo que se quiere detectar aquí.
+      - run: npm ci
+
+      - run: npm run build
+
+      # Vitest sobre jsdom: sin navegador, así que no hace falta pantalla.
+      - run: npm test
+
+      # La ruta la tiene escrita a mano el Dockerfile: si el empaquetador
+      # cambiara la estructura de salida, la imagen se construiría vacía y no lo
+      # detectaría ningún test.
+      - name: La salida está donde el Dockerfile la espera
+        run: |
+          test -f dist/merge-pdf/browser/index.html
+          test -n "$(find dist -name 'pdf.worker.min.mjs')"
+          test -f dist/merge-pdf/browser/assets/autofirma/autoscript.js
+
+  imagenes:
+    name: Imágenes de Docker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Construir es lo que valida el despliegue de verdad: el backend instala
+      # LibreOffice y Tesseract, y el frontend compila con `npm ci` dentro.
+      - name: Construir backend y frontend
+        run: docker compose build
+
+  backend:
+    name: Backend (arranca y responde)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          # ocrmypdf exige 3.11 o superior; la imagen usa 3.12.
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - run: pip install -r requirements.txt
+
+      # No hay tests de backend, pero que la aplicación levante y registre sus
+      # rutas descarta un import roto o un blueprint sin registrar, que es el
+      # error típico al añadir una herramienta.
+      - name: La aplicación arranca y registra sus rutas
+        run: |
+          python -c "
+          import app
+          rutas = [str(r) for r in app.app.url_map.iter_rules()]
+          print(f'{len(rutas)} rutas registradas')
+          assert len(rutas) > 30, 'faltan rutas: algún blueprint no se ha registrado'
+          "

@@ -3,7 +3,7 @@
 Aplicación web con varias utilidades para trabajar con documentos e imágenes.
 El procesado ocurre en el servidor; el navegador sólo sube, ordena y descarga.
 
-- **Frontend**: Angular 17 (standalone components) + Bootstrap 5.
+- **Frontend**: Angular 22 (componentes independientes) + Bootstrap 5.
 - **Backend**: Flask con un blueprint por herramienta (PyMuPDF, Pillow, pypdf,
   markitdown, LibreOffice y segno hacen el trabajo).
 - **Despliegue**: Docker Compose, con nginx sirviendo el frontend y haciendo de
@@ -437,8 +437,9 @@ horas.
 
 ### En desarrollo
 
-Hacen falta **Python 3.11 o superior** (ocrmypdf no admite menos) y **Node 18 o
-superior**.
+Hacen falta **Python 3.11 o superior** (ocrmypdf no admite menos) y **Node
+22.22.3 o superior** (lo exige Angular 22). La versión está en
+`frontend/.nvmrc`, así que con nvm basta un `nvm use` dentro de `frontend/`.
 
 Cuatro herramientas llaman a programas externos que **no vienen con pip** y hay
 que instalar aparte. Sin ellos el resto de la aplicación funciona igual; sólo
@@ -728,6 +729,21 @@ aplicación.
 Un aviso que jsdom escupe y se puede ignorar: no implementa `getContext()` de
 `<canvas>`. Ningún test lo necesita; si alguno llegara a necesitarlo, habría que
 añadir el paquete `canvas`.
+
+## Integración continua
+
+Cada push y cada pull request pasan por
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml), que comprueba lo mismo
+que comprobaría alguien clonando el repositorio por primera vez:
+
+- `npm ci` desde el lockfile —falla si el lockfile y el `package.json` no
+  concuerdan—, compilación y los 103 tests.
+- Que la salida sigue donde el `Dockerfile` la espera: `dist/merge-pdf/browser`,
+  el worker de pdf.js como `.mjs` y `autoscript.js` publicado. Son tres cosas
+  que **sólo se rompen en producción** y que ningún test detectaría.
+- `docker compose build` de las dos imágenes.
+- Que el backend arranca y registra sus rutas, que descarta un import roto o un
+  blueprint sin registrar.
 
 ## Licencia
 

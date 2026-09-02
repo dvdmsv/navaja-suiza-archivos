@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
 
@@ -9,6 +9,7 @@ import { MenuPrincipalComponent } from './shared/menu-principal/menu-principal.c
   selector: 'app-root',
   imports: [AsyncPipe, RouterOutlet, RouterLink, MenuPrincipalComponent],
   templateUrl: './app.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './app.component.css',
 })
 export class AppComponent {

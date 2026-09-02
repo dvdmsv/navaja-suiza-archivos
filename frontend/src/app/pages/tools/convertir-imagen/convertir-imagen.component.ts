@@ -1,5 +1,5 @@
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { FormatoImagen } from '../../../core/api.service';
@@ -19,6 +19,7 @@ import { avisoError, mensajeDeError } from '../../../shared/notify';
     ToolControlsComponent,
     ToolPageComponent
 ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './convertir-imagen.component.html',
 })
 export class ConvertirImagenComponent extends PaginaHerramienta implements OnInit {

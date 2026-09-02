@@ -1,5 +1,5 @@
 
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { PaginaHerramienta } from '../../../shared/pagina-herramienta';
@@ -19,6 +19,7 @@ const MINIMO_CONTRASENA = 8;
 @Component({
   selector: 'app-crear-certificado',
   imports: [FormsModule, ResultListComponent, ToolControlsComponent, ToolPageComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './crear-certificado.component.html',
 })
 export class CrearCertificadoComponent extends PaginaHerramienta {

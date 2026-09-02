@@ -1,5 +1,5 @@
 
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { Grupo, Herramienta, agruparPorCategoria, rutaDe } from '../../core/tools';
@@ -8,6 +8,7 @@ import { Grupo, Herramienta, agruparPorCategoria, rutaDe } from '../../core/tool
   selector: 'app-home',
   imports: [RouterLink],
   templateUrl: './home.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './home.component.css',
 })
 export class HomeComponent {

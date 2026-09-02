@@ -1,5 +1,5 @@
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { FormatoImagen } from '../../../core/api.service';
@@ -25,6 +25,7 @@ interface OpcionResolucion {
     ToolControlsComponent,
     ToolPageComponent
 ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './pdf-a-imagen.component.html',
 })
 export class PdfAImagenComponent extends PaginaHerramienta implements OnInit {

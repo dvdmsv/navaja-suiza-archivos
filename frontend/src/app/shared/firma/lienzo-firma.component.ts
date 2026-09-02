@@ -1,5 +1,5 @@
 
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 
 import { ANCHO_MAXIMO, ANCHO_MINIMO, Colocacion, entre } from './colocacion';
 
@@ -27,6 +27,7 @@ interface Gesto {
   selector: 'app-lienzo-firma',
   imports: [],
   templateUrl: './lienzo-firma.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './lienzo-firma.component.css',
 })
 export class LienzoFirmaComponent {

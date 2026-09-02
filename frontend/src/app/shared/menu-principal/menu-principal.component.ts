@@ -1,5 +1,5 @@
 
-import { Component, ElementRef, EventEmitter, HostListener, Output, inject } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostListener, Output, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { Categoria, Grupo, Herramienta, agruparPorCategoria, rutaDe } from '../../core/tools';
@@ -24,6 +24,7 @@ const BARRA_HORIZONTAL = '(min-width: 992px)';
   selector: 'app-menu-principal',
   imports: [RouterLink, RouterLinkActive],
   templateUrl: './menu-principal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './menu-principal.component.css',
 })
 export class MenuPrincipalComponent {

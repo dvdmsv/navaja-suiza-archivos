@@ -1,5 +1,5 @@
 
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { FileQueueComponent } from '../../../shared/file-queue/file-queue.component';
@@ -23,6 +23,7 @@ interface Opcion {
     ToolControlsComponent,
     ToolPageComponent
 ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './imagen-a-pdf.component.html',
 })
 export class ImagenAPdfComponent extends PaginaHerramienta {

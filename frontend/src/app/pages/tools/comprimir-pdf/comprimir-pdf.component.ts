@@ -1,5 +1,5 @@
 
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 import { FileQueueComponent } from '../../../shared/file-queue/file-queue.component';
 import { PaginaHerramienta } from '../../../shared/pagina-herramienta';
@@ -16,6 +16,7 @@ interface OpcionNivel {
 @Component({
   selector: 'app-comprimir-pdf',
   imports: [FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './comprimir-pdf.component.html',
 })
 export class ComprimirPdfComponent extends PaginaHerramienta {

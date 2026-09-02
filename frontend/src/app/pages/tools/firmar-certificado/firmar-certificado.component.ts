@@ -1,5 +1,5 @@
 
-import { Component, OnDestroy, inject } from '@angular/core';
+import { Component, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 
@@ -65,6 +65,7 @@ const MAXIMO_AUTOFIRMA = 5 * 1024 * 1024;
     LienzoFirmaComponent,
     PizarraComponent
 ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './firmar-certificado.component.html',
 })
 export class FirmarCertificadoComponent extends PaginaHerramienta implements OnDestroy {

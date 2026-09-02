@@ -1,6 +1,6 @@
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 
-import { Component, OnDestroy, inject } from '@angular/core';
+import { Component, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { ANCHO_MINIATURA, DocumentoPdf, PdfService } from '../../../core/pdf.service';
 import { ArchivoEnCola, FileQueueComponent } from '../../../shared/file-queue/file-queue.component';
@@ -24,6 +24,7 @@ const MAXIMO_PAGINAS = 100;
   selector: 'app-organizar-pdf',
   imports: [DragDropModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './organizar-pdf.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './organizar-pdf.component.css',
 })
 export class OrganizarPdfComponent extends PaginaHerramienta implements OnDestroy {

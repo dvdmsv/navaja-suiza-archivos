@@ -2,6 +2,7 @@ import { NgIf, NgSwitch, NgSwitchCase } from '@angular/common';
 import {
   Component, ElementRef, EventEmitter, HostListener, Input, OnChanges, OnDestroy, Output,
   ViewChild, inject,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
@@ -28,6 +29,7 @@ const MAXIMO_TEXTO = 1024 * 1024;
   selector: 'app-vista-previa',
   imports: [NgIf, NgSwitch, NgSwitchCase, PesoPipe],
   templateUrl: './vista-previa.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './vista-previa.component.css',
 })
 export class VistaPreviaComponent implements OnChanges, OnDestroy {

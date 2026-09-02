@@ -1,5 +1,5 @@
 
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { FileQueueComponent } from '../../../shared/file-queue/file-queue.component';
@@ -17,6 +17,7 @@ const CARACTERES_POR_TOKEN = 4;
   selector: 'app-a-markdown',
   imports: [FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './a-markdown.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './a-markdown.component.css',
 })
 export class AMarkdownComponent extends PaginaHerramienta {

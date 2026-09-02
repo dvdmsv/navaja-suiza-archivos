@@ -1,5 +1,5 @@
 
-import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 /** Un punto del trazo, en fracciones del lienzo para sobrevivir a un cambio de tamaño. */
@@ -32,6 +32,7 @@ const SOBREMUESTREO = 2;
   selector: 'app-pizarra',
   imports: [FormsModule],
   templateUrl: './pizarra.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './pizarra.component.css',
 })
 export class PizarraComponent implements AfterViewInit {

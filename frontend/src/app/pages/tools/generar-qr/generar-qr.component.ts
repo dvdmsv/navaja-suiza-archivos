@@ -1,5 +1,5 @@
 
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { PaginaHerramienta } from '../../../shared/pagina-herramienta';
@@ -14,6 +14,7 @@ interface Opcion { id: string; nombre: string; icono?: string; }
 @Component({
   selector: 'app-generar-qr',
   imports: [FormsModule, ResultListComponent, ToolControlsComponent, ToolPageComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './generar-qr.component.html',
 })
 export class GenerarQrComponent extends PaginaHerramienta {

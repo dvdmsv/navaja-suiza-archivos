@@ -1,5 +1,5 @@
 
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 
 import { PaginaHerramienta } from '../pagina-herramienta';
 
@@ -10,6 +10,7 @@ import { PaginaHerramienta } from '../pagina-herramienta';
 @Component({
   selector: 'app-tool-controls',
   imports: [],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './tool-controls.component.html',
 })
 export class ToolControlsComponent {

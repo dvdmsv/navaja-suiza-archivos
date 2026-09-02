@@ -1,5 +1,5 @@
 
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { ArchivoEnCola, FileQueueComponent } from '../../../shared/file-queue/file-queue.component';
@@ -15,6 +15,7 @@ interface Opcion { id: string; nombre: string; }
   selector: 'app-marca-de-agua',
   imports: [FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent, VistaPaginaComponent],
   templateUrl: './marca-de-agua.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './marca-de-agua.component.css',
 })
 export class MarcaDeAguaComponent extends PaginaConVista {

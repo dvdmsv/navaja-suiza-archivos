@@ -1,5 +1,5 @@
 
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { FileQueueComponent } from '../../../shared/file-queue/file-queue.component';
@@ -16,6 +16,7 @@ interface Idioma {
 @Component({
   selector: 'app-ocr-pdf',
   imports: [FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './ocr-pdf.component.html',
 })
 export class OcrPdfComponent extends PaginaHerramienta {

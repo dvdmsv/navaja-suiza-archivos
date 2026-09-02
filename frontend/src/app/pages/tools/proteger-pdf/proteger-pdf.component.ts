@@ -1,5 +1,5 @@
 
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { FileQueueComponent } from '../../../shared/file-queue/file-queue.component';
@@ -13,6 +13,7 @@ const LONGITUD_MINIMA = 4;
 @Component({
   selector: 'app-proteger-pdf',
   imports: [FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './proteger-pdf.component.html',
 })
 export class ProtegerPdfComponent extends PaginaHerramienta {

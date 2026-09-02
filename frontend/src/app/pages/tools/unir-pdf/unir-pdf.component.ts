@@ -1,5 +1,5 @@
 
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 import { FileQueueComponent } from '../../../shared/file-queue/file-queue.component';
 import { PaginaHerramienta } from '../../../shared/pagina-herramienta';
@@ -10,6 +10,7 @@ import { ToolPageComponent } from '../../../shared/tool-page/tool-page.component
 @Component({
   selector: 'app-unir-pdf',
   imports: [FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './unir-pdf.component.html',
 })
 export class UnirPdfComponent extends PaginaHerramienta {

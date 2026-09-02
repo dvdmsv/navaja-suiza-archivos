@@ -1,5 +1,5 @@
 
-import { Component, OnDestroy, inject } from '@angular/core';
+import { Component, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { ANCHO_MINIATURA, DocumentoPdf, PdfService } from '../../../core/pdf.service';
@@ -21,6 +21,7 @@ const MAXIMO_MINIATURAS = 60;
   selector: 'app-dividir-pdf',
   imports: [FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './dividir-pdf.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './dividir-pdf.component.css',
 })
 export class DividirPdfComponent extends PaginaHerramienta implements OnDestroy {

@@ -1,5 +1,5 @@
 
-import { Component, ElementRef, Input, OnChanges, ViewChild, inject } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { ApiService, ArchivoServidor, ResumenTamano } from '../../core/api.service';
@@ -19,6 +19,7 @@ import { avisoError, mensajeDeError } from '../notify';
   selector: 'app-result-list',
   imports: [FormsModule, PesoPipe, VistaPreviaComponent],
   templateUrl: './result-list.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './result-list.component.css',
 })
 export class ResultListComponent implements OnChanges {

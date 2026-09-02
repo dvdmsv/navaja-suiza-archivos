@@ -1,5 +1,5 @@
 
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 import { FirmaEncontrada, InformeFirmas } from '../../../core/api.service';
 import { ArchivoEnCola, FileQueueComponent } from '../../../shared/file-queue/file-queue.component';
@@ -18,6 +18,7 @@ import { avisoError, mensajeDeError } from '../../../shared/notify';
 @Component({
   selector: 'app-comprobar-firmas',
   imports: [FileQueueComponent, ToolPageComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './comprobar-firmas.component.html',
 })
 export class ComprobarFirmasComponent extends PaginaHerramienta {

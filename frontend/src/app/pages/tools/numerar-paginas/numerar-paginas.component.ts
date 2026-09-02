@@ -1,5 +1,5 @@
 
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { FileQueueComponent } from '../../../shared/file-queue/file-queue.component';
@@ -14,6 +14,7 @@ interface Opcion { id: string; nombre: string; detalle?: string; }
 @Component({
   selector: 'app-numerar-paginas',
   imports: [FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent, VistaPaginaComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './numerar-paginas.component.html',
 })
 export class NumerarPaginasComponent extends PaginaConVista {

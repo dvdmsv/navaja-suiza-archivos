@@ -1,5 +1,5 @@
 
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { FileQueueComponent } from '../../../shared/file-queue/file-queue.component';
@@ -13,6 +13,7 @@ interface Opcion { id: string; nombre: string; detalle: string; }
 @Component({
   selector: 'app-extraer-imagenes',
   imports: [FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './extraer-imagenes.component.html',
 })
 export class ExtraerImagenesComponent extends PaginaHerramienta {

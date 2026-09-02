@@ -1,5 +1,5 @@
 
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { Herramienta, buscarPorSlug } from '../../core/tools';
@@ -11,6 +11,7 @@ import { Herramienta, buscarPorSlug } from '../../core/tools';
 @Component({
   selector: 'app-tool-page',
   imports: [RouterLink],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <div class="contenido-estrecho">
       <nav aria-label="Ruta de navegación">

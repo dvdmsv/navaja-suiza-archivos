@@ -1,5 +1,5 @@
 
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { CampoMetadato, MetadatosArchivo } from '../../../core/api.service';
@@ -13,6 +13,7 @@ import { avisoError, mensajeDeError } from '../../../shared/notify';
 @Component({
   selector: 'app-limpiar-metadatos',
   imports: [FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './limpiar-metadatos.component.html',
 })
 export class LimpiarMetadatosComponent extends PaginaHerramienta {

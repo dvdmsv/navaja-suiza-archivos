@@ -1,5 +1,5 @@
 
-import { Component, OnDestroy, inject } from '@angular/core';
+import { Component, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { DocumentoPdf, PdfService } from '../../../core/pdf.service';
@@ -28,6 +28,7 @@ const ESPERA_UMBRAL = 350;
     PizarraComponent
 ],
   templateUrl: './firmar.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './firmar.component.css',
 })
 export class FirmarComponent extends PaginaHerramienta implements OnDestroy {

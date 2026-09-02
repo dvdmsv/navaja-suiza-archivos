@@ -1,6 +1,6 @@
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 
-import { Component, EventEmitter, Input, Output, ViewChild, ElementRef } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 
 import { PesoPipe } from '../peso.pipe';
 
@@ -29,6 +29,7 @@ export function aCola(archivos: File[]): ArchivoEnCola[] {
   selector: 'app-file-queue',
   imports: [DragDropModule, PesoPipe],
   templateUrl: './file-queue.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './file-queue.component.css',
 })
 export class FileQueueComponent {

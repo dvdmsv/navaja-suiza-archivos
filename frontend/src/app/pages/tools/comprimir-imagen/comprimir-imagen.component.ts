@@ -1,5 +1,5 @@
 
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { FileQueueComponent } from '../../../shared/file-queue/file-queue.component';
@@ -17,6 +17,7 @@ import { ToolPageComponent } from '../../../shared/tool-page/tool-page.component
     ToolControlsComponent,
     ToolPageComponent
 ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './comprimir-imagen.component.html',
 })
 export class ComprimirImagenComponent extends PaginaHerramienta {

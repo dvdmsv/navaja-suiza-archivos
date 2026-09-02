@@ -12,7 +12,6 @@ const LONGITUD_MINIMA = 4;
 
 @Component({
   selector: 'app-proteger-pdf',
-  standalone: true,
   imports: [NgIf, FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './proteger-pdf.component.html',
 })

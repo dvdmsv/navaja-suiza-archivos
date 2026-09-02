@@ -9,7 +9,6 @@ import { PaginaHerramienta } from '../pagina-herramienta';
  */
 @Component({
   selector: 'app-tool-controls',
-  standalone: true,
   imports: [NgIf],
   templateUrl: './tool-controls.component.html',
 })

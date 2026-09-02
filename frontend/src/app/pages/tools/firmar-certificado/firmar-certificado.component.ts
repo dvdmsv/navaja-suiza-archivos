@@ -56,7 +56,6 @@ const MAXIMO_AUTOFIRMA = 5 * 1024 * 1024;
  */
 @Component({
   selector: 'app-firmar-certificado',
-  standalone: true,
   imports: [
     NgFor, NgIf, FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent,
     ToolPageComponent, LienzoFirmaComponent, PizarraComponent,

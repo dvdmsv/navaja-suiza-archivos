@@ -19,7 +19,6 @@ const MAXIMO_MINIATURAS = 60;
 
 @Component({
   selector: 'app-dividir-pdf',
-  standalone: true,
   imports: [NgFor, NgIf, FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './dividir-pdf.component.html',
   styleUrl: './dividir-pdf.component.css',

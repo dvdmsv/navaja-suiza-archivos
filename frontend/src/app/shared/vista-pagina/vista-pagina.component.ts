@@ -11,7 +11,6 @@ import { FormsModule } from '@angular/forms';
  */
 @Component({
   selector: 'app-vista-pagina',
-  standalone: true,
   imports: [NgFor, NgIf, FormsModule],
   templateUrl: './vista-pagina.component.html',
   styleUrl: './vista-pagina.component.css',

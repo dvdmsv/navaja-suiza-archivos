@@ -12,7 +12,6 @@ interface Opcion { id: string; nombre: string; detalle: string; }
 
 @Component({
   selector: 'app-extraer-imagenes',
-  standalone: true,
   imports: [NgFor, NgIf, FormsModule, FileQueueComponent, ResultListComponent,
             ToolControlsComponent, ToolPageComponent],
   templateUrl: './extraer-imagenes.component.html',

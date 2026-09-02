@@ -52,7 +52,6 @@ const SIN_MARCAS: Marca[] = [];
 
 @Component({
   selector: 'app-visor',
-  standalone: true,
   imports: [NgFor, NgIf, FormsModule, RouterLink, VisorPaginaComponent, VisorPanelComponent],
   templateUrl: './visor.component.html',
   styleUrl: './visor.component.css',

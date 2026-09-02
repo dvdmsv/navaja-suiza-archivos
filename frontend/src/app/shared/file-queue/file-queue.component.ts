@@ -27,7 +27,6 @@ export function aCola(archivos: File[]): ArchivoEnCola[] {
  */
 @Component({
   selector: 'app-file-queue',
-  standalone: true,
   imports: [NgFor, NgIf, NgSwitch, NgSwitchCase, DragDropModule, PesoPipe],
   templateUrl: './file-queue.component.html',
   styleUrl: './file-queue.component.css',

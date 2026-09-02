@@ -10,7 +10,6 @@ import { ToolPageComponent } from '../../../shared/tool-page/tool-page.component
 
 @Component({
   selector: 'app-comprimir-imagen',
-  standalone: true,
   imports: [
     NgFor, FormsModule, FileQueueComponent, ResultListComponent,
     ToolControlsComponent, ToolPageComponent,

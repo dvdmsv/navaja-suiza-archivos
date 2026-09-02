@@ -17,7 +17,6 @@ import { avisoError, mensajeDeError } from '../../../shared/notify';
  */
 @Component({
   selector: 'app-comprobar-firmas',
-  standalone: true,
   imports: [NgFor, NgIf, FileQueueComponent, ToolPageComponent],
   templateUrl: './comprobar-firmas.component.html',
 })

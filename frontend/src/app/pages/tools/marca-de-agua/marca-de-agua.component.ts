@@ -13,7 +13,6 @@ interface Opcion { id: string; nombre: string; }
 
 @Component({
   selector: 'app-marca-de-agua',
-  standalone: true,
   imports: [NgFor, NgIf, FormsModule, FileQueueComponent, ResultListComponent,
             ToolControlsComponent, ToolPageComponent, VistaPaginaComponent],
   templateUrl: './marca-de-agua.component.html',

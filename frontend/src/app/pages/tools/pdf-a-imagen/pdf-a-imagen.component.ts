@@ -18,7 +18,6 @@ interface OpcionResolucion {
 
 @Component({
   selector: 'app-pdf-a-imagen',
-  standalone: true,
   imports: [
     NgFor, NgIf, FormsModule, FileQueueComponent, ResultListComponent,
     ToolControlsComponent, ToolPageComponent,

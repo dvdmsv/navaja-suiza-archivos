@@ -8,7 +8,6 @@ import { ToolPageComponent } from '../../../shared/tool-page/tool-page.component
 
 @Component({
   selector: 'app-pdf-a-word',
-  standalone: true,
   imports: [FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './pdf-a-word.component.html',
 })

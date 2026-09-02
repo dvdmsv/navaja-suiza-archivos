@@ -12,7 +12,6 @@ import { avisoError, mensajeDeError } from '../../../shared/notify';
 
 @Component({
   selector: 'app-convertir-imagen',
-  standalone: true,
   imports: [
     NgFor, NgIf, FormsModule, FileQueueComponent, ResultListComponent,
     ToolControlsComponent, ToolPageComponent,

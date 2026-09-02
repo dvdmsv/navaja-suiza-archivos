@@ -12,7 +12,6 @@ import { avisoError, mensajeDeError } from '../../../shared/notify';
 
 @Component({
   selector: 'app-limpiar-metadatos',
-  standalone: true,
   imports: [NgFor, NgIf, FormsModule, FileQueueComponent, ResultListComponent,
             ToolControlsComponent, ToolPageComponent],
   templateUrl: './limpiar-metadatos.component.html',

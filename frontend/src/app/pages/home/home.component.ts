@@ -6,7 +6,6 @@ import { Grupo, Herramienta, agruparPorCategoria, rutaDe } from '../../core/tool
 
 @Component({
   selector: 'app-home',
-  standalone: true,
   imports: [NgFor, NgIf, RouterLink],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',

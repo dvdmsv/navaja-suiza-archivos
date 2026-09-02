@@ -141,7 +141,6 @@ export interface Seleccion {
 
 @Component({
   selector: 'app-visor-pagina',
-  standalone: true,
   imports: [NgFor, NgIf],
   templateUrl: './pagina.component.html',
   styleUrls: ['./pagina.component.css', './capa-texto.css'],

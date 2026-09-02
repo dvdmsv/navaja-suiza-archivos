@@ -15,7 +15,6 @@ interface OpcionNivel {
 
 @Component({
   selector: 'app-comprimir-pdf',
-  standalone: true,
   imports: [NgFor, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './comprimir-pdf.component.html',
 })

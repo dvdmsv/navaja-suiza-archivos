@@ -25,7 +25,6 @@ interface Gesto {
  */
 @Component({
   selector: 'app-lienzo-firma',
-  standalone: true,
   imports: [NgFor, NgIf],
   templateUrl: './lienzo-firma.component.html',
   styleUrl: './lienzo-firma.component.css',

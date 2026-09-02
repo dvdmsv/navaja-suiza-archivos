@@ -22,7 +22,6 @@ const MAXIMO_PAGINAS = 100;
 
 @Component({
   selector: 'app-organizar-pdf',
-  standalone: true,
   imports: [NgFor, NgIf, DragDropModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './organizar-pdf.component.html',
   styleUrl: './organizar-pdf.component.css',

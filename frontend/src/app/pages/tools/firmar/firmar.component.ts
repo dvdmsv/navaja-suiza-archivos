@@ -18,7 +18,6 @@ const ESPERA_UMBRAL = 350;
 
 @Component({
   selector: 'app-firmar',
-  standalone: true,
   imports: [
     NgFor, NgIf, FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent,
     ToolPageComponent, LienzoFirmaComponent, PizarraComponent,

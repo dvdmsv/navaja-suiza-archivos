@@ -9,7 +9,6 @@ import { ToolPageComponent } from '../../../shared/tool-page/tool-page.component
 
 @Component({
   selector: 'app-unir-pdf',
-  standalone: true,
   imports: [NgIf, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './unir-pdf.component.html',
 })

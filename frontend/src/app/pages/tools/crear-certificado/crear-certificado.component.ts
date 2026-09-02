@@ -18,7 +18,6 @@ const MINIMO_CONTRASENA = 8;
  */
 @Component({
   selector: 'app-crear-certificado',
-  standalone: true,
   imports: [NgIf, FormsModule, ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './crear-certificado.component.html',
 })

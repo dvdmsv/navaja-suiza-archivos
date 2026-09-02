@@ -26,7 +26,6 @@ const MAXIMO_TEXTO = 1024 * 1024;
 
 @Component({
   selector: 'app-vista-previa',
-  standalone: true,
   imports: [NgIf, NgSwitch, NgSwitchCase, PesoPipe],
   templateUrl: './vista-previa.component.html',
   styleUrl: './vista-previa.component.css',

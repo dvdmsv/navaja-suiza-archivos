@@ -13,7 +13,6 @@ interface Opcion { id: string; nombre: string; detalle?: string; }
 
 @Component({
   selector: 'app-numerar-paginas',
-  standalone: true,
   imports: [NgFor, NgIf, FormsModule, FileQueueComponent, ResultListComponent,
             ToolControlsComponent, ToolPageComponent, VistaPaginaComponent],
   templateUrl: './numerar-paginas.component.html',

@@ -30,7 +30,6 @@ const SOBREMUESTREO = 2;
  */
 @Component({
   selector: 'app-pizarra',
-  standalone: true,
   imports: [NgIf, FormsModule],
   templateUrl: './pizarra.component.html',
   styleUrl: './pizarra.component.css',

@@ -22,7 +22,6 @@ const BARRA_HORIZONTAL = '(min-width: 992px)';
  */
 @Component({
   selector: 'app-menu-principal',
-  standalone: true,
   imports: [NgFor, RouterLink, RouterLinkActive],
   templateUrl: './menu-principal.component.html',
   styleUrl: './menu-principal.component.css',

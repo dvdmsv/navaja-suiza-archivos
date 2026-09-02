@@ -13,7 +13,6 @@ interface Opcion { id: string; nombre: string; icono?: string; }
 
 @Component({
   selector: 'app-generar-qr',
-  standalone: true,
   imports: [NgFor, NgIf, NgSwitch, NgSwitchCase, NgSwitchDefault, FormsModule,
             ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './generar-qr.component.html',

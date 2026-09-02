@@ -8,7 +8,6 @@ import { ToolPageComponent } from '../../../shared/tool-page/tool-page.component
 
 @Component({
   selector: 'app-documento-a-pdf',
-  standalone: true,
   imports: [FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './documento-a-pdf.component.html',
 })

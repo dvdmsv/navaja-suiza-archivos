@@ -7,7 +7,6 @@ import { MenuPrincipalComponent } from './shared/menu-principal/menu-principal.c
 
 @Component({
   selector: 'app-root',
-  standalone: true,
   imports: [AsyncPipe, NgIf, RouterOutlet, RouterLink, MenuPrincipalComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',

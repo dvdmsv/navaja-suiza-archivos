@@ -17,7 +17,6 @@ import { avisoError, mensajeDeError } from '../notify';
  */
 @Component({
   selector: 'app-result-list',
-  standalone: true,
   imports: [NgFor, NgIf, FormsModule, PesoPipe, VistaPreviaComponent],
   templateUrl: './result-list.component.html',
   styleUrl: './result-list.component.css',

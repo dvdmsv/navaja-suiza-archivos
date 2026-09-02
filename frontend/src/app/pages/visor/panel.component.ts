@@ -23,7 +23,6 @@ const ANCHO_MINIATURA = 140;
 
 @Component({
   selector: 'app-visor-panel',
-  standalone: true,
   imports: [NgFor, NgIf, FormsModule],
   templateUrl: './panel.component.html',
   styleUrl: './panel.component.css',

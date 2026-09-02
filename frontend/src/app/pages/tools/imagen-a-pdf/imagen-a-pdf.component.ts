@@ -16,7 +16,6 @@ interface Opcion {
 
 @Component({
   selector: 'app-imagen-a-pdf',
-  standalone: true,
   imports: [
     NgFor, NgIf, FormsModule, FileQueueComponent, ResultListComponent,
     ToolControlsComponent, ToolPageComponent,

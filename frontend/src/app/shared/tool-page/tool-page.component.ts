@@ -10,7 +10,6 @@ import { Herramienta, buscarPorSlug } from '../../core/tools';
  */
 @Component({
   selector: 'app-tool-page',
-  standalone: true,
   imports: [NgIf, RouterLink],
   template: `
     <div class="contenido-estrecho">

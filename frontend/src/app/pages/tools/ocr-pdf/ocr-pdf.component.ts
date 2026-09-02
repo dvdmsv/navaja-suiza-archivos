@@ -15,7 +15,6 @@ interface Idioma {
 
 @Component({
   selector: 'app-ocr-pdf',
-  standalone: true,
   imports: [NgFor, FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './ocr-pdf.component.html',
 })

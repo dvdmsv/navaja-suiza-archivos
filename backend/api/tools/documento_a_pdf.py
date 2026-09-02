@@ -25,10 +25,9 @@ bp = Blueprint('documento_a_pdf', __name__, url_prefix='/api/tools')
 
 EXTENSIONES_ADMITIDAS = {'.docx', '.doc', '.odt', '.rtf', '.txt'}
 
-# Cada documento es rápido, pero un lote largo acabaría pasándose del plazo de
-# gunicorn y el usuario vería un corte, no un error.
-MAXIMO_ARCHIVOS = config.entorno_entero('DOC_TO_PDF_MAX_FILES', 10)
-
+# Sin tope de archivos: el lote entero va en una sola llamada a LibreOffice, con
+# el plazo de aquí abajo. Si se pasa, se corta y se dice cuánto ha tardado.
+#
 # De sobra para el lote entero, contando el arranque de LibreOffice.
 TIEMPO_LIMITE = config.entorno_entero('DOC_TO_PDF_TIMEOUT_SECONDS', 180)
 
@@ -38,10 +37,6 @@ def documento_a_pdf():
     session_id = current_session()
     datos = params.cuerpo()
     file_ids = params.ids(datos, minimo=1, mensaje='Selecciona al menos un documento.')
-
-    if len(file_ids) > MAXIMO_ARCHIVOS:
-        raise ApiError(f'Son {len(file_ids)} documentos y el máximo por conversión son '
-                       f'{MAXIMO_ARCHIVOS}.', 413)
 
     # Se resuelve y valida todo antes de convertir nada: si uno no sirve, mejor
     # decirlo antes de tener medio lote hecho.

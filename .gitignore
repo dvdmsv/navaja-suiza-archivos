@@ -52,3 +52,7 @@ venv/
 
 # Archivos temporales de las herramientas
 backend/uploads/
+
+# La configuración de cada instalación. El ejemplo (.env.example) sí se comparte.
+.env
+.env.local

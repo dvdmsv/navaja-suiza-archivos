@@ -7,25 +7,25 @@ services:
       - ./backend/uploads:/app/uploads
     environment:
       - FLASK_ENV=production
-      # La VM de despliegue tiene 1,4 GB para todas sus aplicaciones: aceptar
-      # subidas de 200 MB ahí no acabaría bien.
+      # Todos los ajustes están comentados en `.env.example`, con qué significa
+      # tocar cada uno. Aquí sólo se les da un valor por defecto prudente.
       - MAX_CONTENT_LENGTH_MB=${MAX_CONTENT_LENGTH_MB:-50}
-      # Los límites que dependen de la máquina. Los valores por defecto son para
-      # una VM pequeña; el README dice cuáles subir y con qué criterio.
       - GUNICORN_WORKERS=${GUNICORN_WORKERS:-1}
       - GUNICORN_THREADS=${GUNICORN_THREADS:-4}
+      - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-300}
       - MAX_CONCURRENT_CONVERSIONS=${MAX_CONCURRENT_CONVERSIONS:-1}
-      - OCR_MAX_PAGES=${OCR_MAX_PAGES:-50}
-      - PDF_TO_WORD_MAX_PAGES=${PDF_TO_WORD_MAX_PAGES:-100}
-      - PDF_TO_IMAGE_MAX_PAGES=${PDF_TO_IMAGE_MAX_PAGES:-200}
-    # Topes, no reservas: si una conversión se desmadra muere el contenedor y
-    # lo reinicia Docker, en vez de llevarse por delante al resto de la VM.
+      - OCR_TIMEOUT_SECONDS=${OCR_TIMEOUT_SECONDS:-240}
+      - PDF_TO_WORD_TIMEOUT_SECONDS=${PDF_TO_WORD_TIMEOUT_SECONDS:-240}
+      - DOC_TO_PDF_TIMEOUT_SECONDS=${DOC_TO_PDF_TIMEOUT_SECONDS:-180}
+    # Un tope, no una reserva: si algo se desmadra muere este contenedor y lo
+    # reinicia Docker, en vez de que el kernel se ponga a matar procesos por toda
+    # la máquina y se lleve por delante a lo que haya al lado.
     #
-    # 768 y no 512 desde que existe "Documento a PDF": LibreOffice Writer se
-    # come unos 250-350 MB mientras convierte y con 512 moría en cuanto el
-    # documento traía imágenes. Sólo se paga mientras alguien convierte, y el
-    # turno de `api/conversion.py` garantiza que sea una conversión cada vez.
-    mem_limit: ${BACKEND_MEM_LIMIT:-768m}
+    # 1,5 GB da margen de sobra: medido, el worker en reposo ronda los 300 MB y
+    # el trabajo más pesado añade unos 145 MB. Lo que puede sumar de verdad son
+    # varios workers y varias conversiones a la vez, y eso lo decides con
+    # `GUNICORN_WORKERS` y `MAX_CONCURRENT_CONVERSIONS`.
+    mem_limit: ${BACKEND_MEM_LIMIT:-1536m}
     cpus: 4.0
     networks:
       - app-network

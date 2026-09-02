@@ -1,9 +1,9 @@
 """Configuración de la aplicación, ajustable por variables de entorno.
 
-Los valores por defecto son los de la máquina donde nació esto: una VM con
-1,4 GB de RAM compartidos con otras tres aplicaciones. Están para que arranque
-en cualquier sitio sin configurar nada, no porque sean los correctos para tu
-servidor. Si el tuyo es mejor, súbelos: el README explica cuáles y hasta dónde.
+Los valores por defecto son prudentes: están para que la aplicación arranque en
+cualquier máquina sin configurar nada, no porque sean los correctos para la tuya.
+Si tu servidor da para más, `.env.example` explica cuáles subir y con qué
+criterio.
 
 Los límites que dependen de la máquina viven junto al código que los usa —cada
 uno lleva al lado el comentario que explica por qué existe— y se leen desde aquí

@@ -16,7 +16,7 @@ import fitz  # PyMuPDF
 from flask import Blueprint, current_app, jsonify
 
 import config
-from api import current_session, params
+from api import conversion, current_session, params
 from errors import ApiError
 from storage import storage, nombre_seguro
 
@@ -24,11 +24,12 @@ bp = Blueprint('ocr_pdf', __name__, url_prefix='/api/tools')
 
 IDIOMAS = {'spa', 'eng', 'spa+eng'}
 
-# El OCR es con diferencia lo más caro que hace esta aplicación: mejor un límite
-# claro que un contenedor muerto. El valor por defecto está medido para los
-# 768 MB del `docker-compose.yml`; con más memoria se puede subir.
-MAXIMO_PAGINAS = config.entorno_entero('OCR_MAX_PAGES', 50)
-
+# No hay tope de páginas a propósito. Medido en el contenedor: un OCR de 10
+# páginas consume 129 MB y uno de 30, 143 MB. Triplicar el documento sube la
+# memoria un 11 %, porque `--jobs 1` procesa de una en una y sólo hay una página
+# en memoria a la vez. Lo que crece es el tiempo, así que quien acota esto es el
+# plazo de aquí abajo, no un número de páginas inventado.
+#
 # Por debajo del plazo de gunicorn, para poder contestar con un error entendible
 # en vez de que nos corten la respuesta. Si se sube, hay que subir también
 # `GUNICORN_TIMEOUT`.
@@ -69,11 +70,6 @@ def ocr_pdf():
 
     if paginas == 0:
         raise ApiError('El PDF no tiene páginas.', 422)
-    if paginas > MAXIMO_PAGINAS:
-        raise ApiError(
-            f'El PDF tiene {paginas} páginas y el máximo para el reconocimiento son '
-            f'{MAXIMO_PAGINAS}: es la operación más lenta y pesada de la aplicación.', 413)
-
     base = os.path.splitext(nombre_seguro(record.name))[0]
     destino, salida = storage.reserve_output(session_id, f'{base}-con-texto.pdf')
     _reconocer(origen, destino, idioma, rehacer)
@@ -103,7 +99,7 @@ def _reconocer(origen: str, destino: str, idioma: str, rehacer: bool) -> None:
         raise ApiError('El reconocimiento de texto no está disponible en este servidor.', 500) from err
     except subprocess.TimeoutExpired as err:
         raise ApiError(
-            f'El reconocimiento ha tardado más de {-(-TIEMPO_LIMITE // 60)} minutos y se ha '
+            f'El reconocimiento ha tardado más de {conversion.en_palabras(TIEMPO_LIMITE)} y se ha '
             'cancelado. Prueba con un documento más corto.', 504) from err
 
     if resultado.returncode == 0:

@@ -494,41 +494,41 @@ El más bajo de los dos es el que manda.
 
 ### Ajustar a la máquina que tengas
 
-Los valores por defecto están medidos para donde nació esto: una VM con 1,4 GB
-de RAM compartidos con otras tres aplicaciones. **Están para que arranque en
-cualquier sitio, no porque sean los correctos para tu servidor.** Si el tuyo es
-mejor, éstos son los que conviene subir:
+Los valores por defecto son prudentes: **están para que arranque en cualquier
+sitio, no porque sean los correctos para tu servidor.** Si el tuyo da para más,
+éstos son los que conviene subir. Todos están comentados en
+[`.env.example`](.env.example).
 
 | Variable | Por defecto | Qué significa subirla |
 |---|---|---|
-| `GUNICORN_WORKERS` | `1` | Procesos que atienden peticiones. Cada uno cuesta unos 190 MB. Con memoria de sobra, 2-4 |
+| `GUNICORN_WORKERS` | `1` | Procesos que atienden peticiones. Cada uno ronda los 300 MB con las bibliotecas cargadas. Con memoria de sobra, 2-3 |
 | `GUNICORN_THREADS` | `4` | Peticiones a la vez por proceso. Bastan hilos porque PyMuPDF y Pillow sueltan el GIL |
-| `GUNICORN_TIMEOUT` | `300` | Plazo de una petición. Tiene que ser mayor que los plazos de las herramientas |
-| `MAX_CONCURRENT_CONVERSIONS` | `1` | Conversiones de ofimática simultáneas. Calcula unos 400 MB por cada una: es lo que evita que varias personas hagan cola |
+| `GUNICORN_TIMEOUT` | `300` | Plazo de una petición. Tiene que ser **mayor que todos** los plazos de abajo |
+| `MAX_CONCURRENT_CONVERSIONS` | `1` | Conversiones de ofimática simultáneas. Cada una arranca su LibreOffice: entre 130 y 350 MB según el documento |
 | `CONVERSION_QUEUE_TIMEOUT_SECONDS` | `45` | Cuánto espera una petición a que le toque el turno |
-| `OCR_MAX_PAGES` | `50` | Páginas por trabajo de OCR. Es lo más caro que hace la aplicación |
-| `OCR_TIMEOUT_SECONDS` | `240` | Plazo del OCR. Súbelo con `OCR_MAX_PAGES`, y por debajo de `GUNICORN_TIMEOUT` |
-| `PDF_TO_WORD_MAX_PAGES` | `100` | Páginas por lote al convertir a `.docx` |
-| `PDF_TO_WORD_TIMEOUT_SECONDS` | `240` | Su plazo, con la misma regla |
-| `PDF_TO_IMAGE_MAX_PAGES` | `200` | Páginas al pasar un PDF a imágenes. A 300 ppp son cientos de megas |
-| `DOC_TO_PDF_MAX_FILES` | `10` | Documentos por lote hacia PDF |
-| `DOC_TO_PDF_TIMEOUT_SECONDS` | `180` | Su plazo |
-| `BACKEND_MEM_LIMIT` | `768m` | Tope de memoria del contenedor, en `docker-compose.yml` |
+| `OCR_TIMEOUT_SECONDS` | `240` | Plazo del OCR |
+| `PDF_TO_WORD_TIMEOUT_SECONDS` | `240` | Plazo al convertir a `.docx` |
+| `DOC_TO_PDF_TIMEOUT_SECONDS` | `180` | Plazo del lote hacia PDF |
+| `BACKEND_MEM_LIMIT` | `1536m` | Tope de memoria del contenedor |
 
-Se pasan por el entorno, sin reconstruir la imagen. Con un `.env` al lado del
-`docker-compose.yml`:
+**No hay límite de páginas ni de archivos en ninguna herramienta.** Lo que las
+acota es el tiempo, que es lo que de verdad protege: se mide que un OCR de 10
+páginas consume 129 MB y uno de 30, 143 MB — triplicar el documento sube la
+memoria un 11 %, porque las páginas se procesan de una en una. Un tope de
+páginas sería un límite de tiempo disfrazado.
+
+Se pasan por el entorno, sin reconstruir la imagen. Copia el ejemplo y
+descomenta lo que necesites:
 
 ```bash
-GUNICORN_WORKERS=3
-MAX_CONCURRENT_CONVERSIONS=3
-OCR_MAX_PAGES=300
-BACKEND_MEM_LIMIT=4g
+cp .env.example .env
+docker compose up -d          # sin --build: eso sólo si cambia el código
 ```
 
 Dos reglas al tocarlos. Los **plazos de las herramientas van siempre por debajo
 de `GUNICORN_TIMEOUT`**: si no, gunicorn corta la respuesta y el usuario ve un
 error feo en vez de uno explicado. Y de la **memoria** manda la suma: cada worker
-más sus hilos, más unos 400 MB por conversión simultánea.
+con sus hilos, más lo que ocupe cada conversión simultánea.
 
 Un valor que no sea un número no tumba el servidor: avisa por el log y sigue con
 el valor por defecto.
@@ -579,25 +579,22 @@ declara su `slug`, sus opciones y su plantilla.
 
 ### Capacidad del backend
 
-Esto se despliega en una VM modesta —1,4 GB de RAM compartidos con otras tres
-aplicaciones—, así que la configuración va medida a eso:
+La configuración por defecto está pensada para una máquina modesta, y todo se
+puede subir por variables de entorno (ver arriba):
 
-- **Un proceso con cuatro hilos**. Atiende varias conversiones a la vez en lugar
-  de encolarlas, sin pagar un segundo proceso: cada worker cuesta unos 190 MB
-  cuando markitdown está cargado.
+- **Un proceso con cuatro hilos**. Atiende varias peticiones a la vez en lugar de
+  encolarlas, sin pagar un segundo proceso: cada worker ronda los 300 MB con las
+  bibliotecas cargadas.
 - **Plazo de 300 s**, el mismo que espera nginx. Con los valores por defecto de
-  gunicorn (un proceso y 30 s) moría cualquier trabajo largo: 200 páginas a
-  300 ppp en PNG tardan unos 43 s en un equipo de sobremesa, y bastante más en
-  la VM.
+  gunicorn (un proceso y 30 s) moría cualquier trabajo largo.
 - **markitdown se carga la primera vez que se usa**, no al arrancar. El backend
   se queda en unos 75 MB y sólo sube a ~200 MB si alguien convierte a Markdown;
   como los workers se reciclan cada 200 peticiones, esa memoria se devuelve
   sola.
-- **Topes de 768 MB y 4 CPU** en `docker-compose.yml`, para que una conversión
-  desbocada mate su contenedor en vez de la VM entera, y subidas limitadas a
-  50 MB en producción (`MAX_CONTENT_LENGTH_MB`). El tope subió de 512 MB al
-  entrar LibreOffice, que gasta unos 250-350 MB mientras convierte: es un tope,
-  no una reserva, y sólo se paga mientras alguien convierte.
+- **Topes de 1,5 GB y 4 CPU** en `docker-compose.yml`, para que un trabajo
+  desbocado mate su contenedor en vez de tumbar la máquina entera, y subidas
+  limitadas a 50 MB (`MAX_CONTENT_LENGTH_MB`). Es un tope, no una reserva: sólo
+  se paga lo que se usa.
 
 El porqué de cada opción está comentado en `backend/Dockerfile`.
 

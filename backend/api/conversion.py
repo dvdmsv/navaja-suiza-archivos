@@ -33,6 +33,19 @@ _turno = threading.BoundedSemaphore(CONVERSIONES_A_LA_VEZ)
 ESPERA_MAXIMA = config.entorno_entero('CONVERSION_QUEUE_TIMEOUT_SECONDS', 45)
 
 
+def en_palabras(segundos: int) -> str:
+    """El plazo dicho como lo diría una persona.
+
+    Ahora que no hay topes de páginas, este texto es lo que lee quien se pasa de
+    tiempo, así que más vale que no diga "más de 1 minutos" cuando el plazo son
+    tres segundos.
+    """
+    if segundos < 60:
+        return f'{segundos} segundos' if segundos != 1 else '1 segundo'
+    minutos = -(-segundos // 60)
+    return f'{minutos} minutos' if minutos != 1 else '1 minuto'
+
+
 def ejecutar(orden: list[str], tiempo_limite: int, programa: str,
              no_disponible: str) -> subprocess.CompletedProcess:
     """Lanza el programa y devuelve su resultado, esperando su turno.
@@ -50,7 +63,7 @@ def ejecutar(orden: list[str], tiempo_limite: int, programa: str,
         raise ApiError(no_disponible, 500) from err
     except subprocess.TimeoutExpired as err:
         raise ApiError(
-            f'La conversión ha tardado más de {-(-tiempo_limite // 60)} minutos y se ha '
+            f'La conversión ha tardado más de {en_palabras(tiempo_limite)} y se ha '
             'cancelado. Prueba con un documento más corto.', 504) from err
     finally:
         _turno.release()

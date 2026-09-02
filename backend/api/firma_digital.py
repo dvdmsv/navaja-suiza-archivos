@@ -20,8 +20,8 @@ garantizada**. Lo que se promete es que no toca el disco, no entra en el almacé
 de la sesión y no aparece en el log; no que se destruya sin rastro.
 
 **pyHanko se importa dentro de las funciones**, como markitdown: son unos 39 MB
-residentes que sólo paga quien use estas tres herramientas, y esto se despliega
-en una VM con 1,4 GB para cuatro aplicaciones.
+residentes que sólo paga quien use estas tres herramientas. Un servidor que sólo
+une PDF no tiene por qué cargar con una biblioteca de criptografía.
 """
 import base64
 import binascii

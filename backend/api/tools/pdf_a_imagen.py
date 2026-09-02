@@ -6,7 +6,6 @@ import fitz  # PyMuPDF
 from PIL import Image
 from flask import Blueprint, jsonify
 
-import config
 from api import current_session, imaging, params
 from api.formatos import extension_de, salidas_de_imagen
 from errors import ApiError
@@ -19,9 +18,11 @@ RESOLUCIONES = {'pantalla': 96, 'normal': 150, 'alta': 300}
 
 CALIDAD_MINIMA, CALIDAD_MAXIMA, CALIDAD_POR_DEFECTO = 20, 100, 90
 
-# Un PDF largo a 300 ppp puede generar cientos de megas: mejor un límite claro
-# que un servidor sin memoria.
-MAXIMO_PAGINAS = config.entorno_entero('PDF_TO_IMAGE_MAX_PAGES', 200)
+# Sin tope de páginas, y es la única herramienta pesada que **no** tiene plazo:
+# esto rasteriza dentro del propio worker, no en un proceso aparte. Aun así no
+# arriesga la memoria, porque `_guardar_pagina` escribe cada página al disco
+# antes de pasar a la siguiente: el pico es una página, no el documento. Lo que
+# lo acota de verdad es el disco y el plazo de gunicorn.
 
 
 @bp.get('/pdf-a-imagen/formatos')
@@ -57,10 +58,6 @@ def pdf_a_imagen():
             raise ApiError('El PDF está protegido con contraseña.', 422)
         if documento.page_count == 0:
             raise ApiError('El PDF no tiene páginas.', 422)
-        if documento.page_count > MAXIMO_PAGINAS:
-            raise ApiError(
-                f'El PDF tiene {documento.page_count} páginas y el máximo son {MAXIMO_PAGINAS}.', 413)
-
         base = os.path.splitext(nombre_seguro(record.name))[0]
         ancho = len(str(documento.page_count))
         resultados = []

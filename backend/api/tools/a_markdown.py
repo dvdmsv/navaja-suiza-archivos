@@ -23,10 +23,9 @@ def _markitdown():
     """El conversor, construido la primera vez que alguien lo pide.
 
     Importar markitdown cuesta unos 120 MB de memoria porque arrastra
-    onnxruntime para detectar tipos de archivo. Como el servidor vive en una VM
-    con 1,4 GB compartidos entre varias aplicaciones, quien no use esta
-    herramienta no debería pagar ese precio: hasta la primera conversión el
-    backend se queda en unos 70 MB.
+    onnxruntime para detectar tipos de archivo. Quien no use esta herramienta no
+    debería pagar ese precio: hasta la primera conversión el backend se queda en
+    unos 70 MB, y quien la use la paga una vez.
 
     Los plugins van desactivados a propósito: aquí no hay ninguno instalado y
     habilitarlos sólo abriría la puerta a ejecutar código de terceros.

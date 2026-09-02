@@ -21,10 +21,10 @@ from storage import storage, cambiar_extension
 
 bp = Blueprint('pdf_a_word', __name__, url_prefix='/api/tools')
 
-# Páginas de todo el lote juntas. Reconstruir la maquetación es caro en tiempo y
-# en memoria; el valor por defecto es prudente para un contenedor pequeño.
-MAXIMO_PAGINAS = config.entorno_entero('PDF_TO_WORD_MAX_PAGES', 100)
-
+# Sin tope de páginas: pdf2docx corre como proceso aparte con `timeout`, así que
+# un documento desmedido se corta solo y devuelve la memoria entera. Poner además
+# un número de páginas sería adivinar.
+#
 # Por debajo del plazo de gunicorn, para contestar con un error entendible en vez
 # de que nos corten la respuesta. Si se sube, hay que subir `GUNICORN_TIMEOUT`.
 TIEMPO_LIMITE = config.entorno_entero('PDF_TO_WORD_TIMEOUT_SECONDS', 240)
@@ -47,11 +47,6 @@ def pdf_a_word():
         origen = storage.path_of(session_id, file_id)
         paginas += _paginas(origen, record.name)
         entradas.append((record, origen))
-
-    if paginas > MAXIMO_PAGINAS:
-        raise ApiError(
-            f'Son {paginas} páginas y el máximo para pasar a Word son {MAXIMO_PAGINAS}: '
-            'reconstruir la maquetación es lento y pesado.', 413)
 
     resultados = []
     for record, origen in entradas:

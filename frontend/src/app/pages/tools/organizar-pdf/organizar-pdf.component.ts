@@ -1,5 +1,5 @@
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
-import { NgFor, NgIf } from '@angular/common';
+
 import { Component, OnDestroy, inject } from '@angular/core';
 
 import { ANCHO_MINIATURA, DocumentoPdf, PdfService } from '../../../core/pdf.service';
@@ -22,7 +22,7 @@ const MAXIMO_PAGINAS = 100;
 
 @Component({
   selector: 'app-organizar-pdf',
-  imports: [NgFor, NgIf, DragDropModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
+  imports: [DragDropModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './organizar-pdf.component.html',
   styleUrl: './organizar-pdf.component.css',
 })

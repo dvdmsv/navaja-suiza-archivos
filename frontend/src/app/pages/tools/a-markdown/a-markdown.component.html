@@ -10,32 +10,36 @@
     (itemsChange)="alCambiarLista()">
   </app-file-queue>
 
-  <div class="form-check mt-4" *ngIf="archivos.length > 1">
-    <input class="form-check-input" type="checkbox" id="unir" [disabled]="ocupado"
-           [(ngModel)]="unir" (change)="alCambiarLista()">
-    <label class="form-check-label" for="unir">
-      Unir todo en un solo archivo
-      <span class="d-block form-text mt-0">
-        Cada documento bajo su título, en el orden de la lista. Cómodo para pegárselo entero a una IA.
-      </span>
-    </label>
-  </div>
+  @if (archivos.length > 1) {
+    <div class="form-check mt-4">
+      <input class="form-check-input" type="checkbox" id="unir" [disabled]="ocupado"
+        [(ngModel)]="unir" (change)="alCambiarLista()">
+      <label class="form-check-label" for="unir">
+        Unir todo en un solo archivo
+        <span class="d-block form-text mt-0">
+          Cada documento bajo su título, en el orden de la lista. Cómodo para pegárselo entero a una IA.
+        </span>
+      </label>
+    </div>
+  }
 
   <app-tool-controls [pagina]="pagina" accion="Convertir a Markdown" icono="bi-markdown">
   </app-tool-controls>
 
-  <section class="card mt-4" *ngIf="vistaPrevia as previa">
-    <div class="card-header d-flex flex-wrap align-items-center gap-2">
-      <strong class="me-auto">Markdown</strong>
-      <span class="small text-body-secondary">
-        {{ previa.palabras }} palabras · {{ previa.caracteres }} caracteres · ≈ {{ tokensAproximados }} tokens
-      </span>
-      <button type="button" class="btn btn-sm btn-outline-primary" (click)="copiar()">
-        <i class="bi bi-clipboard me-1"></i>Copiar
-      </button>
-    </div>
-    <pre class="markdown mb-0"><code>{{ previa.texto }}</code></pre>
-  </section>
+  @if (vistaPrevia; as previa) {
+    <section class="card mt-4">
+      <div class="card-header d-flex flex-wrap align-items-center gap-2">
+        <strong class="me-auto">Markdown</strong>
+        <span class="small text-body-secondary">
+          {{ previa.palabras }} palabras · {{ previa.caracteres }} caracteres · ≈ {{ tokensAproximados }} tokens
+        </span>
+        <button type="button" class="btn btn-sm btn-outline-primary" (click)="copiar()">
+          <i class="bi bi-clipboard me-1"></i>Copiar
+        </button>
+      </div>
+      <pre class="markdown mb-0"><code>{{ previa.texto }}</code></pre>
+    </section>
+  }
 
   <app-result-list [archivos]="resultados" nombreZip="markdown.zip"></app-result-list>
 

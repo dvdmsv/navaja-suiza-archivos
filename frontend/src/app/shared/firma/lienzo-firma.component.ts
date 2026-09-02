@@ -1,4 +1,4 @@
-import { NgFor, NgIf } from '@angular/common';
+
 import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 
 import { ANCHO_MAXIMO, ANCHO_MINIMO, Colocacion, entre } from './colocacion';
@@ -25,7 +25,7 @@ interface Gesto {
  */
 @Component({
   selector: 'app-lienzo-firma',
-  imports: [NgFor, NgIf],
+  imports: [],
   templateUrl: './lienzo-firma.component.html',
   styleUrl: './lienzo-firma.component.css',
 })

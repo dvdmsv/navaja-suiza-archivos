@@ -1,4 +1,4 @@
-import { NgFor, NgIf } from '@angular/common';
+
 import { Component, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -19,7 +19,7 @@ const MAXIMO_MINIATURAS = 60;
 
 @Component({
   selector: 'app-dividir-pdf',
-  imports: [NgFor, NgIf, FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
+  imports: [FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './dividir-pdf.component.html',
   styleUrl: './dividir-pdf.component.css',
 })

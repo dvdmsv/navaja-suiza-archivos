@@ -13,24 +13,28 @@
     <div class="col-12 col-md-6">
       <label class="form-label h6 mb-2">Convertir a</label>
       <div class="d-flex flex-wrap gap-2">
-        <ng-container *ngFor="let opcion of formatos">
+        @for (opcion of formatos; track opcion) {
           <input type="radio" class="btn-check" name="formato" [id]="'fmt-' + opcion.id"
-                 [value]="opcion.id" [disabled]="ocupado"
-                 [(ngModel)]="formato" (change)="alCambiarLista()">
+            [value]="opcion.id" [disabled]="ocupado"
+            [(ngModel)]="formato" (change)="alCambiarLista()">
           <label class="btn btn-outline-primary" [for]="'fmt-' + opcion.id">{{ opcion.nombre }}</label>
-        </ng-container>
+        }
       </div>
-      <p class="form-text" *ngIf="formatos.length === 0">Cargando formatos disponibles…</p>
+      @if (formatos.length === 0) {
+        <p class="form-text">Cargando formatos disponibles…</p>
+      }
     </div>
 
-    <div class="col-12 col-md-6" *ngIf="admiteCalidad">
-      <label for="calidad" class="form-label h6 mb-1">
-        Calidad: <span class="fw-normal">{{ calidad }} %</span>
-      </label>
-      <input type="range" class="form-range" id="calidad" min="20" max="100" step="5"
-             [disabled]="ocupado" [(ngModel)]="calidad" (change)="alCambiarLista()">
-      <p class="form-text mt-0">Más calidad, más peso.</p>
-    </div>
+    @if (admiteCalidad) {
+      <div class="col-12 col-md-6">
+        <label for="calidad" class="form-label h6 mb-1">
+          Calidad: <span class="fw-normal">{{ calidad }} %</span>
+        </label>
+        <input type="range" class="form-range" id="calidad" min="20" max="100" step="5"
+          [disabled]="ocupado" [(ngModel)]="calidad" (change)="alCambiarLista()">
+        <p class="form-text mt-0">Más calidad, más peso.</p>
+      </div>
+    }
   </div>
 
   <app-tool-controls [pagina]="pagina" accion="Convertir imágenes" icono="bi-arrow-left-right">

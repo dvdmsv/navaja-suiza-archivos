@@ -1,4 +1,4 @@
-import { NgFor, NgIf } from '@angular/common';
+
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -13,8 +13,7 @@ interface Opcion { id: string; nombre: string; }
 
 @Component({
   selector: 'app-marca-de-agua',
-  imports: [NgFor, NgIf, FormsModule, FileQueueComponent, ResultListComponent,
-            ToolControlsComponent, ToolPageComponent, VistaPaginaComponent],
+  imports: [FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent, VistaPaginaComponent],
   templateUrl: './marca-de-agua.component.html',
   styleUrl: './marca-de-agua.component.css',
 })

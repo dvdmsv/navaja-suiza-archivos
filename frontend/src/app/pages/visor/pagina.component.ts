@@ -1,4 +1,4 @@
-import { NgFor, NgIf } from '@angular/common';
+
 import {
   ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener,
   Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild, inject,
@@ -141,7 +141,7 @@ export interface Seleccion {
 
 @Component({
   selector: 'app-visor-pagina',
-  imports: [NgFor, NgIf],
+  imports: [],
   templateUrl: './pagina.component.html',
   styleUrls: ['./pagina.component.css', './capa-texto.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,

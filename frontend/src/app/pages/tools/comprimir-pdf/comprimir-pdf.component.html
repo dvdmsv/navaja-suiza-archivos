@@ -13,15 +13,17 @@
   <fieldset class="mt-4">
     <legend class="h6">Nivel de compresión</legend>
     <div class="row g-2">
-      <div class="col-12 col-sm-4" *ngFor="let opcion of niveles">
-        <input type="radio" class="btn-check" name="nivel" [id]="'nivel-' + opcion.id"
-               [checked]="nivel === opcion.id" [disabled]="ocupado"
-               (change)="elegirNivel(opcion.id)">
-        <label class="btn btn-outline-primary w-100 text-start" [for]="'nivel-' + opcion.id">
-          <span class="d-block fw-semibold">{{ opcion.nombre }}</span>
-          <small class="text-body-secondary">{{ opcion.detalle }}</small>
-        </label>
-      </div>
+      @for (opcion of niveles; track opcion) {
+        <div class="col-12 col-sm-4">
+          <input type="radio" class="btn-check" name="nivel" [id]="'nivel-' + opcion.id"
+            [checked]="nivel === opcion.id" [disabled]="ocupado"
+            (change)="elegirNivel(opcion.id)">
+          <label class="btn btn-outline-primary w-100 text-start" [for]="'nivel-' + opcion.id">
+            <span class="d-block fw-semibold">{{ opcion.nombre }}</span>
+            <small class="text-body-secondary">{{ opcion.detalle }}</small>
+          </label>
+        </div>
+      }
     </div>
     <p class="form-text">
       La compresión trabaja sobre las imágenes del documento; el texto no pierde nitidez.

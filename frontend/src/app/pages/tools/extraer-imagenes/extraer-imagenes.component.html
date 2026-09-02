@@ -13,15 +13,17 @@
   <fieldset class="mt-4">
     <legend class="h6">Formato de salida</legend>
     <div class="row g-2">
-      <div class="col-12 col-sm-4" *ngFor="let opcion of formatos">
-        <input type="radio" class="btn-check" name="formato" [id]="'fmt-' + opcion.id"
-               [checked]="formato === opcion.id" [disabled]="ocupado"
-               (change)="elegirFormato(opcion.id)">
-        <label class="btn btn-outline-primary w-100 text-start" [for]="'fmt-' + opcion.id">
-          <span class="d-block fw-semibold">{{ opcion.nombre }}</span>
-          <small class="text-body-secondary">{{ opcion.detalle }}</small>
-        </label>
-      </div>
+      @for (opcion of formatos; track opcion) {
+        <div class="col-12 col-sm-4">
+          <input type="radio" class="btn-check" name="formato" [id]="'fmt-' + opcion.id"
+            [checked]="formato === opcion.id" [disabled]="ocupado"
+            (change)="elegirFormato(opcion.id)">
+          <label class="btn btn-outline-primary w-100 text-start" [for]="'fmt-' + opcion.id">
+            <span class="d-block fw-semibold">{{ opcion.nombre }}</span>
+            <small class="text-body-secondary">{{ opcion.detalle }}</small>
+          </label>
+        </div>
+      }
     </div>
     <p class="form-text">
       «Como están» las saca sin tocarlas: es lo más fiel y lo más rápido.
@@ -34,7 +36,7 @@
         Tamaño mínimo: <span class="fw-normal">{{ ladoMinimo }} píxeles</span>
       </label>
       <input type="range" class="form-range" id="lado" min="0" max="500" step="25"
-             [disabled]="ocupado" [(ngModel)]="ladoMinimo" (change)="alCambiarLista()">
+        [disabled]="ocupado" [(ngModel)]="ladoMinimo" (change)="alCambiarLista()">
       <p class="form-text mt-0">
         Un PDF de texto lleva docenas de fragmentos diminutos —viñetas, filetes de
         las tablas— que aquí no le importan a nadie. Baja el mínimo si buscas un

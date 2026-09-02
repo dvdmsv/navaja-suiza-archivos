@@ -1,4 +1,4 @@
-import { NgFor, NgIf, NgSwitch, NgSwitchCase, NgSwitchDefault } from '@angular/common';
+
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -13,8 +13,7 @@ interface Opcion { id: string; nombre: string; icono?: string; }
 
 @Component({
   selector: 'app-generar-qr',
-  imports: [NgFor, NgIf, NgSwitch, NgSwitchCase, NgSwitchDefault, FormsModule,
-            ResultListComponent, ToolControlsComponent, ToolPageComponent],
+  imports: [FormsModule, ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './generar-qr.component.html',
 })
 export class GenerarQrComponent extends PaginaHerramienta {

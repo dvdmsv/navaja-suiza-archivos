@@ -1,35 +1,36 @@
-<ng-container *ngIf="(pantallaCompleta | async) === false">
+@if ((pantallaCompleta | async) === false) {
   <nav class="navbar navbar-expand-lg border-bottom bg-body sticky-top">
     <div class="container">
       <a class="navbar-brand d-flex align-items-center gap-2 fw-semibold" routerLink="/">
         <i class="bi bi-tools text-primary"></i>
         <span>Caja de herramientas</span>
       </a>
-
       <button class="navbar-toggler border-0" type="button" (click)="menuAbierto = !menuAbierto"
-              aria-controls="menuPrincipal" [attr.aria-expanded]="menuAbierto"
-              aria-label="Abrir el menú">
+        aria-controls="menuPrincipal" [attr.aria-expanded]="menuAbierto"
+        aria-label="Abrir el menú">
         <span class="navbar-toggler-icon"></span>
       </button>
-
       <div class="navbar-collapse menu-plegable" id="menuPrincipal" [class.abierto]="menuAbierto">
         <app-menu-principal (navegado)="menuAbierto = false"></app-menu-principal>
       </div>
     </div>
   </nav>
-</ng-container>
+}
 
 <!-- El visor se pinta a pantalla completa; el resto, dentro del marco. -->
-<main class="container py-4 py-md-5" *ngIf="(pantallaCompleta | async) === false; else suelto">
+@if ((pantallaCompleta | async) === false) {
+  <main class="container py-4 py-md-5">
+    <router-outlet></router-outlet>
+  </main>
+} @else {
   <router-outlet></router-outlet>
-</main>
+}
 
-<ng-template #suelto>
-  <router-outlet></router-outlet>
-</ng-template>
 
-<footer class="border-top py-3 mt-auto" *ngIf="(pantallaCompleta | async) === false">
-  <div class="container text-center text-body-secondary small">
-    Tus archivos se borran automáticamente del servidor pasadas 2 horas. · {{ anio }}
-  </div>
-</footer>
+@if ((pantallaCompleta | async) === false) {
+  <footer class="border-top py-3 mt-auto">
+    <div class="container text-center text-body-secondary small">
+      Tus archivos se borran automáticamente del servidor pasadas 2 horas. · {{ anio }}
+    </div>
+  </footer>
+}

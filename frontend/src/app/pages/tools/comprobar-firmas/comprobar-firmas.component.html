@@ -9,90 +9,108 @@
     (itemsChange)="alQuitar()">
   </app-file-queue>
 
-  <p class="text-body-secondary small mt-3" *ngIf="comprobando">
-    <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-    Comprobando las firmas…
-  </p>
+  @if (comprobando) {
+    <p class="text-body-secondary small mt-3">
+      <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+      Comprobando las firmas…
+    </p>
+  }
 
-  <div class="alert alert-secondary mt-3" *ngIf="sinFirmas && !comprobando">
-    <i class="bi bi-info-circle me-1"></i>
-    Este documento <strong>no lleva ninguna firma digital</strong>. Puede llevar la imagen de una
-    firma dibujada encima, que se parece pero no demuestra nada.
-  </div>
+  @if (sinFirmas && !comprobando) {
+    <div class="alert alert-secondary mt-3">
+      <i class="bi bi-info-circle me-1"></i>
+      Este documento <strong>no lleva ninguna firma digital</strong>. Puede llevar la imagen de una
+      firma dibujada encima, que se parece pero no demuestra nada.
+    </div>
+  }
 
-  <ng-container *ngFor="let informe of informes">
-    <ng-container *ngIf="informe.firmas.length > 0">
+  @for (informe of informes; track informe) {
+    @if (informe.firmas.length > 0) {
       <h2 class="h6 mb-2 mt-4">{{ informe.archivo }}</h2>
-
-      <div class="card mb-3" *ngFor="let firma of informe.firmas">
-        <div class="card-body">
-          <h3 class="h6 d-flex align-items-center gap-2"
+      @for (firma of informe.firmas; track firma) {
+        <div class="card mb-3">
+          <div class="card-body">
+            <h3 class="h6 d-flex align-items-center gap-2"
               [class.text-success]="estado(firma) === 'bien'"
               [class.text-warning-emphasis]="estado(firma) === 'aviso'"
               [class.text-danger]="estado(firma) === 'mal'">
-            <i class="bi"
-               [class.bi-shield-check]="estado(firma) === 'bien'"
-               [class.bi-shield-exclamation]="estado(firma) === 'aviso'"
-               [class.bi-shield-x]="estado(firma) === 'mal'"
-               [class.bi-question-circle]="estado(firma) === 'desconocido'"></i>
-            {{ titular(firma) }}
-          </h3>
-
-          <dl class="row mb-0 small">
-            <dt class="col-sm-3">Firmante</dt>
-            <dd class="col-sm-9">{{ firma.firmante }}</dd>
-
-            <dt class="col-sm-3">Expedido por</dt>
-            <dd class="col-sm-9">
-              {{ firma.emisor }}
-              <span class="text-body-secondary" *ngIf="firma.autofirmado">(autofirmado)</span>
-            </dd>
-
-            <dt class="col-sm-3">Fecha</dt>
-            <dd class="col-sm-9">
-              {{ fecha(firma.fecha) }}
-              <span class="text-body-secondary" *ngIf="!firma.sello_tiempo">
-                — la puso el reloj de quien firmó, sin sello de tiempo que la respalde
-              </span>
-            </dd>
-
-            <dt class="col-sm-3" *ngIf="firma.sello_tiempo">Sello de tiempo</dt>
-            <dd class="col-sm-9" *ngIf="firma.sello_tiempo">
-              {{ fecha(firma.sello_tiempo) }}, certificado por una autoridad de sellado
-            </dd>
-
-            <dt class="col-sm-3">Alcance</dt>
-            <dd class="col-sm-9">
-              <ng-container *ngIf="firma.cobertura === 'todo'">Cubre todo el archivo</ng-container>
-              <ng-container *ngIf="firma.cobertura === 'revision'">
-                Cubre hasta donde se firmó; después se añadió
-                <strong>{{ firma.cambios }}</strong>
-              </ng-container>
-              <ng-container *ngIf="firma.cobertura === 'parcial'">
-                No cubre el archivo entero
-              </ng-container>
-            </dd>
-
-            <dt class="col-sm-3" *ngIf="firma.vigente_al_firmar === false">Vigencia</dt>
-            <dd class="col-sm-9 text-danger-emphasis" *ngIf="firma.vigente_al_firmar === false">
-              El certificado ya estaba caducado cuando se firmó
-            </dd>
-
-            <dt class="col-sm-3" *ngIf="firma.error">Problema</dt>
-            <dd class="col-sm-9" *ngIf="firma.error">{{ firma.error }}</dd>
-          </dl>
+              <i class="bi"
+                [class.bi-shield-check]="estado(firma) === 'bien'"
+                [class.bi-shield-exclamation]="estado(firma) === 'aviso'"
+                [class.bi-shield-x]="estado(firma) === 'mal'"
+              [class.bi-question-circle]="estado(firma) === 'desconocido'"></i>
+              {{ titular(firma) }}
+            </h3>
+            <dl class="row mb-0 small">
+              <dt class="col-sm-3">Firmante</dt>
+              <dd class="col-sm-9">{{ firma.firmante }}</dd>
+              <dt class="col-sm-3">Expedido por</dt>
+              <dd class="col-sm-9">
+                {{ firma.emisor }}
+                @if (firma.autofirmado) {
+                  <span class="text-body-secondary">(autofirmado)</span>
+                }
+              </dd>
+              <dt class="col-sm-3">Fecha</dt>
+              <dd class="col-sm-9">
+                {{ fecha(firma.fecha) }}
+                @if (!firma.sello_tiempo) {
+                  <span class="text-body-secondary">
+                    — la puso el reloj de quien firmó, sin sello de tiempo que la respalde
+                  </span>
+                }
+              </dd>
+              @if (firma.sello_tiempo) {
+                <dt class="col-sm-3">Sello de tiempo</dt>
+              }
+              @if (firma.sello_tiempo) {
+                <dd class="col-sm-9">
+                  {{ fecha(firma.sello_tiempo) }}, certificado por una autoridad de sellado
+                </dd>
+              }
+              <dt class="col-sm-3">Alcance</dt>
+              <dd class="col-sm-9">
+                @if (firma.cobertura === 'todo') {
+                  Cubre todo el archivo
+                }
+                @if (firma.cobertura === 'revision') {
+                  Cubre hasta donde se firmó; después se añadió
+                  <strong>{{ firma.cambios }}</strong>
+                }
+                @if (firma.cobertura === 'parcial') {
+                  No cubre el archivo entero
+                }
+              </dd>
+              @if (firma.vigente_al_firmar === false) {
+                <dt class="col-sm-3">Vigencia</dt>
+              }
+              @if (firma.vigente_al_firmar === false) {
+                <dd class="col-sm-9 text-danger-emphasis">
+                  El certificado ya estaba caducado cuando se firmó
+                </dd>
+              }
+              @if (firma.error) {
+                <dt class="col-sm-3">Problema</dt>
+              }
+              @if (firma.error) {
+                <dd class="col-sm-9">{{ firma.error }}</dd>
+              }
+            </dl>
+          </div>
         </div>
-      </div>
-    </ng-container>
-  </ng-container>
+      }
+    }
+  }
 
-  <div class="alert alert-secondary mt-4" *ngIf="informes.length > 0 && !sinFirmas">
-    <i class="bi bi-info-circle me-1"></i>
-    <strong>Qué se comprueba y qué no.</strong>
-    Se comprueba que el documento no ha cambiado, hasta dónde alcanza cada firma y si el
-    certificado estaba vigente. <strong>No se comprueba que el firmante sea quien dice ser</strong>:
-    para eso habría que contrastar su certificado con las listas de confianza oficiales, y eso
-    exige salir a internet. Aquí se identifica al firmante; no se le acredita.
-  </div>
+  @if (informes.length > 0 && !sinFirmas) {
+    <div class="alert alert-secondary mt-4">
+      <i class="bi bi-info-circle me-1"></i>
+      <strong>Qué se comprueba y qué no.</strong>
+      Se comprueba que el documento no ha cambiado, hasta dónde alcanza cada firma y si el
+      certificado estaba vigente. <strong>No se comprueba que el firmante sea quien dice ser</strong>:
+      para eso habría que contrastar su certificado con las listas de confianza oficiales, y eso
+      exige salir a internet. Aquí se identifica al firmante; no se le acredita.
+    </div>
+  }
 
 </app-tool-page>

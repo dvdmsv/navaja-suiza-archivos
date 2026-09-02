@@ -1,95 +1,127 @@
 <nav class="pestanas">
   <button type="button" [class.activa]="pestana === 'paginas'" (click)="pestanaChange.emit('paginas')"
-          title="Páginas"><i class="bi bi-grid-3x3-gap"></i></button>
-  <button type="button" [class.activa]="pestana === 'indice'" (click)="pestanaChange.emit('indice')"
-          [disabled]="indice.length === 0" title="Índice del documento">
-    <i class="bi bi-list-nested"></i>
-  </button>
-  <button type="button" [class.activa]="pestana === 'buscar'" (click)="pestanaChange.emit('buscar')"
-          title="Buscar"><i class="bi bi-search"></i></button>
-  <button type="button" [class.activa]="pestana === 'marcas'" (click)="pestanaChange.emit('marcas')"
-          title="Lo que llevas anotado">
-    <i class="bi bi-bookmark"></i>
-    <span class="cuenta" *ngIf="cuantasAnotaciones">{{ cuantasAnotaciones }}</span>
-  </button>
-</nav>
-
-<!-- Páginas -->
-<div class="contenido" *ngIf="pestana === 'paginas'">
-  <div class="miniatura" *ngFor="let numero of numeros"
-       [class.miniatura--actual]="numero === paginaActual"
-       [class.miniatura--fuera]="eliminadas.has(numero)"
-       [attr.data-pagina]="numero" #celda>
-    <button type="button" class="miniatura__imagen" (click)="irAPagina.emit(numero)">
-      <img *ngIf="miniaturas.get(numero) as fuente" [src]="fuente" [alt]="'Página ' + numero"
-           [style.transform]="'rotate(' + rotacionDe(numero) + 'deg)'">
-      <span class="miniatura__hueco" *ngIf="!miniaturas.get(numero)"></span>
+    title="Páginas"><i class="bi bi-grid-3x3-gap"></i></button>
+    <button type="button" [class.activa]="pestana === 'indice'" (click)="pestanaChange.emit('indice')"
+      [disabled]="indice.length === 0" title="Índice del documento">
+      <i class="bi bi-list-nested"></i>
     </button>
-    <div class="miniatura__pie">
-      <span>{{ numero }}</span>
-      <button type="button" title="Girar" (click)="girar.emit(numero)"><i class="bi bi-arrow-clockwise"></i></button>
-      <button type="button" *ngIf="!eliminadas.has(numero)" title="Quitar"
-              (click)="eliminar.emit(numero)"><i class="bi bi-trash"></i></button>
-      <button type="button" *ngIf="eliminadas.has(numero)" title="Recuperar"
-              (click)="restaurar.emit(numero)"><i class="bi bi-arrow-counterclockwise"></i></button>
-    </div>
-  </div>
-</div>
+    <button type="button" [class.activa]="pestana === 'buscar'" (click)="pestanaChange.emit('buscar')"
+      title="Buscar"><i class="bi bi-search"></i></button>
+      <button type="button" [class.activa]="pestana === 'marcas'" (click)="pestanaChange.emit('marcas')"
+        title="Lo que llevas anotado">
+        <i class="bi bi-bookmark"></i>
+        @if (cuantasAnotaciones) {
+          <span class="cuenta">{{ cuantasAnotaciones }}</span>
+        }
+      </button>
+    </nav>
 
-<!-- Índice -->
-<div class="contenido" *ngIf="pestana === 'indice'">
-  <button type="button" class="entrada" *ngFor="let entrada of indice"
-          [style.padding-left.rem]="0.6 + entrada.nivel * 0.8"
-          (click)="irAPagina.emit(entrada.pagina)">
-    <span class="entrada__titulo">{{ entrada.titulo }}</span>
-    <span class="entrada__pagina">{{ entrada.pagina }}</span>
-  </button>
-</div>
+    <!-- Páginas -->
+    @if (pestana === 'paginas') {
+      <div class="contenido">
+        @for (numero of numeros; track numero) {
+          <div class="miniatura"
+            [class.miniatura--actual]="numero === paginaActual"
+            [class.miniatura--fuera]="eliminadas.has(numero)"
+            [attr.data-pagina]="numero" #celda>
+            <button type="button" class="miniatura__imagen" (click)="irAPagina.emit(numero)">
+              @if (miniaturas.get(numero); as fuente) {
+                <img [src]="fuente" [alt]="'Página ' + numero"
+                  [style.transform]="'rotate(' + rotacionDe(numero) + 'deg)'">
+              }
+              @if (!miniaturas.get(numero)) {
+                <span class="miniatura__hueco"></span>
+              }
+            </button>
+            <div class="miniatura__pie">
+              <span>{{ numero }}</span>
+              <button type="button" title="Girar" (click)="girar.emit(numero)"><i class="bi bi-arrow-clockwise"></i></button>
+              @if (!eliminadas.has(numero)) {
+                <button type="button" title="Quitar"
+                  (click)="eliminar.emit(numero)"><i class="bi bi-trash"></i></button>
+                }
+                @if (eliminadas.has(numero)) {
+                  <button type="button" title="Recuperar"
+                    (click)="restaurar.emit(numero)"><i class="bi bi-arrow-counterclockwise"></i></button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
 
-<!-- Buscar -->
-<div class="contenido contenido--buscar" *ngIf="pestana === 'buscar'">
-  <div class="p-2">
-    <input type="search" class="form-control form-control-sm" placeholder="Buscar en el documento"
-           [ngModel]="consulta" (ngModelChange)="consultaChange.emit($event)" autocomplete="off">
-    <p class="aviso" *ngIf="buscando">
-      <span class="spinner-border spinner-border-sm me-1"></span>
-      Leyendo el documento… {{ indexadas }} de {{ totalPaginas }}
-    </p>
-    <p class="aviso" *ngIf="!buscando && consulta.length > 1">
-      {{ resultados.length }} {{ resultados.length === 1 ? 'coincidencia' : 'coincidencias' }}
-    </p>
-  </div>
+        <!-- Índice -->
+        @if (pestana === 'indice') {
+          <div class="contenido">
+            @for (entrada of indice; track entrada) {
+              <button type="button" class="entrada"
+                [style.padding-left.rem]="0.6 + entrada.nivel * 0.8"
+                (click)="irAPagina.emit(entrada.pagina)">
+                <span class="entrada__titulo">{{ entrada.titulo }}</span>
+                <span class="entrada__pagina">{{ entrada.pagina }}</span>
+              </button>
+            }
+          </div>
+        }
 
-  <button type="button" class="resultado" *ngFor="let resultado of resultados; let i = index"
-          [class.resultado--actual]="i === resultadoActual" (click)="irAResultado.emit(i)">
-    <span class="resultado__pagina">p. {{ resultado.pagina }}</span>
-    <span class="resultado__texto">{{ resultado.contexto }}</span>
-  </button>
-</div>
+        <!-- Buscar -->
+        @if (pestana === 'buscar') {
+          <div class="contenido contenido--buscar">
+            <div class="p-2">
+              <input type="search" class="form-control form-control-sm" placeholder="Buscar en el documento"
+                [ngModel]="consulta" (ngModelChange)="consultaChange.emit($event)" autocomplete="off">
+              @if (buscando) {
+                <p class="aviso">
+                  <span class="spinner-border spinner-border-sm me-1"></span>
+                  Leyendo el documento… {{ indexadas }} de {{ totalPaginas }}
+                </p>
+              }
+              @if (!buscando && consulta.length > 1) {
+                <p class="aviso">
+                  {{ resultados.length }} {{ resultados.length === 1 ? 'coincidencia' : 'coincidencias' }}
+                </p>
+              }
+            </div>
+            @for (resultado of resultados; track resultado; let i = $index) {
+              <button type="button" class="resultado"
+                [class.resultado--actual]="i === resultadoActual" (click)="irAResultado.emit(i)">
+                <span class="resultado__pagina">p. {{ resultado.pagina }}</span>
+                <span class="resultado__texto">{{ resultado.contexto }}</span>
+              </button>
+            }
+          </div>
+        }
 
-<!-- Marcas -->
-<div class="contenido" *ngIf="pestana === 'marcas'">
-  <p class="aviso p-3" *ngIf="cuantasAnotaciones === 0">
-    Aquí aparecerá lo que vayas subrayando, tachando o escribiendo.
-  </p>
-  <div class="marca-lista" *ngFor="let marca of marcas">
-    <button type="button" class="marca-lista__ir" (click)="irAPagina.emit(marca.pagina)">
-      <span class="punto punto--{{ marca.color }}"
-            [class.punto--tachado]="marca.tipo === 'tachado'"></span>
-      <span class="marca-lista__texto">{{ textoDe(marca) }}</span>
-      <span class="marca-lista__pagina">p. {{ marca.pagina }}</span>
-    </button>
-    <button type="button" class="marca-lista__quitar" title="Quitar"
-            (click)="quitarMarca.emit(marca.id)"><i class="bi bi-x-lg"></i></button>
-  </div>
-
-  <div class="marca-lista" *ngFor="let texto of textos">
-    <button type="button" class="marca-lista__ir" (click)="irAPagina.emit(texto.pagina)">
-      <span class="punto punto--escrito"><i class="bi bi-fonts"></i></span>
-      <span class="marca-lista__texto">{{ textoDe(texto) }}</span>
-      <span class="marca-lista__pagina">p. {{ texto.pagina }}</span>
-    </button>
-    <button type="button" class="marca-lista__quitar" title="Quitar"
-            (click)="quitarTexto.emit(texto.id)"><i class="bi bi-x-lg"></i></button>
-  </div>
-</div>
+        <!-- Marcas -->
+        @if (pestana === 'marcas') {
+          <div class="contenido">
+            @if (cuantasAnotaciones === 0) {
+              <p class="aviso p-3">
+                Aquí aparecerá lo que vayas subrayando, tachando o escribiendo.
+              </p>
+            }
+            @for (marca of marcas; track marca) {
+              <div class="marca-lista">
+                <button type="button" class="marca-lista__ir" (click)="irAPagina.emit(marca.pagina)">
+                  <span class="punto punto--{{ marca.color }}"
+                  [class.punto--tachado]="marca.tipo === 'tachado'"></span>
+                  <span class="marca-lista__texto">{{ textoDe(marca) }}</span>
+                  <span class="marca-lista__pagina">p. {{ marca.pagina }}</span>
+                </button>
+                <button type="button" class="marca-lista__quitar" title="Quitar"
+                  (click)="quitarMarca.emit(marca.id)"><i class="bi bi-x-lg"></i></button>
+                </div>
+              }
+              @for (texto of textos; track texto) {
+                <div class="marca-lista">
+                  <button type="button" class="marca-lista__ir" (click)="irAPagina.emit(texto.pagina)">
+                    <span class="punto punto--escrito"><i class="bi bi-fonts"></i></span>
+                    <span class="marca-lista__texto">{{ textoDe(texto) }}</span>
+                    <span class="marca-lista__pagina">p. {{ texto.pagina }}</span>
+                  </button>
+                  <button type="button" class="marca-lista__quitar" title="Quitar"
+                    (click)="quitarTexto.emit(texto.id)"><i class="bi bi-x-lg"></i></button>
+                  </div>
+                }
+              </div>
+            }

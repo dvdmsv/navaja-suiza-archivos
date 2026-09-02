@@ -1,4 +1,4 @@
-import { NgFor, NgIf } from '@angular/common';
+
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -12,8 +12,7 @@ import { avisoError, mensajeDeError } from '../../../shared/notify';
 
 @Component({
   selector: 'app-limpiar-metadatos',
-  imports: [NgFor, NgIf, FormsModule, FileQueueComponent, ResultListComponent,
-            ToolControlsComponent, ToolPageComponent],
+  imports: [FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './limpiar-metadatos.component.html',
 })
 export class LimpiarMetadatosComponent extends PaginaHerramienta {

@@ -15,101 +15,111 @@
   <ul class="nav nav-pills gap-2 mb-3">
     <li class="nav-item">
       <button type="button" class="nav-link" [class.active]="origen === 'autofirma'"
-              [disabled]="ocupado" (click)="cambiarOrigen('autofirma')">
+        [disabled]="ocupado" (click)="cambiarOrigen('autofirma')">
         <i class="bi bi-pc-display me-1"></i>Uno instalado en el equipo
       </button>
     </li>
     <li class="nav-item">
       <button type="button" class="nav-link" [class.active]="origen === 'archivo'"
-              [disabled]="ocupado" (click)="cambiarOrigen('archivo')">
+        [disabled]="ocupado" (click)="cambiarOrigen('archivo')">
         <i class="bi bi-file-earmark-lock me-1"></i>Un archivo .p12
       </button>
     </li>
   </ul>
 
   <!-- Vía AutoFirma: la clave no sale del equipo -->
-  <ng-container *ngIf="origen === 'autofirma'">
+  @if (origen === 'autofirma') {
     <p class="form-text mt-0">
       Se abre el selector de certificados del sistema, el mismo de las sedes electrónicas, y la
       firma se hace en tu equipo: <strong>ni tu clave ni el documento salen de aquí</strong>. Es la
       única forma de firmar con el DNIe o una tarjeta, porque esas claves no se pueden exportar.
       Necesita tener <strong>AutoFirma</strong> instalado.
     </p>
-
     <button type="button" class="btn btn-outline-primary" [disabled]="ocupado || eligiendo"
-            (click)="elegirDelEquipo()">
-      <span class="spinner-border spinner-border-sm me-1" *ngIf="eligiendo" aria-hidden="true"></span>
-      <i class="bi bi-person-badge me-1" *ngIf="!eligiendo"></i>
+      (click)="elegirDelEquipo()">
+      @if (eligiendo) {
+        <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+      }
+      @if (!eligiendo) {
+        <i class="bi bi-person-badge me-1"></i>
+      }
       {{ datosCertificado ? 'Elegir otro certificado' : 'Elegir certificado' }}
     </button>
-
     <p class="form-text">
       ¿No lo tienes?
       <a [href]="descargaAutofirma" target="_blank" rel="noopener">Descargar AutoFirma</a>
       (es gratis, del Gobierno de España). O firma con un archivo .p12 en la otra pestaña.
     </p>
-  </ng-container>
+  }
 
   <!-- Vía del archivo: aquí sí viaja la clave -->
-  <ng-container *ngIf="origen === 'archivo'">
-    <div class="alert alert-warning d-flex gap-2" *ngIf="inseguro">
-      <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
-      <div>
-        <strong>Esta página no va por HTTPS.</strong>
-        Tu certificado y su contraseña viajarían en claro por la red hasta el servidor. Con un
-        documento eso es molesto; con tu clave privada, quien escuche la red se queda con tu
-        identidad digital. Usa la otra pestaña, que no manda ninguna clave, o pon HTTPS delante.
+  @if (origen === 'archivo') {
+    @if (inseguro) {
+      <div class="alert alert-warning d-flex gap-2">
+        <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+        <div>
+          <strong>Esta página no va por HTTPS.</strong>
+          Tu certificado y su contraseña viajarían en claro por la red hasta el servidor. Con un
+          documento eso es molesto; con tu clave privada, quien escuche la red se queda con tu
+          identidad digital. Usa la otra pestaña, que no manda ninguna clave, o pon HTTPS delante.
+        </div>
       </div>
-    </div>
-
+    }
     <div class="row g-3">
       <div class="col-12 col-md-6">
         <label for="certificado" class="form-label mb-1">Archivo del certificado</label>
         <input type="file" class="form-control" id="certificado" accept=".p12,.pfx"
-               [disabled]="ocupado" (change)="alElegirCertificado($event)">
+          [disabled]="ocupado" (change)="alElegirCertificado($event)">
         <p class="form-text mt-1">
           El <code>.p12</code> o <code>.pfx</code> que exportaste del navegador o te dio la FNMT.
         </p>
       </div>
-
       <div class="col-12 col-md-6">
         <label for="contrasena" class="form-label mb-1">Contraseña del certificado</label>
         <input type="password" class="form-control" id="contrasena" autocomplete="off"
-               [disabled]="ocupado || !certificado" [(ngModel)]="contrasena"
-               (change)="comprobarCertificado()">
+          [disabled]="ocupado || !certificado" [(ngModel)]="contrasena"
+          (change)="comprobarCertificado()">
         <p class="form-text mt-1">
-          <span class="spinner-border spinner-border-sm me-1" *ngIf="comprobando"
-                aria-hidden="true"></span>
+          @if (comprobando) {
+            <span class="spinner-border spinner-border-sm me-1"
+            aria-hidden="true"></span>
+          }
           Se usa para abrir el certificado y se descarta; no se guarda en ningún sitio.
         </p>
       </div>
     </div>
-  </ng-container>
+  }
 
-  <div class="alert alert-success py-2 px-3 d-flex gap-2 mt-3" *ngIf="datosCertificado">
-    <i class="bi bi-patch-check-fill flex-shrink-0 mt-1"></i>
-    <div>
-      <strong>{{ datosCertificado.nombre }}</strong>
-      <div class="small">
-        Expedido por {{ datosCertificado.emisor }} ·
-        válido hasta {{ validoHasta }}
-      </div>
-      <div class="small text-danger-emphasis" *ngIf="datosCertificado.caducado">
-        <i class="bi bi-exclamation-triangle me-1"></i>
-        Este certificado está caducado. Puedes firmar con él, pero la firma saldrá como no válida.
-      </div>
-      <div class="small text-body-secondary" *ngIf="datosCertificado.autofirmado">
-        Es un certificado autofirmado: quien lo abra verá "identidad no verificada" mientras no
-        añada tu certificado público a los suyos de confianza.
+  @if (datosCertificado) {
+    <div class="alert alert-success py-2 px-3 d-flex gap-2 mt-3">
+      <i class="bi bi-patch-check-fill flex-shrink-0 mt-1"></i>
+      <div>
+        <strong>{{ datosCertificado.nombre }}</strong>
+        <div class="small">
+          Expedido por {{ datosCertificado.emisor }} ·
+          válido hasta {{ validoHasta }}
+        </div>
+        @if (datosCertificado.caducado) {
+          <div class="small text-danger-emphasis">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            Este certificado está caducado. Puedes firmar con él, pero la firma saldrá como no válida.
+          </div>
+        }
+        @if (datosCertificado.autofirmado) {
+          <div class="small text-body-secondary">
+            Es un certificado autofirmado: quien lo abra verá "identidad no verificada" mientras no
+            añada tu certificado público a los suyos de confianza.
+          </div>
+        }
       </div>
     </div>
-  </div>
+  }
 
   <h2 class="h6 mb-2 mt-4">3. Cómo se firma</h2>
 
   <div class="form-check">
     <input class="form-check-input" type="checkbox" id="visible" [disabled]="ocupado"
-           [(ngModel)]="visible" (change)="alCambiarSello()">
+      [(ngModel)]="visible" (change)="alCambiarSello()">
     <label class="form-check-label" for="visible">Firma visible sobre la página</label>
   </div>
   <p class="form-text mt-0">
@@ -117,10 +127,10 @@
     su panel de firmas.
   </p>
 
-  <ng-container *ngIf="selloDisponible">
+  @if (selloDisponible) {
     <div class="form-check mt-3">
       <input class="form-check-input" type="checkbox" id="sello" [disabled]="ocupado"
-             [(ngModel)]="selloTiempo" (change)="alCambiarLista()">
+        [(ngModel)]="selloTiempo" (change)="alCambiarLista()">
       <label class="form-check-label" for="sello">Añadir sello de tiempo</label>
     </div>
     <p class="form-text mt-0">
@@ -128,30 +138,31 @@
       caduque. Es la única opción que sale a internet, y sólo manda un resumen del documento: el PDF
       no se envía a ningún sitio.
     </p>
-  </ng-container>
+  }
 
-  <p class="form-text mt-3" *ngIf="!selloDisponible">
-    <i class="bi bi-clock-history me-1"></i>
-    El <strong>sello de tiempo</strong> lo pone quien firma, y por esta vía firma AutoFirma: se
-    configura dentro de la propia aplicación, en Herramientas → Preferencias.
-  </p>
+  @if (!selloDisponible) {
+    <p class="form-text mt-3">
+      <i class="bi bi-clock-history me-1"></i>
+      El <strong>sello de tiempo</strong> lo pone quien firma, y por esta vía firma AutoFirma: se
+      configura dentro de la propia aplicación, en Herramientas → Preferencias.
+    </p>
+  }
 
-  <ng-container *ngIf="visible">
+  @if (visible) {
     <div class="row g-3 mt-1">
       <div class="col-12 col-md-6">
         <label for="motivo" class="form-label mb-1">Motivo <span class="text-body-secondary">(opcional)</span></label>
         <input type="text" class="form-control" id="motivo" maxlength="120"
-               placeholder="Conformidad con el contenido" [disabled]="ocupado"
-               [(ngModel)]="motivo" (input)="alCambiarSello()">
+          placeholder="Conformidad con el contenido" [disabled]="ocupado"
+          [(ngModel)]="motivo" (input)="alCambiarSello()">
       </div>
       <div class="col-12 col-md-6">
         <label for="lugar" class="form-label mb-1">Lugar <span class="text-body-secondary">(opcional)</span></label>
         <input type="text" class="form-control" id="lugar" maxlength="120"
-               placeholder="Zaragoza" [disabled]="ocupado"
-               [(ngModel)]="lugar" (input)="alCambiarSello()">
+          placeholder="Zaragoza" [disabled]="ocupado"
+          [(ngModel)]="lugar" (input)="alCambiarSello()">
       </div>
     </div>
-
     <h3 class="h6 mb-2 mt-4">Tu firma a mano <span class="text-body-secondary fw-normal">(opcional)</span></h3>
     <p class="form-text mt-0">
       Va de fondo del recuadro. No añade validez ninguna —eso lo pone el certificado—, pero es lo
@@ -160,93 +171,102 @@
     <ul class="nav nav-pills gap-2 mb-3">
       <li class="nav-item">
         <button type="button" class="nav-link" [class.active]="modoTrazo === 'subir'"
-                (click)="modoTrazo = 'subir'">
+          (click)="modoTrazo = 'subir'">
           <i class="bi bi-upload me-1"></i>Subir una imagen
         </button>
       </li>
       <li class="nav-item">
         <button type="button" class="nav-link" [class.active]="modoTrazo === 'dibujar'"
-                (click)="modoTrazo = 'dibujar'">
+          (click)="modoTrazo = 'dibujar'">
           <i class="bi bi-pencil me-1"></i>Dibujarla
         </button>
       </li>
     </ul>
+    @if (modoTrazo === 'subir') {
+      <app-file-queue
+        [items]="trazos"
+        accept="image/*"
+        [multiple]="false"
+        [deshabilitado]="ocupado"
+        ayuda="Una foto de tu firma sobre papel vale perfectamente"
+        (agregados)="alAgregarTrazo($event)"
+        (itemsChange)="alQuitarTrazo()">
+      </app-file-queue>
+    }
+    @if (modoTrazo === 'dibujar') {
+      <app-pizarra [deshabilitado]="ocupado"
+        (firmada)="alDibujar($event)">
+      </app-pizarra>
+    }
+  }
 
-    <app-file-queue *ngIf="modoTrazo === 'subir'"
-      [items]="trazos"
-      accept="image/*"
-      [multiple]="false"
-      [deshabilitado]="ocupado"
-      ayuda="Una foto de tu firma sobre papel vale perfectamente"
-      (agregados)="alAgregarTrazo($event)"
-      (itemsChange)="alQuitarTrazo()">
-    </app-file-queue>
-
-    <app-pizarra *ngIf="modoTrazo === 'dibujar'" [deshabilitado]="ocupado"
-                 (firmada)="alDibujar($event)">
-    </app-pizarra>
-  </ng-container>
-
-  <ng-container *ngIf="visible && fondo">
+  @if (visible && fondo) {
     <h2 class="h6 mb-2 mt-4">4. Dónde va el sello</h2>
-
-    <p class="text-body-secondary small" *ngIf="apariencia">
-      <i class="bi bi-info-circle me-1"></i>
-      Arrástralo para moverlo y las esquinas para cambiar el tamaño. Un campo de firma va siempre
-      recto, así que no se puede girar.
-    </p>
-    <p class="text-body-secondary small" *ngIf="!apariencia">
-      <span class="spinner-border spinner-border-sm me-1" *ngIf="dibujandoSello"
-            aria-hidden="true"></span>
-      {{ dibujandoSello ? 'Dibujando el sello…' : 'Elige tu certificado para ver cómo va a quedar.' }}
-    </p>
-
+    @if (apariencia) {
+      <p class="text-body-secondary small">
+        <i class="bi bi-info-circle me-1"></i>
+        Arrástralo para moverlo y las esquinas para cambiar el tamaño. Un campo de firma va siempre
+        recto, así que no se puede girar.
+      </p>
+    }
+    @if (!apariencia) {
+      <p class="text-body-secondary small">
+        @if (dibujandoSello) {
+          <span class="spinner-border spinner-border-sm me-1"
+          aria-hidden="true"></span>
+        }
+        {{ dibujandoSello ? 'Dibujando el sello…' : 'Elige tu certificado para ver cómo va a quedar.' }}
+      </p>
+    }
     <app-lienzo-firma [fondo]="fondo" [firma]="apariencia" [colocacion]="colocacion"
-                      [giratorio]="false" [deshabilitado]="ocupado"
-                      (colocada)="alCambiarLista()">
+      [giratorio]="false" [deshabilitado]="ocupado"
+      (colocada)="alCambiarLista()">
     </app-lienzo-firma>
-
     <div class="row g-3 align-items-end mt-1">
-      <div class="col-6 col-md-3" *ngIf="paginas > 1">
-        <label for="pagina" class="form-label mb-1">Página</label>
-        <select class="form-select" id="pagina" [disabled]="ocupado" [ngModel]="paginaActual"
-                (ngModelChange)="cambiarPagina($event)">
-          <option *ngFor="let numero of numerosDePagina" [ngValue]="numero">
-            {{ numero }} de {{ paginas }}
-          </option>
-        </select>
-      </div>
-
+      @if (paginas > 1) {
+        <div class="col-6 col-md-3">
+          <label for="pagina" class="form-label mb-1">Página</label>
+          <select class="form-select" id="pagina" [disabled]="ocupado" [ngModel]="paginaActual"
+            (ngModelChange)="cambiarPagina($event)">
+            @for (numero of numerosDePagina; track numero) {
+              <option [ngValue]="numero">
+                {{ numero }} de {{ paginas }}
+              </option>
+            }
+          </select>
+        </div>
+      }
       <div class="col-12 col-md">
         <label for="tamano" class="form-label mb-1">
           Tamaño: <span class="text-body-secondary">{{ (colocacion.ancho * 100).toFixed(0) }} %</span>
         </label>
         <input type="range" class="form-range" id="tamano" min="12" max="100" step="1"
-               [disabled]="ocupado" [ngModel]="colocacion.ancho * 100"
-               (ngModelChange)="colocacion.ancho = $event / 100" (change)="alCambiarLista()">
-      </div>
-
-      <div class="col-12 col-md-auto">
-        <button type="button" class="btn btn-outline-secondary" [disabled]="ocupado"
-                (click)="centrar()">
+          [disabled]="ocupado" [ngModel]="colocacion.ancho * 100"
+          (ngModelChange)="colocacion.ancho = $event / 100" (change)="alCambiarLista()">
+        </div>
+        <div class="col-12 col-md-auto">
+          <button type="button" class="btn btn-outline-secondary" [disabled]="ocupado"
+            (click)="centrar()">
           <i class="bi bi-arrows-move me-1"></i>Recolocar
         </button>
       </div>
     </div>
-  </ng-container>
+  }
 
   <app-tool-controls [pagina]="pagina" accion="Firmar con el certificado" icono="bi-patch-check">
   </app-tool-controls>
 
-  <div class="alert alert-info d-flex gap-2 mt-3" *ngIf="resultados.length > 0">
-    <i class="bi bi-info-circle-fill flex-shrink-0 mt-1"></i>
-    <div>
-      <strong>Éste es el archivo definitivo.</strong>
-      No lo pases por otra herramienta —comprimir, numerar, marca de agua o el visor—: cualquiera
-      de ellas reescribe el PDF y rompería la firma. Si tenías que hacer las dos cosas, firmar va
-      siempre lo último.
+  @if (resultados.length > 0) {
+    <div class="alert alert-info d-flex gap-2 mt-3">
+      <i class="bi bi-info-circle-fill flex-shrink-0 mt-1"></i>
+      <div>
+        <strong>Éste es el archivo definitivo.</strong>
+        No lo pases por otra herramienta —comprimir, numerar, marca de agua o el visor—: cualquiera
+        de ellas reescribe el PDF y rompería la firma. Si tenías que hacer las dos cosas, firmar va
+        siempre lo último.
+      </div>
     </div>
-  </div>
+  }
 
   <app-result-list [archivos]="resultados"></app-result-list>
 

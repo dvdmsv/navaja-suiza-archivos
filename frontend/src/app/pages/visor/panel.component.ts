@@ -1,4 +1,4 @@
-import { NgFor, NgIf } from '@angular/common';
+
 import {
   AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter,
   Input, OnChanges, OnDestroy, Output, QueryList, SimpleChanges, ViewChildren, inject,
@@ -23,7 +23,7 @@ const ANCHO_MINIATURA = 140;
 
 @Component({
   selector: 'app-visor-panel',
-  imports: [NgFor, NgIf, FormsModule],
+  imports: [FormsModule],
   templateUrl: './panel.component.html',
   styleUrl: './panel.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

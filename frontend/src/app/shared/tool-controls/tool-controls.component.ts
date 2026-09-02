@@ -1,4 +1,4 @@
-import { NgIf } from '@angular/common';
+
 import { Component, Input } from '@angular/core';
 
 import { PaginaHerramienta } from '../pagina-herramienta';
@@ -9,7 +9,7 @@ import { PaginaHerramienta } from '../pagina-herramienta';
  */
 @Component({
   selector: 'app-tool-controls',
-  imports: [NgIf],
+  imports: [],
   templateUrl: './tool-controls.component.html',
 })
 export class ToolControlsComponent {

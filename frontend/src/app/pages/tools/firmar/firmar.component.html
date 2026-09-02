@@ -15,105 +15,118 @@
   <ul class="nav nav-pills gap-2 mb-3">
     <li class="nav-item">
       <button type="button" class="nav-link" [class.active]="modoFirma === 'subir'"
-              (click)="modoFirma = 'subir'">
+        (click)="modoFirma = 'subir'">
         <i class="bi bi-upload me-1"></i>Subir una imagen
       </button>
     </li>
     <li class="nav-item">
       <button type="button" class="nav-link" [class.active]="modoFirma === 'dibujar'"
-              (click)="modoFirma = 'dibujar'">
+        (click)="modoFirma = 'dibujar'">
         <i class="bi bi-pencil me-1"></i>Dibujarla
       </button>
     </li>
   </ul>
 
-  <app-file-queue *ngIf="modoFirma === 'subir'"
-    [items]="firmas"
-    accept="image/*"
-    [multiple]="false"
-    [deshabilitado]="ocupado"
-    ayuda="Una foto de tu firma sobre papel vale perfectamente"
-    (agregados)="alAgregarFirma($event)"
-    (itemsChange)="alQuitarFirma()">
-  </app-file-queue>
+  @if (modoFirma === 'subir') {
+    <app-file-queue
+      [items]="firmas"
+      accept="image/*"
+      [multiple]="false"
+      [deshabilitado]="ocupado"
+      ayuda="Una foto de tu firma sobre papel vale perfectamente"
+      (agregados)="alAgregarFirma($event)"
+      (itemsChange)="alQuitarFirma()">
+    </app-file-queue>
+  }
 
-  <app-pizarra *ngIf="modoFirma === 'dibujar'" [deshabilitado]="ocupado"
-               (firmada)="alDibujar($event)">
-  </app-pizarra>
+  @if (modoFirma === 'dibujar') {
+    <app-pizarra [deshabilitado]="ocupado"
+      (firmada)="alDibujar($event)">
+    </app-pizarra>
+  }
 
-  <div class="row g-3 mt-1" *ngIf="firmas.length > 0">
-    <div class="col-12 col-md-auto">
-      <div class="form-check mb-0">
-        <input class="form-check-input" type="checkbox" id="quitar-fondo" [disabled]="ocupado"
-               [(ngModel)]="quitarFondo" (change)="alCambiarFondo()">
-        <label class="form-check-label" for="quitar-fondo">Quitar el fondo blanco</label>
-      </div>
-      <p class="form-text mt-0">Para fotos de una firma sobre papel.</p>
-    </div>
-
-    <div class="col-12 col-md" *ngIf="quitarFondo">
-      <label for="umbral" class="form-label mb-1">
-        Cuánto se quita: <span class="text-body-secondary">{{ umbral }}</span>
-      </label>
-      <input type="range" class="form-range" id="umbral" min="200" max="255" step="5"
-             [disabled]="ocupado" [(ngModel)]="umbral" (change)="alCambiarFondo()">
-      <p class="form-text mt-0">Bájalo si desaparece parte del trazo; súbelo si queda papel.</p>
-    </div>
-  </div>
-
-  <ng-container *ngIf="fondo">
-    <h2 class="h6 mb-2 mt-4">3. Dónde va</h2>
-
-    <p class="text-body-secondary small" *ngIf="firmaPreparada">
-      <i class="bi bi-info-circle me-1"></i>
-      Arrastra la firma para moverla, las esquinas para cambiar el tamaño y el tirador de arriba
-      para girarla.
-    </p>
-    <p class="text-body-secondary small" *ngIf="!firmaPreparada">
-      <span class="spinner-border spinner-border-sm me-1" *ngIf="preparando" aria-hidden="true"></span>
-      {{ preparando ? 'Preparando la firma…' : 'Sube o dibuja tu firma para colocarla.' }}
-    </p>
-
-    <app-lienzo-firma [fondo]="fondo" [firma]="firmaPreparada" [colocacion]="colocacion"
-                      [deshabilitado]="ocupado" (colocada)="alCambiarLista()">
-    </app-lienzo-firma>
-
-    <div class="row g-3 align-items-end mt-1">
-      <div class="col-6 col-md-3" *ngIf="paginas > 1">
-        <label for="pagina" class="form-label mb-1">Página</label>
-        <select class="form-select" id="pagina" [disabled]="ocupado || todas" [ngModel]="paginaActual"
-                (ngModelChange)="cambiarPagina($event)">
-          <option *ngFor="let numero of numerosDePagina" [ngValue]="numero">
-            {{ numero }} de {{ paginas }}
-          </option>
-        </select>
-      </div>
-
-      <div class="col-6 col-md-3" *ngIf="paginas > 1">
-        <div class="form-check mb-2">
-          <input class="form-check-input" type="checkbox" id="todas" [disabled]="ocupado"
-                 [(ngModel)]="todas" (change)="alCambiarLista()">
-          <label class="form-check-label" for="todas">En todas las páginas</label>
+  @if (firmas.length > 0) {
+    <div class="row g-3 mt-1">
+      <div class="col-12 col-md-auto">
+        <div class="form-check mb-0">
+          <input class="form-check-input" type="checkbox" id="quitar-fondo" [disabled]="ocupado"
+            [(ngModel)]="quitarFondo" (change)="alCambiarFondo()">
+          <label class="form-check-label" for="quitar-fondo">Quitar el fondo blanco</label>
         </div>
+        <p class="form-text mt-0">Para fotos de una firma sobre papel.</p>
       </div>
+      @if (quitarFondo) {
+        <div class="col-12 col-md">
+          <label for="umbral" class="form-label mb-1">
+            Cuánto se quita: <span class="text-body-secondary">{{ umbral }}</span>
+          </label>
+          <input type="range" class="form-range" id="umbral" min="200" max="255" step="5"
+            [disabled]="ocupado" [(ngModel)]="umbral" (change)="alCambiarFondo()">
+          <p class="form-text mt-0">Bájalo si desaparece parte del trazo; súbelo si queda papel.</p>
+        </div>
+      }
+    </div>
+  }
 
+  @if (fondo) {
+    <h2 class="h6 mb-2 mt-4">3. Dónde va</h2>
+    @if (firmaPreparada) {
+      <p class="text-body-secondary small">
+        <i class="bi bi-info-circle me-1"></i>
+        Arrastra la firma para moverla, las esquinas para cambiar el tamaño y el tirador de arriba
+        para girarla.
+      </p>
+    }
+    @if (!firmaPreparada) {
+      <p class="text-body-secondary small">
+        @if (preparando) {
+          <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+        }
+        {{ preparando ? 'Preparando la firma…' : 'Sube o dibuja tu firma para colocarla.' }}
+      </p>
+    }
+    <app-lienzo-firma [fondo]="fondo" [firma]="firmaPreparada" [colocacion]="colocacion"
+      [deshabilitado]="ocupado" (colocada)="alCambiarLista()">
+    </app-lienzo-firma>
+    <div class="row g-3 align-items-end mt-1">
+      @if (paginas > 1) {
+        <div class="col-6 col-md-3">
+          <label for="pagina" class="form-label mb-1">Página</label>
+          <select class="form-select" id="pagina" [disabled]="ocupado || todas" [ngModel]="paginaActual"
+            (ngModelChange)="cambiarPagina($event)">
+            @for (numero of numerosDePagina; track numero) {
+              <option [ngValue]="numero">
+                {{ numero }} de {{ paginas }}
+              </option>
+            }
+          </select>
+        </div>
+      }
+      @if (paginas > 1) {
+        <div class="col-6 col-md-3">
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="todas" [disabled]="ocupado"
+              [(ngModel)]="todas" (change)="alCambiarLista()">
+            <label class="form-check-label" for="todas">En todas las páginas</label>
+          </div>
+        </div>
+      }
       <div class="col-12 col-md">
         <label for="tamano" class="form-label mb-1">
           Tamaño: <span class="text-body-secondary">{{ (colocacion.ancho * 100).toFixed(0) }} %</span>
         </label>
         <input type="range" class="form-range" id="tamano" min="5" max="100" step="1"
-               [disabled]="ocupado" [ngModel]="colocacion.ancho * 100"
-               (ngModelChange)="colocacion.ancho = $event / 100" (change)="alCambiarLista()">
-      </div>
-
-      <div class="col-12 col-md-auto">
-        <button type="button" class="btn btn-outline-secondary" [disabled]="ocupado"
-                (click)="centrar()">
+          [disabled]="ocupado" [ngModel]="colocacion.ancho * 100"
+          (ngModelChange)="colocacion.ancho = $event / 100" (change)="alCambiarLista()">
+        </div>
+        <div class="col-12 col-md-auto">
+          <button type="button" class="btn btn-outline-secondary" [disabled]="ocupado"
+            (click)="centrar()">
           <i class="bi bi-arrows-move me-1"></i>Recolocar
         </button>
       </div>
     </div>
-  </ng-container>
+  }
 
   <app-tool-controls [pagina]="pagina" accion="Firmar el documento" icono="bi-vector-pen">
   </app-tool-controls>

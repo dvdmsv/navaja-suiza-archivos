@@ -1,4 +1,4 @@
-import { NgFor, NgIf } from '@angular/common';
+
 import { Component } from '@angular/core';
 
 import { FirmaEncontrada, InformeFirmas } from '../../../core/api.service';
@@ -17,7 +17,7 @@ import { avisoError, mensajeDeError } from '../../../shared/notify';
  */
 @Component({
   selector: 'app-comprobar-firmas',
-  imports: [NgFor, NgIf, FileQueueComponent, ToolPageComponent],
+  imports: [FileQueueComponent, ToolPageComponent],
   templateUrl: './comprobar-firmas.component.html',
 })
 export class ComprobarFirmasComponent extends PaginaHerramienta {

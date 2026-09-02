@@ -1,4 +1,4 @@
-import { NgIf } from '@angular/common';
+
 import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -30,7 +30,7 @@ const SOBREMUESTREO = 2;
  */
 @Component({
   selector: 'app-pizarra',
-  imports: [NgIf, FormsModule],
+  imports: [FormsModule],
   templateUrl: './pizarra.component.html',
   styleUrl: './pizarra.component.css',
 })

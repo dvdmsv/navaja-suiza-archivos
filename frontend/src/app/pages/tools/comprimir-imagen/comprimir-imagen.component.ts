@@ -1,4 +1,4 @@
-import { NgFor } from '@angular/common';
+
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -11,9 +11,12 @@ import { ToolPageComponent } from '../../../shared/tool-page/tool-page.component
 @Component({
   selector: 'app-comprimir-imagen',
   imports: [
-    NgFor, FormsModule, FileQueueComponent, ResultListComponent,
-    ToolControlsComponent, ToolPageComponent,
-  ],
+    FormsModule,
+    FileQueueComponent,
+    ResultListComponent,
+    ToolControlsComponent,
+    ToolPageComponent
+],
   templateUrl: './comprimir-imagen.component.html',
 })
 export class ComprimirImagenComponent extends PaginaHerramienta {

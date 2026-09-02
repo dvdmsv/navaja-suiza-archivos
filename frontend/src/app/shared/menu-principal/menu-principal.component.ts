@@ -1,4 +1,4 @@
-import { NgFor } from '@angular/common';
+
 import { Component, ElementRef, EventEmitter, HostListener, Output, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
@@ -22,7 +22,7 @@ const BARRA_HORIZONTAL = '(min-width: 992px)';
  */
 @Component({
   selector: 'app-menu-principal',
-  imports: [NgFor, RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive],
   templateUrl: './menu-principal.component.html',
   styleUrl: './menu-principal.component.css',
 })

@@ -10,57 +10,67 @@
     (itemsChange)="alCambiarLista()">
   </app-file-queue>
 
-  <p class="text-body-secondary small mt-3 mb-0" *ngIf="archivos.length > 1">
-    <i class="bi bi-info-circle me-1"></i>
-    Cada imagen será una página. Arrástralas para cambiar el orden.
-  </p>
+  @if (archivos.length > 1) {
+    <p class="text-body-secondary small mt-3 mb-0">
+      <i class="bi bi-info-circle me-1"></i>
+      Cada imagen será una página. Arrástralas para cambiar el orden.
+    </p>
+  }
 
   <fieldset class="mt-4">
     <legend class="h6">Tamaño de página</legend>
     <div class="row g-2">
-      <div class="col-12 col-sm-4" *ngFor="let opcion of tamanos">
-        <input type="radio" class="btn-check" name="tamano" [id]="'tam-' + opcion.id"
-               [checked]="tamano === opcion.id" [disabled]="ocupado"
-               (change)="elegirTamano(opcion.id)">
-        <label class="btn btn-outline-primary w-100 text-start" [for]="'tam-' + opcion.id">
-          <span class="d-block fw-semibold">{{ opcion.nombre }}</span>
-          <small class="text-body-secondary">{{ opcion.detalle }}</small>
-        </label>
-      </div>
+      @for (opcion of tamanos; track opcion) {
+        <div class="col-12 col-sm-4">
+          <input type="radio" class="btn-check" name="tamano" [id]="'tam-' + opcion.id"
+            [checked]="tamano === opcion.id" [disabled]="ocupado"
+            (change)="elegirTamano(opcion.id)">
+          <label class="btn btn-outline-primary w-100 text-start" [for]="'tam-' + opcion.id">
+            <span class="d-block fw-semibold">{{ opcion.nombre }}</span>
+            <small class="text-body-secondary">{{ opcion.detalle }}</small>
+          </label>
+        </div>
+      }
     </div>
   </fieldset>
 
-  <fieldset class="mt-4" *ngIf="!ajustaALaImagen">
-    <legend class="h6">Orientación</legend>
-    <div class="row g-2">
-      <div class="col-12 col-sm-4" *ngFor="let opcion of orientaciones">
-        <input type="radio" class="btn-check" name="orientacion" [id]="'ori-' + opcion.id"
-               [checked]="orientacion === opcion.id" [disabled]="ocupado"
-               (change)="elegirOrientacion(opcion.id)">
-        <label class="btn btn-outline-primary w-100 text-start" [for]="'ori-' + opcion.id">
-          <span class="d-block fw-semibold">{{ opcion.nombre }}</span>
-          <small class="text-body-secondary">{{ opcion.detalle }}</small>
-        </label>
+  @if (!ajustaALaImagen) {
+    <fieldset class="mt-4">
+      <legend class="h6">Orientación</legend>
+      <div class="row g-2">
+        @for (opcion of orientaciones; track opcion) {
+          <div class="col-12 col-sm-4">
+            <input type="radio" class="btn-check" name="orientacion" [id]="'ori-' + opcion.id"
+              [checked]="orientacion === opcion.id" [disabled]="ocupado"
+              (change)="elegirOrientacion(opcion.id)">
+            <label class="btn btn-outline-primary w-100 text-start" [for]="'ori-' + opcion.id">
+              <span class="d-block fw-semibold">{{ opcion.nombre }}</span>
+              <small class="text-body-secondary">{{ opcion.detalle }}</small>
+            </label>
+          </div>
+        }
       </div>
-    </div>
-  </fieldset>
+    </fieldset>
+  }
 
   <div class="row g-4 mt-1">
-    <div class="col-12 col-md-6" *ngIf="!ajustaALaImagen">
-      <label for="margen" class="form-label h6 mb-1">
-        Margen: <span class="fw-normal">{{ margen }} mm</span>
-      </label>
-      <input type="range" class="form-range" id="margen" min="0" max="30" step="5"
-             [disabled]="ocupado" [(ngModel)]="margen" (change)="alCambiarLista()">
-      <p class="form-text mt-0">Espacio en blanco alrededor de cada imagen.</p>
-    </div>
+    @if (!ajustaALaImagen) {
+      <div class="col-12 col-md-6">
+        <label for="margen" class="form-label h6 mb-1">
+          Margen: <span class="fw-normal">{{ margen }} mm</span>
+        </label>
+        <input type="range" class="form-range" id="margen" min="0" max="30" step="5"
+          [disabled]="ocupado" [(ngModel)]="margen" (change)="alCambiarLista()">
+        <p class="form-text mt-0">Espacio en blanco alrededor de cada imagen.</p>
+      </div>
+    }
 
     <div class="col-12 col-md-6">
       <label for="calidad" class="form-label h6 mb-1">
         Calidad: <span class="fw-normal">{{ calidad }} %</span>
       </label>
       <input type="range" class="form-range" id="calidad" min="20" max="100" step="5"
-             [disabled]="ocupado" [(ngModel)]="calidad" (change)="alCambiarLista()">
+        [disabled]="ocupado" [(ngModel)]="calidad" (change)="alCambiarLista()">
       <p class="form-text mt-0">Más calidad, más peso del PDF.</p>
     </div>
   </div>

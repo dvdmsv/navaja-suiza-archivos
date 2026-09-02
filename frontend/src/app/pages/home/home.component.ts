@@ -1,4 +1,4 @@
-import { NgFor, NgIf } from '@angular/common';
+
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
@@ -6,7 +6,7 @@ import { Grupo, Herramienta, agruparPorCategoria, rutaDe } from '../../core/tool
 
 @Component({
   selector: 'app-home',
-  imports: [NgFor, NgIf, RouterLink],
+  imports: [RouterLink],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
 })

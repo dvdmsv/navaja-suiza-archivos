@@ -1,4 +1,4 @@
-import { NgFor, NgIf } from '@angular/common';
+
 import { Component, ElementRef, Input, OnChanges, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -17,7 +17,7 @@ import { avisoError, mensajeDeError } from '../notify';
  */
 @Component({
   selector: 'app-result-list',
-  imports: [NgFor, NgIf, FormsModule, PesoPipe, VistaPreviaComponent],
+  imports: [FormsModule, PesoPipe, VistaPreviaComponent],
   templateUrl: './result-list.component.html',
   styleUrl: './result-list.component.css',
 })

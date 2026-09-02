@@ -1,4 +1,4 @@
-import { NgFor, NgIf } from '@angular/common';
+
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -17,9 +17,12 @@ interface Opcion {
 @Component({
   selector: 'app-imagen-a-pdf',
   imports: [
-    NgFor, NgIf, FormsModule, FileQueueComponent, ResultListComponent,
-    ToolControlsComponent, ToolPageComponent,
-  ],
+    FormsModule,
+    FileQueueComponent,
+    ResultListComponent,
+    ToolControlsComponent,
+    ToolPageComponent
+],
   templateUrl: './imagen-a-pdf.component.html',
 })
 export class ImagenAPdfComponent extends PaginaHerramienta {

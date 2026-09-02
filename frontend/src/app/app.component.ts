@@ -1,4 +1,4 @@
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
@@ -7,7 +7,7 @@ import { MenuPrincipalComponent } from './shared/menu-principal/menu-principal.c
 
 @Component({
   selector: 'app-root',
-  imports: [AsyncPipe, NgIf, RouterOutlet, RouterLink, MenuPrincipalComponent],
+  imports: [AsyncPipe, RouterOutlet, RouterLink, MenuPrincipalComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })

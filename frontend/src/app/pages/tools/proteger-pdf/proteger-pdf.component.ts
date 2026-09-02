@@ -1,4 +1,4 @@
-import { NgIf } from '@angular/common';
+
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -12,7 +12,7 @@ const LONGITUD_MINIMA = 4;
 
 @Component({
   selector: 'app-proteger-pdf',
-  imports: [NgIf, FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
+  imports: [FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './proteger-pdf.component.html',
 })
 export class ProtegerPdfComponent extends PaginaHerramienta {

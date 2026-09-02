@@ -1,4 +1,4 @@
-import { NgFor, NgIf } from '@angular/common';
+
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -13,9 +13,12 @@ import { avisoError, mensajeDeError } from '../../../shared/notify';
 @Component({
   selector: 'app-convertir-imagen',
   imports: [
-    NgFor, NgIf, FormsModule, FileQueueComponent, ResultListComponent,
-    ToolControlsComponent, ToolPageComponent,
-  ],
+    FormsModule,
+    FileQueueComponent,
+    ResultListComponent,
+    ToolControlsComponent,
+    ToolPageComponent
+],
   templateUrl: './convertir-imagen.component.html',
 })
 export class ConvertirImagenComponent extends PaginaHerramienta implements OnInit {

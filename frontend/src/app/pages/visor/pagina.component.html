@@ -1,171 +1,181 @@
 <div class="caja" #caja
-     [style.width.px]="colocada.ancho" [style.height.px]="colocada.alto"
-     (pointerdown)="alPulsar($event)"
-     (pointerup)="alSoltar($event)">
+  [style.width.px]="colocada.ancho" [style.height.px]="colocada.alto"
+  (pointerdown)="alPulsar($event)"
+  (pointerup)="alSoltar($event)">
 
   <canvas #lienzo class="lienzo" [class.lienzo--lista]="dibujada"
-          [style.width.px]="colocada.ancho" [style.height.px]="colocada.alto"></canvas>
+  [style.width.px]="colocada.ancho" [style.height.px]="colocada.alto"></canvas>
 
   <div class="capa-texto" #capaTexto></div>
 
   <!--
-    Los campos rellenables que trae el propio formulario. Con una herramienta de
-    marcado activa la capa deja pasar el ratón: si no, un campo se tragaría el
-    arrastre y no se podría subrayar una línea que lo cruce.
+  Los campos rellenables que trae el propio formulario. Con una herramienta de
+  marcado activa la capa deja pasar el ratón: si no, un campo se tragaría el
+  arrastre y no se podría subrayar una línea que lo cruce.
   -->
-  <div class="campos" *ngIf="conFormulario && camposPintados.length"
-       [class.campos--inertes]="marcando || escribiendo">
-    <ng-container *ngFor="let pintado of camposPintados; trackBy: porNombre">
-
-      <textarea class="campo campo--texto" *ngIf="pintado.campo.tipo === 'texto' && pintado.campo.multilinea"
-                [style]="pintado.estilo" [value]="pintado.valor"
-                [attr.maxlength]="pintado.campo.maximo || null"
-                [title]="pintado.campo.nombre"
-                (change)="alEscribirCampo(pintado, $event)"></textarea>
-
-      <input class="campo campo--texto" *ngIf="pintado.campo.tipo === 'texto' && !pintado.campo.multilinea"
-             type="text" [style]="pintado.estilo" [value]="pintado.valor"
-             [attr.maxlength]="pintado.campo.maximo || null"
-             [title]="pintado.campo.nombre"
-             (change)="alEscribirCampo(pintado, $event)">
-
-      <!--
+  @if (conFormulario && camposPintados.length) {
+    <div class="campos"
+      [class.campos--inertes]="marcando || escribiendo">
+      @for (pintado of camposPintados; track porNombre($index, pintado)) {
+        @if (pintado.campo.tipo === 'texto' && pintado.campo.multilinea) {
+          <textarea class="campo campo--texto"
+            [style]="pintado.estilo" [value]="pintado.valor"
+            [attr.maxlength]="pintado.campo.maximo || null"
+            [title]="pintado.campo.nombre"
+          (change)="alEscribirCampo(pintado, $event)"></textarea>
+        }
+        @if (pintado.campo.tipo === 'texto' && !pintado.campo.multilinea) {
+          <input class="campo campo--texto"
+            type="text" [style]="pintado.estilo" [value]="pintado.valor"
+            [attr.maxlength]="pintado.campo.maximo || null"
+            [title]="pintado.campo.nombre"
+            (change)="alEscribirCampo(pintado, $event)">
+        }
+        <!--
         Casillas y opciones van dentro de un recuadro opaco: pdf.js sí dibuja en
         la imagen la marca de estos campos —la de los de texto no—, así que una
         casilla que ya viniera marcada se vería dos veces. Y el fondo no puede
         ir en el propio control, porque un control nativo no lo pinta.
-      -->
-      <span class="campo campo--marca" *ngIf="pintado.campo.tipo === 'casilla'"
+        -->
+        @if (pintado.campo.tipo === 'casilla') {
+          <span class="campo campo--marca"
             [style]="pintado.estilo">
-        <input type="checkbox" [checked]="estaMarcado(pintado)" [title]="pintado.campo.nombre"
-               (change)="alEscribirCampo(pintado, $event)">
-      </span>
-
-      <span class="campo campo--marca" *ngIf="pintado.campo.tipo === 'opcion'"
+            <input type="checkbox" [checked]="estaMarcado(pintado)" [title]="pintado.campo.nombre"
+              (change)="alEscribirCampo(pintado, $event)">
+          </span>
+        }
+        @if (pintado.campo.tipo === 'opcion') {
+          <span class="campo campo--marca"
             [style]="pintado.estilo">
-        <input type="radio" [checked]="estaMarcado(pintado)" [name]="pintado.campo.nombre" [title]="pintado.campo.nombre"
-               (change)="alEscribirCampo(pintado, $event)">
-      </span>
-
-      <!--
+            <input type="radio" [checked]="estaMarcado(pintado)" [name]="pintado.campo.nombre" [title]="pintado.campo.nombre"
+              (change)="alEscribirCampo(pintado, $event)">
+          </span>
+        }
+        <!--
         El valor va atado al propio `select`: `selected` en las opciones sirve
         para el primer pintado, pero no cambia lo que enseña un desplegable que
         ya está puesto, y deshacer no se veía.
-      -->
-      <select class="campo campo--lista" *ngIf="pintado.campo.tipo === 'lista'"
-              [style]="pintado.estilo"
-              [title]="pintado.campo.nombre" [value]="pintado.valor"
-              (change)="alEscribirCampo(pintado, $event)">
-        <option value=""></option>
-        <option *ngFor="let opcion of pintado.campo.opciones" [value]="opcion.valor"
-                [selected]="opcion.valor === pintado.valor">{{ opcion.texto }}</option>
-      </select>
-    </ng-container>
-  </div>
+        -->
+        @if (pintado.campo.tipo === 'lista') {
+          <select class="campo campo--lista"
+            [style]="pintado.estilo"
+            [title]="pintado.campo.nombre" [value]="pintado.valor"
+            (change)="alEscribirCampo(pintado, $event)">
+            <option value=""></option>
+            @for (opcion of pintado.campo.opciones; track opcion) {
+              <option [value]="opcion.valor"
+              [selected]="opcion.valor === pintado.valor">{{ opcion.texto }}</option>
+            }
+          </select>
+        }
+      }
+    </div>
+  }
 
   <!--
-    Los textos escritos encima. Van antes que las marcas para que un subrayado
-    hecho después se vea sobre ellos, como en el papel.
+  Los textos escritos encima. Van antes que las marcas para que un subrayado
+  hecho después se vea sobre ellos, como en el papel.
   -->
   <div class="textos">
-    <div class="texto" *ngFor="let pintado of textosPintados; trackBy: porIdTexto"
-         [style]="pintado.estilo"
-         [class.texto--activo]="pintado.id === textoActivo"
-         [class.texto--escribiendo]="seEstaEscribiendo(pintado)"
-         (pointerdown)="alPulsarTexto($event, pintado)"
-         (pointermove)="alMoverTexto($event)"
-         (pointerup)="alSoltarTexto($event, pintado)">
-
-      <textarea class="texto__campo" #campo rows="1" spellcheck="false"
-                *ngIf="seEstaEscribiendo(pintado); else escrito"
-                [value]="edicion!.valor"
-                (input)="alEscribir($event)"
-                (keydown)="alTeclearEnTexto($event)"
-                (blur)="cerrarEdicion()"></textarea>
-
-      <ng-template #escrito><span class="texto__vista">{{ pintado.contenido }}</span></ng-template>
-    </div>
+    @for (pintado of textosPintados; track porIdTexto($index, pintado)) {
+      <div class="texto"
+        [style]="pintado.estilo"
+        [class.texto--activo]="pintado.id === textoActivo"
+        [class.texto--escribiendo]="seEstaEscribiendo(pintado)"
+        (pointerdown)="alPulsarTexto($event, pintado)"
+        (pointermove)="alMoverTexto($event)"
+        (pointerup)="alSoltarTexto($event, pintado)">
+        @if (seEstaEscribiendo(pintado)) {
+          <textarea class="texto__campo" #campo rows="1" spellcheck="false"
+            [value]="edicion!.valor"
+            (input)="alEscribir($event)"
+            (keydown)="alTeclearEnTexto($event)"
+          (blur)="cerrarEdicion()"></textarea>
+        } @else {
+          <span class="texto__vista">{{ pintado.contenido }}</span>
+        }
+      </div>
+    }
   </div>
 
   <div class="marcas">
-    <span class="resaltado" *ngFor="let estilo of resaltados" [style]="estilo"></span>
+    @for (estilo of resaltados; track estilo) {
+      <span class="resaltado" [style]="estilo"></span>
+    }
 
-    <span class="marca marca--{{ pintada.tipo }} marca--{{ pintada.color }}"
-          *ngFor="let pintada of pintadas; trackBy: porClave" [style]="pintada.estilo"></span>
+    @for (pintada of pintadas; track porClave($index, pintada)) {
+      <span class="marca marca--{{ pintada.tipo }} marca--{{ pintada.color }}"
+      [style]="pintada.estilo"></span>
+    }
 
   </div>
 
   <!--
-    El menú va en su propia capa, por encima de las marcas y de los textos. Si
-    viviera dentro de `.marcas` —que tiene z-index y crea contexto de
-    apilamiento— quedaría por debajo de las cajas de texto, y sus botones no
-    responderían allí donde se solaparan con una.
+  El menú va en su propia capa, por encima de las marcas y de los textos. Si
+  viviera dentro de `.marcas` —que tiene z-index y crea contexto de
+  apilamiento— quedaría por debajo de las cajas de texto, y sus botones no
+  responderían allí donde se solaparan con una.
   -->
   <div class="menus">
     <!-- Uno solo, con tres formas: una marca puesta, lo recién seleccionado, o la letra -->
-    <div class="menu-flotante" #menuFlotante *ngIf="menu as abierto" [style]="abierto.estilo"
-         (mousedown)="sinRobarElFoco($event)">
-
-      <ng-container *ngIf="abierto.menu !== 'texto'">
-        <button type="button" class="menu-flotante__color menu-flotante__color--{{ color }}"
-                *ngFor="let color of coloresDelMenu"
-                [class.menu-flotante__color--puesto]="esElColorPuesto(color)"
-                [title]="(abierto.menu === 'marca' ? 'Cambiar a ' : 'Subrayar en ') + color"
-                (click)="elegirColor(color)"></button>
-
-        <span class="menu-flotante__raya"></span>
-      </ng-container>
-
-      <button type="button" class="menu-flotante__accion" *ngIf="abierto.menu === 'marca'"
-              title="Quitar la marca" (click)="quitarDelMenu()"><i class="bi bi-trash"></i></button>
-
-      <ng-container *ngIf="abierto.menu === 'seleccion'">
-        <button type="button" class="menu-flotante__accion" title="Eliminar este texto del PDF"
-                (click)="accionar('tachar')"><i class="bi bi-eraser"></i></button>
-        <button type="button" class="menu-flotante__accion" title="Copiar"
+    @if (menu; as abierto) {
+      <div class="menu-flotante" #menuFlotante [style]="abierto.estilo"
+        (mousedown)="sinRobarElFoco($event)">
+        @if (abierto.menu !== 'texto') {
+          @for (color of coloresDelMenu; track color) {
+            <button type="button" class="menu-flotante__color menu-flotante__color--{{ color }}"
+              [class.menu-flotante__color--puesto]="esElColorPuesto(color)"
+              [title]="(abierto.menu === 'marca' ? 'Cambiar a ' : 'Subrayar en ') + color"
+            (click)="elegirColor(color)"></button>
+          }
+          <span class="menu-flotante__raya"></span>
+        }
+        @if (abierto.menu === 'marca') {
+          <button type="button" class="menu-flotante__accion"
+            title="Quitar la marca" (click)="quitarDelMenu()"><i class="bi bi-trash"></i></button>
+          }
+          @if (abierto.menu === 'seleccion') {
+            <button type="button" class="menu-flotante__accion" title="Eliminar este texto del PDF"
+              (click)="accionar('tachar')"><i class="bi bi-eraser"></i></button>
+              <button type="button" class="menu-flotante__accion" title="Copiar"
                 (click)="accionar('copiar')"><i class="bi bi-clipboard"></i></button>
-        <button type="button" class="menu-flotante__accion" title="Buscar en el documento"
-                (click)="accionar('buscar')"><i class="bi bi-search"></i></button>
-      </ng-container>
+                <button type="button" class="menu-flotante__accion" title="Buscar en el documento"
+                  (click)="accionar('buscar')"><i class="bi bi-search"></i></button>
+                }
+                <!-- La letra, mientras se escribe: sólo botones, para no robarle el foco al campo -->
+                @if (abierto.menu === 'texto') {
+                  @for (f of fuentes; track f) {
+                    <button type="button" class="menu-flotante__letra"
+                      [class.menu-flotante__letra--puesta]="estiloEscritura.fuente === f.valor"
+                      [style.font-family]="pilaCss(f.valor)" [title]="f.nombre"
+                    (click)="elegirFuente(f.valor)">Aa</button>
+                  }
+                  <span class="menu-flotante__raya"></span>
+                  <button type="button" class="menu-flotante__accion" title="Más pequeña"
+                    (click)="cambiarCuerpo(-1)"><i class="bi bi-dash-lg"></i></button>
+                    <span class="menu-flotante__cuerpo">{{ estiloEscritura.tamano }}</span>
+                    <button type="button" class="menu-flotante__accion" title="Más grande"
+                      (click)="cambiarCuerpo(1)"><i class="bi bi-plus-lg"></i></button>
+                      <span class="menu-flotante__raya"></span>
+                      <button type="button" class="menu-flotante__letra"
+                        [class.menu-flotante__letra--puesta]="estiloEscritura.negrita"
+                        title="Negrita" (click)="alternarNegrita()"><strong>N</strong></button>
+                        <button type="button" class="menu-flotante__letra"
+                          [class.menu-flotante__letra--puesta]="estiloEscritura.cursiva"
+                          title="Cursiva" (click)="alternarCursiva()"><em>K</em></button>
+                          <span class="menu-flotante__raya"></span>
+                          @for (tinta of tintas; track tinta) {
+                            <button type="button" class="menu-flotante__color menu-flotante__color--tinta-{{ tinta }}"
+                              [class.menu-flotante__color--puesto]="estiloEscritura.color === tinta"
+                            [title]="'Escribir en ' + tinta" (click)="elegirTinta(tinta)"></button>
+                          }
+                          <span class="menu-flotante__raya"></span>
+                          <button type="button" class="menu-flotante__accion" title="Quitar este texto"
+                            (click)="quitarTextoDelMenu()"><i class="bi bi-trash"></i></button>
+                          }
+                        </div>
+                      }
+                    </div>
 
-      <!-- La letra, mientras se escribe: sólo botones, para no robarle el foco al campo -->
-      <ng-container *ngIf="abierto.menu === 'texto'">
-        <button type="button" class="menu-flotante__letra" *ngFor="let f of fuentes"
-                [class.menu-flotante__letra--puesta]="estiloEscritura.fuente === f.valor"
-                [style.font-family]="pilaCss(f.valor)" [title]="f.nombre"
-                (click)="elegirFuente(f.valor)">Aa</button>
-
-        <span class="menu-flotante__raya"></span>
-
-        <button type="button" class="menu-flotante__accion" title="Más pequeña"
-                (click)="cambiarCuerpo(-1)"><i class="bi bi-dash-lg"></i></button>
-        <span class="menu-flotante__cuerpo">{{ estiloEscritura.tamano }}</span>
-        <button type="button" class="menu-flotante__accion" title="Más grande"
-                (click)="cambiarCuerpo(1)"><i class="bi bi-plus-lg"></i></button>
-
-        <span class="menu-flotante__raya"></span>
-
-        <button type="button" class="menu-flotante__letra"
-                [class.menu-flotante__letra--puesta]="estiloEscritura.negrita"
-                title="Negrita" (click)="alternarNegrita()"><strong>N</strong></button>
-        <button type="button" class="menu-flotante__letra"
-                [class.menu-flotante__letra--puesta]="estiloEscritura.cursiva"
-                title="Cursiva" (click)="alternarCursiva()"><em>K</em></button>
-
-        <span class="menu-flotante__raya"></span>
-
-        <button type="button" class="menu-flotante__color menu-flotante__color--tinta-{{ tinta }}"
-                *ngFor="let tinta of tintas"
-                [class.menu-flotante__color--puesto]="estiloEscritura.color === tinta"
-                [title]="'Escribir en ' + tinta" (click)="elegirTinta(tinta)"></button>
-
-        <span class="menu-flotante__raya"></span>
-
-        <button type="button" class="menu-flotante__accion" title="Quitar este texto"
-                (click)="quitarTextoDelMenu()"><i class="bi bi-trash"></i></button>
-      </ng-container>
-    </div>
-  </div>
-
-  <span class="numero">{{ colocada.numero }}</span>
-</div>
+                    <span class="numero">{{ colocada.numero }}</span>
+                  </div>

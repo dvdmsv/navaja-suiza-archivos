@@ -1,24 +1,34 @@
-<div class="progress mt-3" *ngIf="pagina.progreso >= 0" role="progressbar"
-     aria-label="Progreso de la subida" [attr.aria-valuenow]="pagina.progreso"
-     aria-valuemin="0" aria-valuemax="100" style="height: 1.25rem">
-  <div class="progress-bar progress-bar-striped progress-bar-animated"
-       [style.width.%]="pagina.progreso">{{ pagina.progreso }}%</div>
-</div>
+@if (pagina.progreso >= 0) {
+  <div class="progress mt-3" role="progressbar"
+    aria-label="Progreso de la subida" [attr.aria-valuenow]="pagina.progreso"
+    aria-valuemin="0" aria-valuemax="100" style="height: 1.25rem">
+    <div class="progress-bar progress-bar-striped progress-bar-animated"
+    [style.width.%]="pagina.progreso">{{ pagina.progreso }}%</div>
+  </div>
+}
 
 <div class="d-flex flex-wrap gap-2 mt-4">
   <button type="button" class="btn btn-primary" [disabled]="!pagina.listo" (click)="pagina.ejecutar()">
-    <span class="spinner-border spinner-border-sm me-1" *ngIf="pagina.procesando" aria-hidden="true"></span>
-    <i class="bi {{ icono }} me-1" *ngIf="!pagina.procesando"></i>
+    @if (pagina.procesando) {
+      <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+    }
+    @if (!pagina.procesando) {
+      <i class="bi {{ icono }} me-1"></i>
+    }
     {{ accion }}
   </button>
 
-  <button type="button" class="btn btn-outline-secondary" *ngIf="pagina.archivos.length > 0"
-          [disabled]="pagina.ocupado" (click)="pagina.empezarDeCero()">
-    Empezar de cero
-  </button>
+  @if (pagina.archivos.length > 0) {
+    <button type="button" class="btn btn-outline-secondary"
+      [disabled]="pagina.ocupado" (click)="pagina.empezarDeCero()">
+      Empezar de cero
+    </button>
+  }
 
-  <button type="button" class="btn btn-outline-warning ms-auto"
-          *ngIf="pagina.pendientes.length > 0 && !pagina.ocupado" (click)="pagina.reintentar()">
-    <i class="bi bi-arrow-clockwise me-1"></i>Reintentar la subida
-  </button>
+  @if (pagina.pendientes.length > 0 && !pagina.ocupado) {
+    <button type="button" class="btn btn-outline-warning ms-auto"
+      (click)="pagina.reintentar()">
+      <i class="bi bi-arrow-clockwise me-1"></i>Reintentar la subida
+    </button>
+  }
 </div>

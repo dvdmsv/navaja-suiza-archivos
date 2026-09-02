@@ -10,62 +10,71 @@
     (itemsChange)="alQuitarDocumento()">
   </app-file-queue>
 
-  <p class="text-body-secondary mt-3 mb-0" *ngIf="cargando">
-    <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-    Preparando las páginas…
-  </p>
+  @if (cargando) {
+    <p class="text-body-secondary mt-3 mb-0">
+      <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+      Preparando las páginas…
+    </p>
+  }
 
-  <ng-container *ngIf="paginas.length > 0">
+  @if (paginas.length > 0) {
     <div class="d-flex flex-wrap align-items-center gap-2 mt-4">
       <p class="text-body-secondary small mb-0 me-auto">
         <i class="bi bi-grip-vertical me-1"></i>
         Arrastra para cambiar el orden. {{ paginas.length }} de {{ originales }} páginas
-        <span *ngIf="eliminadas > 0">· {{ eliminadas }} se van a eliminar</span>
+        @if (eliminadas > 0) {
+          <span>· {{ eliminadas }} se van a eliminar</span>
+        }
       </p>
-      <button type="button" class="btn btn-sm btn-outline-secondary" *ngIf="hayCambios"
-              [disabled]="ocupado" (click)="restablecer()">
-        <i class="bi bi-arrow-counterclockwise me-1"></i>Deshacer los cambios
-      </button>
+      @if (hayCambios) {
+        <button type="button" class="btn btn-sm btn-outline-secondary"
+          [disabled]="ocupado" (click)="restablecer()">
+          <i class="bi bi-arrow-counterclockwise me-1"></i>Deshacer los cambios
+        </button>
+      }
     </div>
-
     <ul class="list-group mt-2" cdkDropList [cdkDropListDisabled]="ocupado"
-        (cdkDropListDropped)="reordenar($event)">
-      <li class="list-group-item pagina-fila d-flex align-items-center gap-3"
-          *ngFor="let pagina of paginas; let i = index" cdkDrag [cdkDragDisabled]="ocupado">
-
-        <i class="bi bi-grip-vertical text-body-secondary asa" aria-hidden="true" cdkDragHandle></i>
-
-        <img class="miniatura" [src]="pagina.miniatura" [alt]="'Página ' + pagina.numero"
-             [style.transform]="'rotate(' + pagina.rotacion + 'deg)'" *ngIf="pagina.miniatura">
-
-        <span class="flex-grow-1">
-          <span class="fw-medium">Página {{ pagina.numero }}</span>
-          <span class="d-block small text-body-secondary">
-            posición {{ i + 1 }}<span *ngIf="pagina.rotacion"> · girada {{ pagina.rotacion }}°</span>
+      (cdkDropListDropped)="reordenar($event)">
+      @for (pagina of paginas; track pagina; let i = $index) {
+        <li class="list-group-item pagina-fila d-flex align-items-center gap-3"
+          cdkDrag [cdkDragDisabled]="ocupado">
+          <i class="bi bi-grip-vertical text-body-secondary asa" aria-hidden="true" cdkDragHandle></i>
+          @if (pagina.miniatura) {
+            <img class="miniatura" [src]="pagina.miniatura" [alt]="'Página ' + pagina.numero"
+              [style.transform]="'rotate(' + pagina.rotacion + 'deg)'">
+          }
+          <span class="flex-grow-1">
+            <span class="fw-medium">Página {{ pagina.numero }}</span>
+            <span class="d-block small text-body-secondary">
+              posición {{ i + 1 }}@if (pagina.rotacion) {
+              <span> · girada {{ pagina.rotacion }}°</span>
+            }
           </span>
         </span>
-
         <button type="button" class="btn btn-sm btn-outline-secondary flex-shrink-0"
-                [disabled]="ocupado" (click)="girar(pagina)"
-                [attr.aria-label]="'Girar la página ' + pagina.numero">
+          [disabled]="ocupado" (click)="girar(pagina)"
+          [attr.aria-label]="'Girar la página ' + pagina.numero">
           <i class="bi bi-arrow-clockwise"></i>
         </button>
         <button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0"
-                [disabled]="ocupado" (click)="quitar(i)"
-                [attr.aria-label]="'Quitar la página ' + pagina.numero">
+          [disabled]="ocupado" (click)="quitar(i)"
+          [attr.aria-label]="'Quitar la página ' + pagina.numero">
           <i class="bi bi-trash"></i>
         </button>
       </li>
-    </ul>
-  </ng-container>
+    }
+  </ul>
+}
 
-  <app-tool-controls [pagina]="pagina" accion="Guardar el documento" icono="bi-check2-square">
-  </app-tool-controls>
+<app-tool-controls [pagina]="pagina" accion="Guardar el documento" icono="bi-check2-square">
+</app-tool-controls>
 
-  <p class="small text-body-secondary mt-2 mb-0" *ngIf="paginas.length > 0 && !hayCambios">
+@if (paginas.length > 0 && !hayCambios) {
+  <p class="small text-body-secondary mt-2 mb-0">
     Mueve, gira o quita alguna página para poder guardar.
   </p>
+}
 
-  <app-result-list [archivos]="resultados"></app-result-list>
+<app-result-list [archivos]="resultados"></app-result-list>
 
 </app-tool-page>

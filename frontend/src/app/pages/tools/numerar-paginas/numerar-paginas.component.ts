@@ -1,4 +1,4 @@
-import { NgFor, NgIf } from '@angular/common';
+
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -13,8 +13,7 @@ interface Opcion { id: string; nombre: string; detalle?: string; }
 
 @Component({
   selector: 'app-numerar-paginas',
-  imports: [NgFor, NgIf, FormsModule, FileQueueComponent, ResultListComponent,
-            ToolControlsComponent, ToolPageComponent, VistaPaginaComponent],
+  imports: [FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent, VistaPaginaComponent],
   templateUrl: './numerar-paginas.component.html',
 })
 export class NumerarPaginasComponent extends PaginaConVista {

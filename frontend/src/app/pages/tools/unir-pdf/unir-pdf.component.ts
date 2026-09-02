@@ -1,4 +1,4 @@
-import { NgIf } from '@angular/common';
+
 import { Component } from '@angular/core';
 
 import { FileQueueComponent } from '../../../shared/file-queue/file-queue.component';
@@ -9,7 +9,7 @@ import { ToolPageComponent } from '../../../shared/tool-page/tool-page.component
 
 @Component({
   selector: 'app-unir-pdf',
-  imports: [NgIf, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
+  imports: [FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './unir-pdf.component.html',
 })
 export class UnirPdfComponent extends PaginaHerramienta {

@@ -1,5 +1,5 @@
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
-import { NgFor, NgIf, NgSwitch, NgSwitchCase } from '@angular/common';
+
 import { Component, EventEmitter, Input, Output, ViewChild, ElementRef } from '@angular/core';
 
 import { PesoPipe } from '../peso.pipe';
@@ -27,7 +27,7 @@ export function aCola(archivos: File[]): ArchivoEnCola[] {
  */
 @Component({
   selector: 'app-file-queue',
-  imports: [NgFor, NgIf, NgSwitch, NgSwitchCase, DragDropModule, PesoPipe],
+  imports: [DragDropModule, PesoPipe],
   templateUrl: './file-queue.component.html',
   styleUrl: './file-queue.component.css',
 })

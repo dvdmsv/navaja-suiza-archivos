@@ -1,4 +1,4 @@
-import { NgFor, NgIf } from '@angular/common';
+
 import { Component, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -57,9 +57,14 @@ const MAXIMO_AUTOFIRMA = 5 * 1024 * 1024;
 @Component({
   selector: 'app-firmar-certificado',
   imports: [
-    NgFor, NgIf, FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent,
-    ToolPageComponent, LienzoFirmaComponent, PizarraComponent,
-  ],
+    FormsModule,
+    FileQueueComponent,
+    ResultListComponent,
+    ToolControlsComponent,
+    ToolPageComponent,
+    LienzoFirmaComponent,
+    PizarraComponent
+],
   templateUrl: './firmar-certificado.component.html',
 })
 export class FirmarCertificadoComponent extends PaginaHerramienta implements OnDestroy {

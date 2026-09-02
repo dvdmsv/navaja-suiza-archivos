@@ -1,4 +1,4 @@
-import { NgIf } from '@angular/common';
+
 import { Component, Input, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
@@ -10,7 +10,7 @@ import { Herramienta, buscarPorSlug } from '../../core/tools';
  */
 @Component({
   selector: 'app-tool-page',
-  imports: [NgIf, RouterLink],
+  imports: [RouterLink],
   template: `
     <div class="contenido-estrecho">
       <nav aria-label="Ruta de navegación">
@@ -19,17 +19,19 @@ import { Herramienta, buscarPorSlug } from '../../core/tools';
           <li class="breadcrumb-item active" aria-current="page">{{ herramienta?.nombre }}</li>
         </ol>
       </nav>
-
-      <header class="mb-4" *ngIf="herramienta as h">
-        <h1 class="h3 d-flex align-items-center gap-2">
-          <i class="bi {{ h.icono }} text-primary"></i>{{ h.nombre }}
-        </h1>
-        <p class="text-body-secondary mb-0">{{ h.descripcion }}</p>
-      </header>
-
+    
+      @if (herramienta; as h) {
+        <header class="mb-4">
+          <h1 class="h3 d-flex align-items-center gap-2">
+            <i class="bi {{ h.icono }} text-primary"></i>{{ h.nombre }}
+          </h1>
+          <p class="text-body-secondary mb-0">{{ h.descripcion }}</p>
+        </header>
+      }
+    
       <ng-content></ng-content>
     </div>
-  `,
+    `,
 })
 export class ToolPageComponent implements OnInit {
   /** Slug de la herramienta en `core/tools.ts`. */

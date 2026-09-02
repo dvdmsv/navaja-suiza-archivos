@@ -1,4 +1,4 @@
-import { NgFor } from '@angular/common';
+
 import { Component } from '@angular/core';
 
 import { FileQueueComponent } from '../../../shared/file-queue/file-queue.component';
@@ -15,7 +15,7 @@ interface OpcionNivel {
 
 @Component({
   selector: 'app-comprimir-pdf',
-  imports: [NgFor, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
+  imports: [FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './comprimir-pdf.component.html',
 })
 export class ComprimirPdfComponent extends PaginaHerramienta {

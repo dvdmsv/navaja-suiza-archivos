@@ -1,4 +1,4 @@
-import { NgFor, NgIf } from '@angular/common';
+
 import {
   AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener,
   NgZone, OnDestroy, ViewChild, inject,
@@ -52,7 +52,7 @@ const SIN_MARCAS: Marca[] = [];
 
 @Component({
   selector: 'app-visor',
-  imports: [NgFor, NgIf, FormsModule, RouterLink, VisorPaginaComponent, VisorPanelComponent],
+  imports: [FormsModule, RouterLink, VisorPaginaComponent, VisorPanelComponent],
   templateUrl: './visor.component.html',
   styleUrl: './visor.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

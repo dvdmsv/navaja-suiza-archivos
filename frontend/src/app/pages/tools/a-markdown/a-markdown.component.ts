@@ -1,4 +1,4 @@
-import { NgIf } from '@angular/common';
+
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -15,7 +15,7 @@ const CARACTERES_POR_TOKEN = 4;
 
 @Component({
   selector: 'app-a-markdown',
-  imports: [NgIf, FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
+  imports: [FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './a-markdown.component.html',
   styleUrl: './a-markdown.component.css',
 })

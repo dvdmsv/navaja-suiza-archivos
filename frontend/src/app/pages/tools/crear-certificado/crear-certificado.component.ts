@@ -1,4 +1,4 @@
-import { NgIf } from '@angular/common';
+
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -18,7 +18,7 @@ const MINIMO_CONTRASENA = 8;
  */
 @Component({
   selector: 'app-crear-certificado',
-  imports: [NgIf, FormsModule, ResultListComponent, ToolControlsComponent, ToolPageComponent],
+  imports: [FormsModule, ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './crear-certificado.component.html',
 })
 export class CrearCertificadoComponent extends PaginaHerramienta {

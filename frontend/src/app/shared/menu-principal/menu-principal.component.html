@@ -1,29 +1,31 @@
 <ul class="navbar-nav menu">
-  <li class="nav-item seccion" *ngFor="let grupo of grupos"
+  @for (grupo of grupos; track grupo) {
+    <li class="nav-item seccion"
       (pointerenter)="alEntrar($event, grupo.categoria)" (pointerleave)="alSalir($event)">
-
-    <button type="button" class="seccion__boton"
-            [class.seccion__boton--activa]="esActiva(grupo)"
-            [attr.aria-expanded]="seccionAbierta === grupo.categoria"
-            [attr.aria-controls]="identificador(grupo.categoria)"
-            (click)="alternar($event, grupo.categoria)">
-      {{ grupo.categoria }}
-      <i class="bi bi-chevron-down seccion__flecha" aria-hidden="true"></i>
-    </button>
-
-    <div class="panel" [id]="identificador(grupo.categoria)"
-         [class.panel--abierto]="seccionAbierta === grupo.categoria">
-      <div class="panel__interior">
-        <a class="nav-link herramienta" *ngFor="let herramienta of grupo.herramientas"
-           [routerLink]="rutaDe(herramienta)" routerLinkActive="herramienta--activa"
-           (click)="alNavegar()">
-          <i class="bi {{ herramienta.icono }} herramienta__icono" aria-hidden="true"></i>
-          <span>
-            <span class="herramienta__nombre">{{ herramienta.nombre }}</span>
-            <span class="herramienta__descripcion">{{ herramienta.descripcion }}</span>
-          </span>
-        </a>
+      <button type="button" class="seccion__boton"
+        [class.seccion__boton--activa]="esActiva(grupo)"
+        [attr.aria-expanded]="seccionAbierta === grupo.categoria"
+        [attr.aria-controls]="identificador(grupo.categoria)"
+        (click)="alternar($event, grupo.categoria)">
+        {{ grupo.categoria }}
+        <i class="bi bi-chevron-down seccion__flecha" aria-hidden="true"></i>
+      </button>
+      <div class="panel" [id]="identificador(grupo.categoria)"
+        [class.panel--abierto]="seccionAbierta === grupo.categoria">
+        <div class="panel__interior">
+          @for (herramienta of grupo.herramientas; track herramienta) {
+            <a class="nav-link herramienta"
+              [routerLink]="rutaDe(herramienta)" routerLinkActive="herramienta--activa"
+              (click)="alNavegar()">
+              <i class="bi {{ herramienta.icono }} herramienta__icono" aria-hidden="true"></i>
+              <span>
+                <span class="herramienta__nombre">{{ herramienta.nombre }}</span>
+                <span class="herramienta__descripcion">{{ herramienta.descripcion }}</span>
+              </span>
+            </a>
+          }
+        </div>
       </div>
-    </div>
-  </li>
+    </li>
+  }
 </ul>

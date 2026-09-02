@@ -17,7 +17,7 @@
     <div class="col-12 col-md-6">
       <label for="nombre" class="form-label mb-1">Nombre y apellidos</label>
       <input type="text" class="form-control" id="nombre" maxlength="100" [disabled]="ocupado"
-             placeholder="María García López" [(ngModel)]="nombre" (input)="alCambiarLista()">
+        placeholder="María García López" [(ngModel)]="nombre" (input)="alCambiarLista()">
       <p class="form-text mt-1">Es lo que aparecerá como firmante en el documento.</p>
     </div>
     <div class="col-12 col-md-6">
@@ -25,19 +25,19 @@
         Organización <span class="text-body-secondary">(opcional)</span>
       </label>
       <input type="text" class="form-control" id="organizacion" maxlength="100"
-             [disabled]="ocupado" [(ngModel)]="organizacion" (input)="alCambiarLista()">
+        [disabled]="ocupado" [(ngModel)]="organizacion" (input)="alCambiarLista()">
     </div>
     <div class="col-12 col-md-6">
       <label for="correo" class="form-label mb-1">
         Correo <span class="text-body-secondary">(opcional)</span>
       </label>
       <input type="email" class="form-control" id="correo" maxlength="100" [disabled]="ocupado"
-             [(ngModel)]="correo" (input)="alCambiarLista()">
+        [(ngModel)]="correo" (input)="alCambiarLista()">
     </div>
     <div class="col-6 col-md-3">
       <label for="pais" class="form-label mb-1">País</label>
       <input type="text" class="form-control" id="pais" maxlength="2" [disabled]="ocupado"
-             [(ngModel)]="pais" (input)="alCambiarLista()">
+        [(ngModel)]="pais" (input)="alCambiarLista()">
     </div>
   </div>
 
@@ -46,12 +46,12 @@
     <div class="col-6 col-md-3">
       <label for="anos" class="form-label mb-1">Años de validez</label>
       <input type="number" class="form-control" id="anos" min="1" max="10" [disabled]="ocupado"
-             [(ngModel)]="anos" (change)="alCambiarLista()">
+        [(ngModel)]="anos" (change)="alCambiarLista()">
     </div>
     <div class="col-6 col-md-3">
       <label for="bits" class="form-label mb-1">Tamaño de la clave</label>
       <select class="form-select" id="bits" [disabled]="ocupado" [(ngModel)]="bits"
-              (change)="alCambiarLista()">
+        (change)="alCambiarLista()">
         <option value="2048">2048 bits</option>
         <option value="4096">4096 bits</option>
       </select>
@@ -68,36 +68,42 @@
     <div class="col-12 col-md-6">
       <label for="clave" class="form-label mb-1">Contraseña</label>
       <input type="password" class="form-control" id="clave" autocomplete="new-password"
-             [class.is-invalid]="contrasenaCorta" [disabled]="ocupado"
-             [(ngModel)]="contrasena" (input)="alCambiarLista()">
-      <div class="invalid-feedback" *ngIf="contrasenaCorta">
-        Al menos 8 caracteres.
-      </div>
+        [class.is-invalid]="contrasenaCorta" [disabled]="ocupado"
+        [(ngModel)]="contrasena" (input)="alCambiarLista()">
+      @if (contrasenaCorta) {
+        <div class="invalid-feedback">
+          Al menos 8 caracteres.
+        </div>
+      }
     </div>
     <div class="col-12 col-md-6">
       <label for="clave2" class="form-label mb-1">Repítela</label>
       <input type="password" class="form-control" id="clave2" autocomplete="new-password"
-             [class.is-invalid]="contrasenaDistinta" [disabled]="ocupado"
-             [(ngModel)]="repetida" (input)="alCambiarLista()">
-      <div class="invalid-feedback" *ngIf="contrasenaDistinta">
-        No coincide con la anterior.
-      </div>
+        [class.is-invalid]="contrasenaDistinta" [disabled]="ocupado"
+        [(ngModel)]="repetida" (input)="alCambiarLista()">
+      @if (contrasenaDistinta) {
+        <div class="invalid-feedback">
+          No coincide con la anterior.
+        </div>
+      }
     </div>
   </div>
 
   <app-tool-controls [pagina]="pagina" accion="Crear el certificado" icono="bi-award">
   </app-tool-controls>
 
-  <div class="alert alert-info d-flex gap-2 mt-3" *ngIf="resultados.length > 0">
-    <i class="bi bi-info-circle-fill flex-shrink-0 mt-1"></i>
-    <div>
-      <strong>Descárgalos los dos y guárdalos a buen recaudo.</strong>
-      El <code>.p12</code> lleva tu clave privada dentro: es el que se usa para firmar y no se le
-      da a nadie. El <code>.crt</code> es público y es el que hay que darle a quien tenga que
-      comprobar tus firmas. Cuando los tengas, pulsa "Empezar de cero" para que no se queden en el
-      servidor.
+  @if (resultados.length > 0) {
+    <div class="alert alert-info d-flex gap-2 mt-3">
+      <i class="bi bi-info-circle-fill flex-shrink-0 mt-1"></i>
+      <div>
+        <strong>Descárgalos los dos y guárdalos a buen recaudo.</strong>
+        El <code>.p12</code> lleva tu clave privada dentro: es el que se usa para firmar y no se le
+        da a nadie. El <code>.crt</code> es público y es el que hay que darle a quien tenga que
+        comprobar tus firmas. Cuando los tengas, pulsa "Empezar de cero" para que no se queden en el
+        servidor.
+      </div>
     </div>
-  </div>
+  }
 
   <app-result-list [archivos]="resultados"></app-result-list>
 

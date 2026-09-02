@@ -1,4 +1,4 @@
-import { NgFor } from '@angular/common';
+
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -15,7 +15,7 @@ interface Idioma {
 
 @Component({
   selector: 'app-ocr-pdf',
-  imports: [NgFor, FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
+  imports: [FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent, ToolPageComponent],
   templateUrl: './ocr-pdf.component.html',
 })
 export class OcrPdfComponent extends PaginaHerramienta {

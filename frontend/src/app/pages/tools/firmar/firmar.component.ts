@@ -1,4 +1,4 @@
-import { NgFor, NgIf } from '@angular/common';
+
 import { Component, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -19,9 +19,14 @@ const ESPERA_UMBRAL = 350;
 @Component({
   selector: 'app-firmar',
   imports: [
-    NgFor, NgIf, FormsModule, FileQueueComponent, ResultListComponent, ToolControlsComponent,
-    ToolPageComponent, LienzoFirmaComponent, PizarraComponent,
-  ],
+    FormsModule,
+    FileQueueComponent,
+    ResultListComponent,
+    ToolControlsComponent,
+    ToolPageComponent,
+    LienzoFirmaComponent,
+    PizarraComponent
+],
   templateUrl: './firmar.component.html',
   styleUrl: './firmar.component.css',
 })

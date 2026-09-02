@@ -26,7 +26,7 @@ IDIOMAS = {'spa', 'eng', 'spa+eng'}
 
 # No hay tope de páginas a propósito. Medido en el contenedor: un OCR de 10
 # páginas consume 129 MB y uno de 30, 143 MB. Triplicar el documento sube la
-# memoria un 11 %, porque `--jobs 1` procesa de una en una y sólo hay una página
+# memoria un 11 %, porque las páginas se procesan de una en una y sólo hay una
 # en memoria a la vez. Lo que crece es el tiempo, así que quien acota esto es el
 # plazo de aquí abajo, no un número de páginas inventado.
 #
@@ -34,6 +34,22 @@ IDIOMAS = {'spa', 'eng', 'spa+eng'}
 # en vez de que nos corten la respuesta. Si se sube, hay que subir también
 # `GUNICORN_TIMEOUT`.
 TIEMPO_LIMITE = config.entorno_entero('OCR_TIMEOUT_SECONDS', 240)
+
+# Páginas que ocrmypdf reconoce en paralelo. Medido con 60 páginas escaneadas en
+# un contenedor de 4 núcleos: con 1 tarda 36 s y consume 180 MB; con 4 tarda
+# 21 s y consume 327 MB. Es decir, 42 % más rápido por 150 MB más.
+#
+# El valor por defecto es 1 porque este repositorio tiene que arrancar en
+# cualquier máquina, no porque sea el bueno: si tienes núcleos y memoria, súbelo.
+TRABAJOS = config.entorno_entero('OCR_JOBS', 1)
+
+# Cuánto aprieta ocrmypdf el PDF resultante, de 0 a 3.
+#
+# Por defecto 1, y no 0 como antes, porque **sale gratis**: en la misma medición,
+# el archivo pasó de 2742 kB a 716 kB —casi cuatro veces menos— en el mismo
+# tiempo y con 6 MB más de memoria. El 0 no estaba comprando velocidad, sólo
+# evitando una memoria que hoy sobra.
+OPTIMIZACION = min(3, config.entorno_entero('OCR_OPTIMIZE', 1, minimo=0))
 
 # Qué significa cada código de salida de ocrmypdf, en cristiano.
 ERRORES = {
@@ -80,9 +96,8 @@ def ocr_pdf():
 def _reconocer(origen: str, destino: str, idioma: str, rehacer: bool) -> None:
     orden = [
         'ocrmypdf',
-        # Un solo trabajo y sin optimizar: el contenedor tiene poca memoria.
-        '--jobs', '1',
-        '--optimize', '0',
+        '--jobs', str(TRABAJOS),
+        '--optimize', str(OPTIMIZACION),
         '--language', idioma,
         '--quiet',
         # `redo-ocr` rehace el texto conservando los gráficos; `skip-text` deja

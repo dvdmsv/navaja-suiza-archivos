@@ -506,6 +506,8 @@ sitio, no porque sean los correctos para tu servidor.** Si el tuyo da para más,
 | `GUNICORN_TIMEOUT` | `300` | Plazo de una petición. Tiene que ser **mayor que todos** los plazos de abajo |
 | `MAX_CONCURRENT_CONVERSIONS` | `1` | Conversiones de ofimática simultáneas. Cada una arranca su LibreOffice: entre 130 y 350 MB según el documento |
 | `CONVERSION_QUEUE_TIMEOUT_SECONDS` | `45` | Cuánto espera una petición a que le toque el turno |
+| `OCR_JOBS` | `1` | Páginas que el OCR reconoce a la vez. **El ajuste que más se nota**: con 4 núcleos, 60 páginas pasan de 36 s a 21 s, a cambio de 150 MB más |
+| `OCR_OPTIMIZE` | `1` | Cuánto aprieta el PDF resultante, de 0 a 3. El 1 sale casi gratis: mismo tiempo y archivos hasta cuatro veces menores |
 | `OCR_TIMEOUT_SECONDS` | `240` | Plazo del OCR |
 | `PDF_TO_WORD_TIMEOUT_SECONDS` | `240` | Plazo al convertir a `.docx` |
 | `DOC_TO_PDF_TIMEOUT_SECONDS` | `180` | Plazo del lote hacia PDF |

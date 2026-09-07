@@ -23,6 +23,16 @@ FROM nginx:alpine
 
 # Copia la salida de Angular al servidor NGINX
 COPY --from=builder /app/dist/merge-pdf/browser /usr/share/nginx/html
+
+# Deja un .gz al lado de cada archivo comprimible para que `gzip_static` lo
+# sirva tal cual. Comprimir aquí una vez, al máximo, sale mejor que comprimir a
+# nivel 6 en cada petición: los archivos llevan hash en el nombre y no cambian.
+# `-k` conserva el original, que es lo que se envía a quien no acepte gzip.
+RUN find /usr/share/nginx/html -type f \
+      \( -name '*.js' -o -name '*.mjs' -o -name '*.css' -o -name '*.html' \
+         -o -name '*.svg' -o -name '*.json' \) \
+      -exec gzip -9 -k {} \;
+
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Exponer el puerto de NGINX

@@ -682,7 +682,16 @@ storage import storage` y, si validas algo a mano, `from errors import ApiError`
 Y añádelo a la lista `BLUEPRINTS` de `backend/api/tools/__init__.py`.
 
 **2. Catálogo** — añade su entrada en `frontend/src/app/core/tools.ts` con
-`disponible: true`.
+`disponible: true`. Si eliges un icono que la aplicación no usaba todavía,
+regenera la fuente recortada:
+
+```bash
+cd frontend && python3 scripts/generar-iconos.py   # necesita fonttools y brotli
+```
+
+La fuente lleva sólo los 84 iconos que se usan (12 kB en vez de 228), así que
+uno nuevo saldría en blanco. `npm run iconos` te avisa, y la CI lo comprueba
+antes de compilar.
 
 **3. Ruta** — regístrala en `frontend/src/app/app.routes.ts` (Angular necesita el
 `import` estático para la carga diferida). El test de `core/tools.spec.ts` falla

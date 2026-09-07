@@ -1,0 +1,109 @@
+/* GENERADO por scripts/generar-iconos.py — no editar a mano.
+   84 iconos de los 2078 que trae bootstrap-icons.
+   Para añadir uno: úsalo en el código y vuelve a ejecutar el script. */
+
+@font-face {
+  font-family: "bootstrap-icons";
+  src: url("./iconos.woff2") format("woff2");
+  font-display: block;
+}
+
+.bi::before,
+[class^="bi-"]::before,
+[class*=" bi-"]::before {
+  display: inline-block;
+  font-family: "bootstrap-icons" !important;
+  font-style: normal;
+  font-weight: normal !important;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  vertical-align: -.125em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.bi-arrow-clockwise::before { content: "\f116"; }
+.bi-arrow-counterclockwise::before { content: "\f117"; }
+.bi-arrow-left::before { content: "\f12f"; }
+.bi-arrow-left-right::before { content: "\f12b"; }
+.bi-arrow-repeat::before { content: "\f130"; }
+.bi-arrows::before { content: "\f6a2"; }
+.bi-arrows-move::before { content: "\f14e"; }
+.bi-aspect-ratio::before { content: "\f150"; }
+.bi-award::before { content: "\f154"; }
+.bi-body-text::before { content: "\f683"; }
+.bi-book::before { content: "\f194"; }
+.bi-bookmark::before { content: "\f1a2"; }
+.bi-card-image::before { content: "\f226"; }
+.bi-check-circle-fill::before { content: "\f26a"; }
+.bi-check-lg::before { content: "\f633"; }
+.bi-check2-square::before { content: "\f271"; }
+.bi-chevron-down::before { content: "\f282"; }
+.bi-clipboard::before { content: "\f290"; }
+.bi-clock-history::before { content: "\f292"; }
+.bi-cloud-arrow-up::before { content: "\f297"; }
+.bi-dash-lg::before { content: "\f63b"; }
+.bi-download::before { content: "\f30a"; }
+.bi-droplet-half::before { content: "\f30c"; }
+.bi-envelope::before { content: "\f32f"; }
+.bi-eraser::before { content: "\f331"; }
+.bi-exclamation-triangle::before { content: "\f33b"; }
+.bi-exclamation-triangle-fill::before { content: "\f33a"; }
+.bi-eye::before { content: "\f341"; }
+.bi-file-earmark::before { content: "\f392"; }
+.bi-file-earmark-check::before { content: "\f360"; }
+.bi-file-earmark-image::before { content: "\f36d"; }
+.bi-file-earmark-lock::before { content: "\f36f"; }
+.bi-file-earmark-pdf::before { content: "\f63e"; }
+.bi-file-earmark-plus::before { content: "\f37d"; }
+.bi-file-earmark-word::before { content: "\f38d"; }
+.bi-file-earmark-zip::before { content: "\f391"; }
+.bi-filetype-pdf::before { content: "\f756"; }
+.bi-folder2-open::before { content: "\f3d8"; }
+.bi-fonts::before { content: "\f3da"; }
+.bi-geo-alt-fill::before { content: "\f3e7"; }
+.bi-grid-3x3-gap::before { content: "\f3f9"; }
+.bi-grip-vertical::before { content: "\f3fe"; }
+.bi-hand-index::before { content: "\f403"; }
+.bi-highlighter::before { content: "\f7f8"; }
+.bi-hourglass-split::before { content: "\f41f"; }
+.bi-image::before { content: "\f42a"; }
+.bi-images::before { content: "\f42b"; }
+.bi-incognito::before { content: "\f777"; }
+.bi-info-circle::before { content: "\f431"; }
+.bi-info-circle-fill::before { content: "\f430"; }
+.bi-layout-sidebar::before { content: "\f45f"; }
+.bi-link-45deg::before { content: "\f470"; }
+.bi-list-nested::before { content: "\f474"; }
+.bi-list-ol::before { content: "\f475"; }
+.bi-lock::before { content: "\f47b"; }
+.bi-markdown::before { content: "\f481"; }
+.bi-menu-button-wide::before { content: "\f489"; }
+.bi-moon-stars::before { content: "\f496"; }
+.bi-patch-check::before { content: "\f4b6"; }
+.bi-patch-check-fill::before { content: "\f4b5"; }
+.bi-pc-display::before { content: "\f6a6"; }
+.bi-pencil::before { content: "\f4cb"; }
+.bi-person-badge::before { content: "\f4d3"; }
+.bi-person-vcard::before { content: "\f8c9"; }
+.bi-play-fill::before { content: "\f4f4"; }
+.bi-plus-lg::before { content: "\f64d"; }
+.bi-qr-code::before { content: "\f6ae"; }
+.bi-question-circle::before { content: "\f505"; }
+.bi-scissors::before { content: "\f528"; }
+.bi-search::before { content: "\f52a"; }
+.bi-shield-check::before { content: "\f52f"; }
+.bi-shield-exclamation::before { content: "\f530"; }
+.bi-shield-x::before { content: "\f53e"; }
+.bi-telephone::before { content: "\f5c1"; }
+.bi-tools::before { content: "\f5db"; }
+.bi-trash::before { content: "\f5de"; }
+.bi-ui-checks::before { content: "\f5f9"; }
+.bi-unlock::before { content: "\f600"; }
+.bi-upload::before { content: "\f603"; }
+.bi-vector-pen::before { content: "\f604"; }
+.bi-wifi::before { content: "\f61c"; }
+.bi-x-lg::before { content: "\f659"; }
+.bi-zoom-in::before { content: "\f62c"; }
+.bi-zoom-out::before { content: "\f62d"; }

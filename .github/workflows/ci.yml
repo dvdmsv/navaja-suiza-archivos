@@ -31,6 +31,9 @@ jobs:
       # concuerdan, que es justo lo que se quiere detectar aquí.
       - run: npm ci
 
+      - name: Los iconos usados están en la fuente recortada
+        run: npm run iconos
+
       - run: npm run build
 
       # Vitest sobre jsdom: sin navegador, así que no hace falta pantalla.

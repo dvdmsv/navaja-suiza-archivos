@@ -44,6 +44,35 @@ max_requests = 200
 max_requests_jitter = 20
 
 
+def post_fork(server, worker):
+    """Cargar en el worker recién nacido lo que va a usar de todas formas.
+
+    Sin esto, la primera petición que le toca a cada worker paga los imports:
+    medido en el contenedor, `api.tipografia` tarda 212 ms en cargarse, y una
+    llamada a marca-de-agua pasa de 220 ms la primera vez a 36 ms las
+    siguientes. Con `max_requests` reciclando workers, ese peaje vuelve cada
+    doscientas peticiones y lo paga siempre un usuario.
+
+    Se precargan sólo las tres baratas y comunes —unos 360 ms entre las tres—
+    que además comparten casi todas las herramientas. Las caras se quedan fuera
+    a propósito: `markitdown` tarda 1,4 s y `pyhanko` 525 ms, pero sobre todo
+    ocupan memoria que no tiene por qué pagar quien no usa esas herramientas.
+    Eso es justo lo que buscan sus imports diferidos, y esto no lo deshace.
+
+    No es `--preload`: allí se importaría antes del fork y los hilos de limpieza
+    de `storage.py` no sobrevivirían. Aquí se importa **después**, ya en el
+    worker, que es la diferencia que importa.
+    """
+    try:
+        import fitz  # noqa: F401
+        import PIL.Image  # noqa: F401
+        from api import tipografia  # noqa: F401
+    except Exception as fallo:  # pragma: no cover
+        # Calentar es una optimización, no un requisito: si algo falla aquí, el
+        # worker tiene que arrancar igual y pagar los imports cuando toque.
+        worker.log.warning('No se pudo precalentar (%s); se cargará al vuelo.', fallo)
+
+
 def on_starting(server):
     """Dejar dicho en el log con qué ha arrancado y por qué.
 

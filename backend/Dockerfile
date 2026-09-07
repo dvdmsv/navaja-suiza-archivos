@@ -17,16 +17,38 @@ WORKDIR /app
 #     Writer no necesita Java para exportar a PDF y son ~180 MB de menos.
 #     `fonts-liberation` da las métricas de Arial, Times New Roman y Courier
 #     New, para que un .docx hecho en Windows pagine donde tiene que paginar.
+#
+# La limpieza va en este mismo RUN a propósito: borrar en una capa posterior no
+# quita nada de peso, porque los archivos siguen dentro de la capa que los creó.
+# De LibreOffice sobra lo que sólo sirve para usarlo a mano —la galería de
+# imágenes prediseñadas, las plantillas y los asistentes—: aquí sólo se le pide
+# convertir a PDF sin interfaz. Son unos 39 MB entre eso y la documentación.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ghostscript tesseract-ocr tesseract-ocr-spa \
        libreoffice-writer fonts-liberation \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /usr/lib/libreoffice/share/gallery \
+              /usr/lib/libreoffice/share/template \
+              /usr/lib/libreoffice/share/wizards \
+              /usr/share/doc/*
 
 # Las dependencias van antes que el código a propósito: así un cambio de código
 # no obliga a reinstalar los ~300 MB de paquetes, que en la VM de despliegue es
 # la diferencia entre un build de minutos y uno de bastante más.
 COPY requirements.txt /app/
-RUN pip install --no-cache-dir -r requirements.txt
+#
+# Y lo mismo aquí: la limpieza tiene que ir pegada a la instalación. Se van las
+# baterías de pruebas de las bibliotecas y las cabeceras de C, que sólo hacen
+# falta para compilar contra ellas, no para ejecutarlas. Unos 58 MB.
+#
+# Los .pyc se quedan, aunque sean 99 MB: sin ellos Python los regeneraría en la
+# capa de escritura del contenedor y cada arranque en frío costaría más, que es
+# justo lo que evita el `post_fork` de gunicorn.conf.py.
+RUN pip install --no-cache-dir -r requirements.txt \
+    && find /usr/local/lib/python3.12/site-packages \
+         -type d \( -name tests -o -name test \) -prune -exec rm -rf {} + \
+    && find /usr/local/lib/python3.12/site-packages \
+         \( -name '*.h' -o -name '*.pxd' \) -delete
 
 # Copia los archivos de la aplicación
 COPY . /app
@@ -34,29 +56,11 @@ COPY . /app
 # Exponer el puerto
 EXPOSE 5000
 
-# Usamos Gunicorn para servir la app en 0.0.0.0
-# "app:app" significa: del archivo 'app.py', coge el objeto 'app'
+# Los ajustes viven en gunicorn.conf.py, que los calcula mirando los núcleos y
+# la memoria que tenga el contenedor. Ahí está explicado cada uno, incluido por
+# qué no se usa --preload y qué precalienta el post_fork.
 #
-# Los ajustes no son decorativos, con los valores por defecto (un worker
-# síncrono y 30 s de plazo) el servidor atendía una petición cada vez y mataba
-# cualquier conversión que pasara de medio minuto:
-#   --workers 1 --threads 4  un solo proceso que atiende cuatro peticiones a la
-#                            vez. Los hilos bastan porque PyMuPDF y Pillow
-#                            sueltan el GIL mientras trabajan, y un worker de
-#                            más cuesta otros ~190 MB de RAM: el valor por
-#                            defecto es para una VM pequeña, no una imposición.
-#                            Con memoria de sobra, `GUNICORN_WORKERS` sube.
-#   --timeout 300            lo mismo que espera nginx (proxy_read_timeout):
-#                            un PDF largo a 300 ppp o un markitdown recién
-#                            arrancado pasan de 30 s con facilidad.
-#   --max-requests           recicla los workers cada tantas peticiones, por si
-#                            alguna dependencia se deja memoria por el camino.
-#
-# Sin --preload a propósito: precargar haría el fork después de arrancar el hilo
-# que limpia las sesiones caducadas, y los hilos no sobreviven a un fork, así
-# que la limpieza dejaría de ejecutarse.
-# Va en forma de shell, y no como lista, porque así se pueden ajustar los tres
-# valores que dependen de la máquina sin reconstruir la imagen. El `exec` no es
-# decorativo: sin él gunicorn quedaría como hijo de `sh`, dejaría de recibir el
-# SIGTERM al parar el contenedor y se perdería el apagado ordenado.
+# En forma de lista, no de shell: no hay variables que expandir, así que
+# gunicorn es el proceso 1 y recibe el SIGTERM al parar el contenedor sin
+# necesidad de un `exec` que lo arregle.
 CMD ["gunicorn", "-c", "gunicorn.conf.py", "app:app"]

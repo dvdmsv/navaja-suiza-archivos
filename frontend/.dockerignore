@@ -1,2 +1,23 @@
-node_modules
-dist
+# Lo que no tiene por qué entrar en el contexto de build del frontend.
+# El contexto es `./frontend` (docker-compose.yml), así que sólo se mira este archivo.
+
+# Las dependencias se instalan dentro con `npm ci`, a partir del package-lock.
+node_modules/
+
+# La compilación se hace dentro; lo que haya compilado en local no se usa.
+dist/
+
+# La caché de Angular. Son cientos de MB que se enviarían al daemon en cada
+# build para no usarse: dentro del contenedor se compila desde cero.
+.angular/
+
+# Residuo de pruebas, vacío y sin versionar.
+uploads/
+
+# Cosas del editor y documentación que no intervienen en la compilación.
+.vscode/
+.editorconfig
+README.md
+
+Dockerfile
+.dockerignore

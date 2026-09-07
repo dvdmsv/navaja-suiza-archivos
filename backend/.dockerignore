@@ -1,0 +1,25 @@
+# Lo que no tiene por qué entrar en la imagen del backend.
+#
+# Hace falta aquí, y no vale el de la raíz: el contexto de build es `./backend`
+# (docker-compose.yml), así que Docker sólo mira este archivo. Sin él, `COPY . /app`
+# se lleva dentro todo lo que haya en la carpeta.
+
+# El entorno virtual de desarrollo. El README manda crearlo justo aquí, así que
+# quien siga el README y luego construya la imagen se metería ~600 MB dentro,
+# encima duplicando lo que pip ya instala en la imagen.
+.venv/
+venv/
+
+# Los archivos de las sesiones. En una máquina de desarrollo son los PDF que
+# hayas subido probando: no pintan nada en una imagen que se distribuye.
+uploads/
+
+# Bytecode local. Además de sobrar, cambia en cada ejecución e invalida el caché
+# de la capa `COPY`, obligando a rehacer el build sin que el código cambie.
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# El propio Dockerfile y este archivo no se usan desde dentro del contenedor.
+Dockerfile
+.dockerignore
